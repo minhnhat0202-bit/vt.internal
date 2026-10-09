@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Bản tin Giải thể thao gắn kết tinh thần, thi đua phong trào tháng 10 của Trung tâm Nền tảng Công nghệ và Chuyển đổi số: lịch thi đấu, số liệu đăng ký, sơ đồ thi đấu và chế độ trình chiếu TV.">
+<meta property="og:title" content="Giải thể thao tháng 10 · TT Nền tảng Công nghệ & CĐS">
+<meta property="og:image" content="img/poster-1200.jpg">
+<link rel="icon" type="image/png" href="img/logo-vtnet.png">
+<title>Giải thể thao 2026 · Bản tin</title>
+<style>
+  @font-face { font-family: "FS Magistral"; font-weight: 700; font-display: swap; src: url("fonts/FSMagistral-Bold.ttf") format("truetype"); }
+  @font-face { font-family: "FS Magistral"; font-weight: 800; font-display: swap; src: url("fonts/FSMagistral-ExtraBold.ttf") format("truetype"); }
+  @font-face { font-family: "Roboto"; font-weight: 400; font-display: swap; src: url("fonts/Roboto-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "Roboto"; font-weight: 500; font-display: swap; src: url("fonts/Roboto-Medium.ttf") format("truetype"); }
+  @font-face { font-family: "Roboto"; font-weight: 700; font-display: swap; src: url("fonts/Roboto-Bold.ttf") format("truetype"); }
+
+  /* Neon Tech, single dark look matching the poster. Only the 5 Viettel colours and their tints. */
+  :root {
+    --bg: #070608; --bg-2: #111014; --panel: rgba(255,255,255,.06); --panel-2: rgba(255,255,255,.10);
+    --line: rgba(255,255,255,.14); --line-2: rgba(255,255,255,.28);
+    --ink: #F2F2F2; --ink-2: rgba(242,242,242,.78); --ink-3: rgba(242,242,242,.52);
+    --red: #EE0033; --red-deep: #B30026; --red-soft: #FFD9E0; --grey: #B5B4B4; --char: #44494D;
+    --glow: 0 0 24px rgba(238,0,51,.55), 0 0 60px rgba(238,0,51,.25);
+    --display: "FS Magistral", "Roboto", "Segoe UI", Helvetica, Arial, sans-serif;
+    --body: "Roboto", "Segoe UI", Helvetica, Arial, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(900px 600px at 10% 0%, rgba(238,0,51,.28), transparent 60%), radial-gradient(700px 500px at 95% 100%, rgba(238,0,51,.18), transparent 60%), linear-gradient(180deg, #0b0a0d, #070608 60%); }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 56px; }
+
+  /* top bar */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .brand img { height: 42px; width: auto; background: #fff; padding: 4px 8px; border-radius: 8px; }
+  .brand .t { font-family: var(--display); font-weight: 700; text-transform: uppercase; line-height: 1.15; font-size: clamp(13px, 1.6vw, 17px); letter-spacing: .02em; }
+  .brand .t small { display: block; font-family: var(--body); font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--ink-3); font-size: 12px; }
+  nav { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  nav a, .btn { text-decoration: none; font-weight: 500; font-size: 14px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink); background: var(--panel); }
+  nav a:hover, .btn:hover { border-color: var(--red); }
+  .btn.red { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 0 18px rgba(238,0,51,.45); }
+  .btn.red:hover { background: #ff1a4b; }
+  .live { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-3); }
+  .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--grey); }
+  .live.on i { background: var(--red); box-shadow: 0 0 0 4px rgba(238,0,51,.25); }
+
+  /* hero */
+  .hero { display: grid; gap: 22px; margin-top: 22px; }
+  .poster { position: relative; border-radius: 18px; overflow: hidden; border: 1px solid var(--line-2); box-shadow: 0 30px 80px rgba(0,0,0,.6), var(--glow); aspect-ratio: 3/2; background: #000; }
+  .poster img { width: 100%; height: 100%; object-fit: cover; }
+  .poster .tag { position: absolute; left: 16px; top: 16px; display: flex; gap: 8px; }
+  .chip { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; background: rgba(0,0,0,.55); border: 1px solid var(--line-2); backdrop-filter: blur(10px); }
+  .chip.red { background: var(--red); border-color: rgba(255,255,255,.5); }
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .tile { padding: 16px 18px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); display: grid; gap: 4px; min-width: 0; }
+  .tile .l { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-3); font-weight: 500; }
+  .tile .v { font-family: var(--display); font-weight: 800; font-size: 34px; line-height: 1; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+  .tile .v small { font-size: 16px; font-family: var(--body); font-weight: 500; color: var(--ink-2); margin-left: 4px; letter-spacing: 0; }
+  .tile .s { font-size: 12px; color: var(--ink-3); }
+  .tile.red { background: linear-gradient(160deg, rgba(238,0,51,.92), rgba(140,0,30,.92)); border-color: rgba(255,255,255,.45); box-shadow: var(--glow); }
+  .tile.red .l, .tile.red .s { color: var(--red-soft); }
+
+  /* sections */
+  section { margin-top: 44px; }
+  .sh { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .sh h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(22px, 3vw, 32px); text-transform: uppercase; letter-spacing: .01em; line-height: 1.1;
+    background: linear-gradient(180deg, #fff, #ffb3c2 70%, #ff5c7f); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 14px rgba(238,0,51,.45)); }
+  .sh p { margin: 0; color: var(--ink-3); font-size: 14px; }
+  .sh .r { margin-left: auto; }
+
+  /* today */
+  .today { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .ev { padding: 16px 18px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: center; }
+  .ev .d { grid-row: span 2; font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; letter-spacing: -.5px; padding-right: 14px; border-right: 1px solid var(--line-2); min-width: 72px; }
+  .ev .d small { display: block; font-family: var(--body); font-weight: 500; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-top: 4px; }
+  .ev .n { font-weight: 700; font-size: 16px; }
+  .ev .m { color: var(--ink-2); font-size: 13px; }
+  .ev.now { border-color: var(--red); box-shadow: 0 0 0 1px rgba(238,0,51,.5), var(--glow); }
+  .ev.now .d { color: var(--red); border-right-color: rgba(238,0,51,.5); }
+  .ev.done { opacity: .55; }
+
+  /* schedule */
+  .sched { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 900px) { .sched { grid-template-columns: 1.55fr 1fr; align-items: start; } }
+  .sports { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .sport { position: relative; padding: 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); overflow: hidden; min-width: 0; }
+  .sport::before { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, rgba(238,0,51,.22), transparent 45%); pointer-events: none; }
+  .sport h3 { margin: 0 0 2px; font-family: var(--display); font-weight: 800; font-size: 26px; text-transform: uppercase; letter-spacing: .01em; display: flex; align-items: center; gap: 10px; }
+  .sport .ab { width: 42px; height: 42px; border-radius: 10px; display: grid; place-items: center; background: var(--red); color: #fff; font-size: 13px; letter-spacing: .04em; box-shadow: 0 0 16px rgba(238,0,51,.55); flex: 0 0 auto; }
+  .sport .f { color: var(--ink-3); font-size: 13px; margin-bottom: 12px; }
+  .sport ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+  .sport li { display: flex; gap: 10px; align-items: baseline; font-size: 14px; padding: 7px 10px; border-radius: 9px; background: rgba(0,0,0,.28); border: 1px solid transparent; }
+  .sport li b { font-weight: 500; color: var(--ink-2); min-width: 112px; }
+  .sport li span { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sport li.final { border-color: rgba(238,0,51,.6); background: rgba(238,0,51,.18); }
+  .sport li.now { border-color: var(--red); }
+  .sport li.done { opacity: .5; }
+  .sport li .st { margin-left: auto; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--red-soft); }
+  .sport.finale { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; gap: 10px 20px; align-items: center; background: linear-gradient(135deg, rgba(238,0,51,.55), rgba(60,0,15,.6)); border-color: rgba(255,255,255,.35); }
+  .sport.finale h3 { font-size: 24px; }
+  .sport.finale .slogan { font-family: var(--display); font-weight: 700; font-size: 16px; color: var(--red-soft); text-transform: uppercase; letter-spacing: .08em; }
+  .sport.finale .big { font-family: var(--display); font-weight: 800; font-size: 44px; line-height: 1; letter-spacing: -1px; text-align: right; font-variant-numeric: tabular-nums; }
+  .sport.finale .big small { display: block; font-family: var(--body); font-weight: 500; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--red-soft); margin-top: 6px; }
+  .frame { border-radius: 16px; overflow: hidden; border: 1px solid var(--line-2); box-shadow: 0 24px 60px rgba(0,0,0,.55); }
+  .frame img { width: 100%; height: auto; }
+
+  /* stats */
+  .stats { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width: 900px) { .stats { grid-template-columns: 1fr 1fr; } }
+  .card { padding: 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+  .card h3 { margin: 0 0 12px; font-family: var(--display); font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: .08em; display: flex; gap: 10px; align-items: center; }
+  .card h3::before { content: ""; width: 4px; height: 18px; border-radius: 2px; background: var(--red); box-shadow: 0 0 10px var(--red); }
+  .card h3 small { margin-left: auto; font-family: var(--body); text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-3); font-size: 12px; }
+  .bars { display: grid; gap: 10px; }
+  .bar { display: grid; grid-template-columns: minmax(96px, 150px) 1fr auto; gap: 12px; align-items: center; font-size: 14px; min-width: 0; }
+  .bar .n { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar .n small { color: var(--ink-3); font-weight: 400; }
+  .bar .t { height: 14px; border-radius: 7px; background: rgba(255,255,255,.10); overflow: hidden; position: relative; }
+  .bar .t i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: linear-gradient(90deg, #ff2a55, var(--red)); box-shadow: 0 0 12px rgba(238,0,51,.6); }
+  .bar .t i.wait { background: var(--grey); box-shadow: none; opacity: .8; }
+  .bar .v { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 56px; text-align: right; }
+  .bar .v small { color: var(--ink-3); font-weight: 400; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 12px; color: var(--ink-3); }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; background: var(--red); }
+  .legend i.g { background: var(--grey); }
+
+  /* brackets */
+  .brs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .br { padding: 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); display: grid; gap: 10px; min-width: 0; }
+  .br h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 22px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .br .pill { font-family: var(--body); font-weight: 700; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-2); white-space: nowrap; }
+  .br .pill.red { background: var(--red); border-color: var(--red); color: #fff; }
+  .br .meta { color: var(--ink-2); font-size: 14px; }
+  .br .prog { height: 10px; border-radius: 5px; background: rgba(255,255,255,.10); overflow: hidden; }
+  .br .prog i { display: block; height: 100%; background: var(--red); box-shadow: 0 0 10px var(--red); border-radius: 5px; }
+  .br .res { display: grid; gap: 6px; font-size: 13px; }
+  .br .res div { display: flex; justify-content: space-between; gap: 10px; padding: 7px 10px; border-radius: 8px; background: rgba(0,0,0,.3); }
+  .br .res b { font-weight: 700; }
+  .br a { font-size: 13px; color: var(--red-soft); }
+  .empty { color: var(--ink-3); font-size: 13px; }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--ink-3); font-size: 13px; }
+  footer .slogan { font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--red-soft); }
+
+  /* ===== TV mode ===== */
+  body.tv { overflow: hidden; background: #000; }
+  body.tv .wrap { display: none; }
+  #tv { display: none; position: fixed; inset: 0; background: #000; }
+  body.tv #tv { display: block; }
+  .stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform: translate(-50%, -50%) scale(var(--k, .5)); transform-origin: center; overflow: hidden; color: var(--ink);
+    background: radial-gradient(900px 700px at 8% 12%, rgba(238,0,51,.5), transparent 60%), radial-gradient(800px 600px at 96% 92%, rgba(238,0,51,.28), transparent 60%), linear-gradient(135deg, #0c0b0f 0%, #17161b 55%, #0a090c 100%); }
+  .hdr { position: absolute; left: 0; top: 0; right: 0; height: 112px; display: flex; align-items: center; justify-content: space-between; padding: 0 64px; border-bottom: 1.5px solid rgba(255,255,255,.14); background: linear-gradient(180deg, rgba(0,0,0,.5), rgba(0,0,0,0)); z-index: 2; }
+  .hdr .b { display: flex; align-items: center; gap: 26px; }
+  .hdr .b img { height: 64px; width: auto; background: #fff; padding: 6px 12px; border-radius: 10px; }
+  .hdr .b .sep { width: 2px; height: 48px; background: rgba(255,255,255,.25); }
+  .hdr .b .org { font-family: var(--display); font-weight: 700; font-size: 30px; text-transform: uppercase; color: var(--ink-2); letter-spacing: .02em; }
+  .hdr .c { display: flex; align-items: center; gap: 28px; font-variant-numeric: tabular-nums; }
+  .hdr .c .d { font-size: 30px; color: var(--ink-2); text-align: right; line-height: 1.2; }
+  .hdr .c .t { font-family: var(--display); font-weight: 800; font-size: 60px; letter-spacing: -1px; }
+  .dots { position: absolute; left: 50%; transform: translateX(-50%); top: 88px; display: flex; gap: 12px; z-index: 3; }
+  .dots span { width: 52px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.28); overflow: hidden; position: relative; }
+  .dots span.done { background: rgba(255,255,255,.6); }
+  .dots span.on::after { content: ""; position: absolute; inset: 0; background: var(--red); transform-origin: 0 0; animation: prog var(--dur, 12s) linear forwards; }
+  @keyframes prog { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .slide { position: absolute; left: 0; right: 0; top: 112px; bottom: 128px; padding: 44px 64px; display: none; animation: fade .7s ease both; }
+  .slide.on { display: grid; }
+  @keyframes fade { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .slide.poster-slide { padding: 0; top: 112px; bottom: 128px; overflow: hidden; }
+  .slide.poster-slide::before { content: ""; position: absolute; inset: -40px; background: url("img/poster-tv-1920x1080.webp") center/cover; filter: blur(32px) brightness(.45); }
+  .slide.poster-slide img { position: relative; width: 100%; height: 100%; object-fit: contain; }
+  .slide.poster-slide .cap { position: absolute; left: 64px; bottom: 40px; display: flex; gap: 16px; }
+  .slide.poster-slide .cap .chip { font-size: 26px; padding: 14px 28px; }
+  .glass { position: relative; background: rgba(255,255,255,.09); border: 1.5px solid rgba(255,255,255,.28); border-radius: 30px; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 28px 70px rgba(0,0,0,.45); }
+  .glass::before { content: ""; position: absolute; left: 28px; right: 28px; top: 0; height: 1.5px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent); }
+  .eyebrow { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: .12em; text-transform: uppercase; color: var(--red-soft); display: flex; align-items: center; gap: 18px; }
+  .eyebrow .dot { width: 16px; height: 16px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 6px rgba(238,0,51,.25); }
+  .eyebrow .upd { margin-left: auto; letter-spacing: 0; text-transform: none; font-weight: 400; color: var(--ink-3); font-family: var(--body); }
+  .hcard { font-family: var(--display); font-weight: 800; font-size: 84px; line-height: 1.05; letter-spacing: -1.5px; margin: 0; text-transform: uppercase; text-shadow: 0 0 30px rgba(238,0,51,.5); }
+  /* tv schedule */
+  .s-sched { grid-template-rows: auto 1fr; gap: 30px; }
+  .s-sched .cols { display: grid; grid-template-columns: repeat(5, 1fr); gap: 22px; }
+  .s-sched .col { padding: 34px 32px; display: flex; flex-direction: column; gap: 18px; }
+  .s-sched .col h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 44px; text-transform: uppercase; letter-spacing: -.5px; line-height: 1; }
+  .s-sched .col .f { font-size: 24px; color: var(--ink-3); }
+  .s-sched .col ul { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 12px; }
+  .s-sched .col li { font-size: 26px; line-height: 1.3; padding: 12px 16px; border-radius: 14px; background: rgba(0,0,0,.3); border: 1.5px solid transparent; }
+  .s-sched .col li b { display: block; font-weight: 500; color: var(--ink-3); font-size: 22px; }
+  .s-sched .col li.final { border-color: rgba(238,0,51,.7); background: rgba(238,0,51,.2); }
+  .s-sched .col li.now { border-color: var(--red); box-shadow: 0 0 20px rgba(238,0,51,.35); }
+  .s-sched .col li.done { opacity: .45; }
+  /* tv stats */
+  .s-stats { grid-template-rows: auto 1fr; gap: 30px; }
+  .s-stats .g { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
+  .s-stats .tile { padding: 28px 40px; border-radius: 28px; gap: 2px; }
+  .s-stats .tile .l { font-size: 26px; letter-spacing: .06em; }
+  .s-stats .tile .v { font-size: 108px; letter-spacing: -3px; }
+  .s-stats .tile .s { font-size: 24px; }
+  .s-stats .bars { gap: 14px; }
+  .s-stats .bar { grid-template-columns: 290px 1fr 200px; font-size: 30px; gap: 24px; }
+  .s-stats .bar .t { height: 22px; border-radius: 11px; }
+  .s-stats .bar .t i { border-radius: 11px; }
+  .s-stats .lower { padding: 30px 44px; display: grid; align-content: center; min-height: 0; }
+  /* tv brackets */
+  .s-br { grid-template-rows: auto 1fr; gap: 30px; }
+  .s-br .g { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+  .s-br .br { padding: 40px 44px; border-radius: 30px; gap: 20px; }
+  .s-br .br h3 { font-size: 48px; }
+  .s-br .br .pill { font-size: 22px; padding: 10px 20px; }
+  .s-br .br .meta { font-size: 30px; }
+  .s-br .br .prog { height: 18px; border-radius: 9px; }
+  .s-br .br .res { font-size: 26px; gap: 10px; }
+  .s-br .br .res div { padding: 12px 16px; border-radius: 12px; }
+  .s-br .empty { font-size: 26px; }
+  /* tv countdown */
+  .s-cd { grid-template-columns: 1.3fr 1fr; gap: 36px; }
+  .s-cd .left { padding: 60px 68px; display: flex; flex-direction: column; gap: 30px; }
+  .s-cd .hcard { font-size: 66px; }
+  .s-cd .left .lead { font-size: 34px; color: var(--ink-2); margin: 0; line-height: 1.35; }
+  .s-cd .left .meta { display: grid; gap: 12px; font-size: 36px; margin-top: auto; }
+  .s-cd .left .meta div { display: flex; gap: 22px; }
+  .s-cd .left .meta span:first-child { color: var(--ink-3); min-width: 200px; font-size: 28px; text-transform: uppercase; letter-spacing: .08em; }
+  .s-cd .right { display: grid; grid-template-rows: 1fr auto; gap: 36px; }
+  .s-cd .count { background: linear-gradient(160deg, rgba(238,0,51,.92), rgba(150,0,32,.92)); border-color: rgba(255,255,255,.5); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-shadow: var(--glow); }
+  .s-cd .count .big { font-family: var(--display); font-weight: 800; font-size: 220px; line-height: .95; letter-spacing: -6px; font-variant-numeric: tabular-nums; }
+  .s-cd .count .lbl { font-size: 40px; font-family: var(--display); font-weight: 700; color: var(--red-soft); text-transform: uppercase; letter-spacing: .06em; }
+  .s-cd .slog { padding: 26px; text-align: center; font-family: var(--display); font-weight: 800; font-size: 36px; text-transform: uppercase; letter-spacing: .06em; line-height: 1.2; }
+  .s-cd .slog span { color: var(--red); text-shadow: 0 0 20px rgba(238,0,51,.6); }
+  /* ticker */
+  .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 128px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
+  .ticker .tag { flex: 0 0 auto; display: flex; align-items: center; padding: 0 84px 0 64px; background: var(--red); font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .1em; text-transform: uppercase; clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); box-shadow: 0 0 30px rgba(238,0,51,.6); }
+  .ticker .run { flex: 1; overflow: hidden; display: flex; align-items: center; font-size: 40px; position: relative; }
+  .ticker .run::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 220px; z-index: 1; background: linear-gradient(90deg, #0d0c10 35%, rgba(13,12,16,0)); }
+  .ticker .run div { white-space: nowrap; display: flex; gap: 120px; padding-left: 40px; animation: run 48s linear infinite; }
+  .ticker .run i { font-style: normal; color: var(--red); margin-right: 28px; }
+  @keyframes run { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .tv-exit { position: fixed; right: 16px; top: 16px; z-index: 9; opacity: 0; transition: opacity .3s; }
+  body.tv:hover .tv-exit { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .slide { animation: none; } .ticker .run div { animation: none; } .dots span.on::after { animation: none; transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <img src="img/logo-vtnet.png" alt="Viettel Networks">
+      <div class="t">Giải thể thao gắn kết tinh thần, thi đua phong trào tháng 10<small>Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số · 06/10 đến 23/10/2026</small></div>
+    </div>
+    <nav>
+      <span class="live" id="live"><i></i><span id="live-text">Đang tải dữ liệu</span></span>
+      <a href="#lich">Lịch thi đấu</a>
+      <a href="#so-lieu">Số liệu</a>
+      <a href="#so-do">Sơ đồ</a>
+      <a class="btn" href="#" data-reg>Đăng ký &amp; sơ đồ chi tiết</a>
+      <a class="btn red" href="#tv" id="tv-btn">Chế độ TV</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <figure class="poster" style="margin:0">
+      <picture>
+        <source srcset="img/poster-1200.webp 1200w, img/poster-2400.webp 2400w" sizes="(min-width: 1240px) 1208px, 100vw" type="image/webp">
+        <img src="img/poster-1200.jpg" alt="Poster Giải thể thao gắn kết tinh thần, thi đua phong trào tháng 10" width="2400" height="1600" fetchpriority="high">
+      </picture>
+      <div class="tag"><span class="chip red">Tháng 10/2026</span><span class="chip">5 bộ môn</span></div>
+    </figure>
+    <div class="strip" id="strip">
+      <div class="tile red"><span class="l">Lượt đăng ký</span><span class="v" id="k-reg">193</span><span class="s">5 bộ môn, cả hàng chờ</span></div>
+      <div class="tile"><span class="l">Vận động viên</span><span class="v" id="k-ath">129</span><span class="s">người dự ít nhất 1 môn, chốt 30/09</span></div>
+      <div class="tile"><span class="l">Suất chính thức</span><span class="v" id="k-off">185</span><span class="s">đã xếp vào thi đấu</span></div>
+      <div class="tile"><span class="l">Phòng ban</span><span class="v" id="k-dept">9</span><span class="s">đơn vị có người dự giải</span></div>
+      <div class="tile"><span class="l">Liên hoan tổng kết</span><span class="v"><span id="k-cd">14</span><small>ngày nữa</small></span><span class="s">Tối Thứ Sáu 23/10/2026</span></div>
+    </div>
+  </div>
+
+  <section id="hom-nay">
+    <div class="sh"><h2>Hôm nay và sắp tới</h2><p id="today-sub"></p></div>
+    <div class="today" id="today"></div>
+  </section>
+
+  <section id="lich">
+    <div class="sh"><h2>Lịch thi đấu</h2><p>5 bộ môn, từ 06/10 đến 23/10. Trận đang hoặc sắp diễn ra được viền đỏ.</p></div>
+    <div class="sched">
+      <div class="sports" id="sports"></div>
+      <div class="frame"><img src="img/lich-thi-dau.webp" alt="Poster lịch thi đấu 5 bộ môn" loading="lazy" width="1055" height="1491"></div>
+    </div>
+  </section>
+
+  <section id="so-lieu">
+    <div class="sh"><h2>Số liệu đăng ký</h2><p id="stats-sub">Cầu lông, Bida, Bóng bàn lấy trực tiếp từ hệ thống đăng ký. PES và Bóng đá chốt ngày 30/09.</p></div>
+    <div class="stats">
+      <div class="card"><h3>Theo bộ môn <small>chính thức / suất tối đa</small></h3><div class="bars" id="bars-sport"></div>
+        <div class="legend"><span><i></i>Chính thức</span><span><i class="g"></i>Hàng chờ</span></div></div>
+      <div class="card"><h3>Theo phòng ban <small id="dept-sub">suất chính thức 3 môn</small></h3><div class="bars" id="bars-dept"></div></div>
+    </div>
+  </section>
+
+  <section id="so-do">
+    <div class="sh"><h2>Sơ đồ thi đấu</h2><p>Kết quả do ban tổ chức từng môn ghi trên trang đăng ký của Giải, cập nhật mỗi phút.</p></div>
+    <div class="brs" id="brs"></div>
+  </section>
+
+  <footer>
+    <span class="slogan">Gắn kết · Bứt phá · Thi đấu hết mình</span>
+    <span>Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số · Viettel Networks · <a href="#" data-reg>Trang đăng ký</a></span>
+  </footer>
+</div>
+
+<!-- ===== TV ===== -->
+<div id="tv" aria-hidden="true">
+  <div class="stage" id="stage">
+    <header class="hdr">
+      <div class="b"><img src="img/logo-vtnet.png" alt=""><span class="sep"></span><span class="org">Giải thể thao tháng 10 · TT Nền tảng Công nghệ &amp; CĐS</span></div>
+      <div class="c"><div class="d" id="tv-date"></div><div class="t" id="tv-time"></div></div>
+    </header>
+    <div class="dots" id="dots"></div>
+
+    <section class="slide poster-slide on" data-dur="12">
+      <img src="img/poster-tv-1920x1080.webp" alt="Poster giải thể thao">
+      <div class="cap"><span class="chip red">06/10 đến 23/10/2026</span><span class="chip">Cầu lông · Bóng đá · Bida · Bóng bàn · PES</span></div>
+    </section>
+
+    <section class="slide s-sched" data-dur="15">
+      <div class="eyebrow"><span class="dot"></span>Lịch thi đấu 5 bộ môn<span class="upd" id="tv-sched-sub"></span></div>
+      <div class="cols" id="tv-sched"></div>
+    </section>
+
+    <section class="slide s-stats" data-dur="14">
+      <div class="eyebrow"><span class="dot"></span>Số liệu đăng ký<span class="upd" id="tv-stats-upd">Cập nhật từ hệ thống đăng ký</span></div>
+      <div style="display:grid;grid-template-rows:auto 1fr;gap:26px;min-height:0">
+        <div class="g" id="tv-tiles"></div>
+        <div class="glass lower"><div class="bars" id="tv-bars"></div></div>
+      </div>
+    </section>
+
+    <section class="slide s-br" data-dur="14">
+      <div class="eyebrow"><span class="dot"></span>Sơ đồ thi đấu<span class="upd">Cầu lông · Bida · Bóng bàn</span></div>
+      <div class="g" id="tv-brs"></div>
+    </section>
+
+    <section class="slide s-cd" data-dur="12">
+      <div class="glass left">
+        <div class="eyebrow"><span class="dot"></span>Sắp diễn ra</div>
+        <h2 class="hcard">Liên hoan kết thúc thành công</h2>
+        <p class="lead">Trao giải 5 bộ môn, chung kết Bóng đá lúc 16:30 và liên hoan toàn Trung tâm mừng sinh nhật 5 năm.</p>
+        <div class="meta">
+          <div><span>Thời gian</span><span>Tối Thứ Sáu 23/10/2026</span></div>
+          <div><span>Chung kết</span><span>Bóng đá 16:30 · Bóng bàn cùng ngày</span></div>
+        </div>
+      </div>
+      <div class="right">
+        <div class="glass count"><div class="big" id="tv-cd">14</div><div class="lbl">ngày nữa</div></div>
+        <div class="glass slog">Gắn kết · <span>Bứt phá</span> · Thi đấu hết mình</div>
+      </div>
+    </section>
+
+    <footer class="ticker"><div class="tag">Bản tin</div><div class="run"><div id="tv-run"></div></div></footer>
+  </div>
+  <a class="btn tv-exit" href="#" id="tv-exit">Thoát chế độ TV (Esc)</a>
+</div>
+
+<script>
+(function () {
+  // ---------- data ----------
+  const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbyXQB6sLsCodNZltOn3_-lFD-Cme8_pCrhVrKoC85lMLNcDZfLpQvtM2VBSERHpJ4mS7A/exec';
+  // Địa chỉ trang đăng ký và sơ đồ (GitHub Pages của repo giai-the-thao-2026), ví dụ 'https://<tai-khoan>.github.io/giai-the-thao-2026/'.
+  // Để trống thì các nút dẫn sang trang đăng ký được ẩn đi.
+  const REG_URL = '';
+  const FINALE = new Date('2026-10-23T18:00:00+07:00');
+
+  // Lịch thi đấu theo poster. from/to là ngày (giờ Việt Nam).
+  const SCHEDULE = [
+    { id: 'cau-long', name: 'Cầu lông', ab: 'CL', fmt: 'Đôi nam nữ · 16 đôi', live: true,
+      items: [{ label: 'Thi đấu', from: '2026-10-10', time: 'Chiều Thứ Bảy' }] },
+    { id: 'bong-da', name: 'Bóng đá', ab: 'BĐ', fmt: '4 đội · 83 cầu thủ', static: { reg: 83, off: 83, wait: 0, slots: 4, unit: 'đội' },
+      items: [{ label: 'Vòng bảng', from: '2026-10-15', time: 'Tối' }, { label: 'Tranh hạng Ba', from: '2026-10-22', time: 'Tối' }, { label: 'Chung kết', from: '2026-10-23', time: '16:30', final: true }] },
+    { id: 'bida', name: 'Bida', ab: 'BI', fmt: 'Đôi · 12 đôi', live: true,
+      items: [{ label: 'Vòng 1 và tứ kết', from: '2026-10-09', time: 'Tối' }, { label: 'Bán kết, chung kết', from: '2026-10-14', time: 'Tối' }] },
+    { id: 'bong-ban', name: 'Bóng bàn', ab: 'BB', fmt: 'Đôi · 9 đôi', live: true,
+      items: [{ label: 'Vòng bảng', from: '2026-10-06', to: '2026-10-09' }, { label: 'Tứ kết', from: '2026-10-13', to: '2026-10-14' }, { label: 'Bán kết', from: '2026-10-16', to: '2026-10-19' }, { label: 'Tranh hạng Ba', from: '2026-10-22' }, { label: 'Chung kết', from: '2026-10-23', final: true }] },
+    { id: 'pes', name: 'PES', ab: 'PES', fmt: 'Đôi · 14 đôi', static: { reg: 28, off: 28, wait: 0, slots: 14, unit: 'đôi' },
+      items: [{ label: 'Vòng bảng', from: '2026-10-07' }, { label: 'Tứ kết đến chung kết', from: '2026-10-12', to: '2026-10-16' }] }
+  ];
+  // Số liệu chốt 30/09 (ảnh tổng kết đăng ký), dùng khi không nối được hệ thống.
+  const SNAPSHOT = { athletes: 129, regTotal: 193, offTotal: 185, waitTotal: 8, depts: 9,
+    live: { 'cau-long': { off: 32, wait: 5, slots: 16, unit: 'đôi' }, 'bida': { off: 24, wait: 0, slots: 12, unit: 'đôi' }, 'bong-ban': { off: 18, wait: 0, slots: 9, unit: 'đôi' } } };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const p2 = (n) => String(n).padStart(2, '0');
+  const DAYS = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  const vnDate = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
+  const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); };
+  const fmtD = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+  const fmtRange = (it) => it.to ? fmtD(it.from) + ' đến ' + fmtD(it.to) : fmtD(it.from);
+  const dayName = (iso) => DAYS[vnDate(iso).getDay()];
+  function status(it) { const t = todayKey(); const end = it.to || it.from; if (end < t) return 'done'; if (it.from <= t && t <= end) return 'now'; return 'next'; }
+  function daysLeft(date) { const now = new Date(); const a = new Date(now.getFullYear(), now.getMonth(), now.getDate()); const b = new Date(date.getFullYear(), date.getMonth(), date.getDate()); return Math.max(0, Math.round((b - a) / 86400000)); }
+
+  // ---------- schedule rendering ----------
+  function renderSports() {
+    const html = SCHEDULE.map((s) => `
+      <article class="sport" id="s-${s.id}">
+        <h3><span class="ab">${s.ab}</span>${esc(s.name)}</h3>
+        <div class="f">${esc(s.fmt)}</div>
+        <ul>${s.items.map((it) => { const st = status(it); return `<li class="${st}${it.final ? ' final' : ''}"><b>${esc(it.label)}</b><span>${it.time ? esc(it.time) + ' ' : ''}${fmtRange(it)}</span>${st === 'now' ? '<span class="st">Hôm nay</span>' : st === 'done' ? '<span class="st" style="color:var(--ink-3)">Đã xong</span>' : ''}</li>`; }).join('')}</ul>
+      </article>`).join('');
+    const cd = daysLeft(FINALE);
+    $('sports').innerHTML = html + `
+      <article class="sport finale">
+        <div><h3>Liên hoan kết thúc thành công</h3><div class="f" style="margin:0 0 6px">Tối Thứ Sáu, 23/10/2026 · Trao giải 5 bộ môn, mừng sinh nhật 5 năm Trung tâm</div><div class="slogan">Gắn kết · Bứt phá · Thi đấu hết mình</div></div>
+        <div class="big">${cd}<small>ngày nữa</small></div>
+      </article>`;
+    $('k-cd').textContent = cd; $('tv-cd').textContent = cd;
+
+    // TV schedule columns
+    $('tv-sched').innerHTML = SCHEDULE.map((s) => `
+      <div class="glass col"><h3>${esc(s.name)}</h3><div class="f">${esc(s.fmt)}</div>
+        <ul>${s.items.map((it) => { const st = status(it); return `<li class="${st}${it.final ? ' final' : ''}"><b>${esc(it.label)}</b>${it.time ? esc(it.time) + ' · ' : ''}${fmtRange(it)}</li>`; }).join('')}</ul></div>`).join('');
+    $('tv-sched-sub').textContent = 'Liên hoan tổng kết tối 23/10 · còn ' + cd + ' ngày';
+  }
+
+  // Hôm nay và sắp tới: gom mọi mục lịch, sắp theo ngày
+  function renderToday() {
+    const all = [];
+    SCHEDULE.forEach((s) => s.items.forEach((it) => all.push({ sport: s.name, ...it, st: status(it) })));
+    all.push({ sport: 'Toàn Trung tâm', label: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối', st: status({ from: '2026-10-23' }), final: true });
+    all.sort((a, b) => a.from.localeCompare(b.from));
+    const now = all.filter((x) => x.st === 'now');
+    const next = all.filter((x) => x.st === 'next').slice(0, Math.max(3, 6 - now.length));
+    const recent = all.filter((x) => x.st === 'done').slice(-2);
+    const list = [...now, ...next];
+    $('today-sub').textContent = now.length ? `Hôm nay ${DAYS[new Date().getDay()]} ${fmtD(todayKey())} có ${now.length} lịch thi đấu.` : `Hôm nay ${fmtD(todayKey())} không có lịch thi đấu. Lịch kế tiếp bên dưới.`;
+    $('today').innerHTML = (list.length ? list : recent).map((x) => `
+      <div class="ev ${x.st}"><div class="d">${fmtD(x.from)}<small>${x.to ? 'đến ' + fmtD(x.to) : dayName(x.from)}</small></div>
+        <div class="n">${esc(x.sport)} · ${esc(x.label)}</div><div class="m">${x.time ? esc(x.time) + ' · ' : ''}${x.st === 'now' ? 'Đang diễn ra' : x.st === 'done' ? 'Đã kết thúc' : 'Còn ' + daysLeft(vnDate(x.from)) + ' ngày'}</div></div>`).join('');
+    // ticker
+    const msgs = [];
+    now.forEach((x) => msgs.push(`Hôm nay: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}`));
+    next.slice(0, 3).forEach((x) => msgs.push(`${fmtD(x.from)}: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}`));
+    msgs.push('Liên hoan kết thúc thành công tối Thứ Sáu 23/10 · Gắn kết, Bứt phá, Thi đấu hết mình');
+    msgs.push('Xem sơ đồ và kết quả tại trang đăng ký của Giải');
+    const h = msgs.map((m) => `<span><i>▶</i>${esc(m)}</span>`).join('');
+    $('tv-run').innerHTML = h + h;
+  }
+
+  // ---------- live data ----------
+  let state = null;
+  function sportStats(id) {
+    if (state) {
+      const sp = state.sports.find((s) => s.id === id); if (!sp) return SNAPSHOT.live[id];
+      const regs = state.regs.filter((r) => r.sport === id);
+      return { off: regs.filter((r) => r.status !== 'wait').length, wait: regs.filter((r) => r.status === 'wait').length, slots: sp.slots, unit: sp.format === 'single' ? 'VĐV' : 'đôi', format: sp.format };
+    }
+    return SNAPSHOT.live[id];
+  }
+  function barRow(name, sub, off, wait, max, unit, cls) {
+    const pOff = Math.min(100, off / max * 100), pWait = Math.min(100 - pOff, wait / max * 100);
+    return `<div class="bar ${cls || ''}"><div class="n">${esc(name)} <small>${esc(sub)}</small></div><div class="t"><i style="width:${pOff}%"></i>${wait ? `<i class="wait" style="left:${pOff}%;width:${pWait}%"></i>` : ''}</div><div class="v">${off}${wait ? `<small> +${wait}</small>` : ''}<small>${unit ? ' ' + esc(unit) : ''}</small></div></div>`;
+  }
+  function renderStats() {
+    const rows = SCHEDULE.map((s) => {
+      const st = s.static ? { off: s.static.off, wait: 0, slots: s.static.slots, unit: s.static.unit } : sportStats(s.id);
+      const per = s.static ? st.off / st.slots : (st.format === 'mixed' || st.format === 'pair' || !st.format ? 2 : 1);
+      const cap = s.static ? st.off : st.slots * per;
+      return { s, st, cap };
+    });
+    const maxCap = Math.max(...rows.map((r) => r.cap + (r.st.wait || 0)));
+    $('bars-sport').innerHTML = rows.map((r) => barRow(r.s.name, `${r.st.slots} ${r.st.unit}`, r.st.off, r.st.wait, maxCap, 'người')).join('');
+    $('tv-bars').innerHTML = rows.map((r) => barRow(r.s.name, `${r.st.slots} ${r.st.unit}`, r.st.off, r.st.wait, maxCap, 'người')).join('');
+
+    // totals: live cho 3 môn + chốt 30/09 cho PES và Bóng đá
+    const liveOff = rows.filter((r) => !r.s.static).reduce((a, r) => a + r.st.off, 0);
+    const liveWait = rows.filter((r) => !r.s.static).reduce((a, r) => a + r.st.wait, 0);
+    const stOff = rows.filter((r) => r.s.static).reduce((a, r) => a + r.st.off, 0);
+    const off = liveOff + stOff, wait = liveWait, reg = off + wait;
+    $('k-reg').textContent = reg; $('k-off').textContent = off;
+    let depts = SNAPSHOT.depts, athletes = SNAPSHOT.athletes;
+    if (state) {
+      const byDept = {}; const people = new Set();
+      state.regs.filter((r) => r.status !== 'wait').forEach((r) => { byDept[r.dept] = (byDept[r.dept] || 0) + 1; people.add(r.code || r.id); });
+      const list = Object.entries(byDept).sort((a, b) => b[1] - a[1]);
+      depts = list.length;
+      const mx = list[0] ? list[0][1] : 1;
+      $('bars-dept').innerHTML = list.map(([d, n]) => barRow(d.replace(/^Phòng /, ''), '', n, 0, mx, '')).join('');
+      $('dept-sub').textContent = `suất chính thức 3 môn · ${liveOff} suất`;
+      // VĐV: không gộp được người của PES và Bóng đá (không có trong hệ thống) nên giữ số chốt 30/09
+      athletes = SNAPSHOT.athletes;
+    } else {
+      $('bars-dept').innerHTML = '<div class="empty">Chưa nối được hệ thống đăng ký. Số liệu theo bản chốt 30/09.</div>';
+    }
+    $('k-dept').textContent = depts; $('k-ath').textContent = athletes;
+    $('tv-tiles').innerHTML = `
+      <div class="tile red"><span class="l">Lượt đăng ký</span><span class="v">${reg}</span><span class="s">5 bộ môn, cả hàng chờ</span></div>
+      <div class="tile glass"><span class="l">Vận động viên</span><span class="v">${athletes}</span><span class="s">người dự ít nhất 1 môn, chốt 30/09</span></div>
+      <div class="tile glass"><span class="l">Suất chính thức</span><span class="v">${off}</span><span class="s">đã xếp vào thi đấu</span></div>
+      <div class="tile glass"><span class="l">Phòng ban</span><span class="v">${depts}</span><span class="s">đơn vị có người dự giải</span></div>`;
+  }
+
+  // ---------- brackets ----------
+  const RN = { 2: ['Chung kết'], 4: ['Bán kết', 'Chung kết'], 8: ['Tứ kết', 'Bán kết', 'Chung kết'], 16: ['Vòng 1', 'Tứ kết', 'Bán kết', 'Chung kết'], 32: ['Vòng 1', 'Vòng 2', 'Tứ kết', 'Bán kết', 'Chung kết'] };
+  const teamName = (t) => t && t.members ? t.members.map((m) => (m.name || '').split(' ').slice(-2).join(' ')).join(' & ') : 'Chưa xác định';
+  function bracketCard(s, big) {
+    const b = state && state.brackets && state.brackets[s.id];
+    const st = sportStats(s.id);
+    const href = REG_URL ? REG_URL + '#' + s.id : '';
+    if (!b || !b.teams || !b.teams.length) {
+      return `<article class="br"><h3>${esc(s.name)}<span class="pill">Chưa bốc thăm</span></h3><div class="meta">${st.off} người đã đăng ký · ${st.slots} ${st.unit}</div><div class="empty">Sơ đồ sẽ hiện sau khi ban tổ chức bốc thăm.</div>${big || !href ? '' : `<a href="${href}">Xem trang đăng ký</a>`}</article>`;
+    }
+    const teams = b.teams.length;
+    const results = b.results || {}, gRes = b.groupResults || {};
+    const koTotal = (b.size || teams) - 1 + 1; // trận loại trực tiếp + tranh hạng Ba
+    const koDone = Object.keys(results).length;
+    const gDone = Object.keys(gRes).length;
+    const inGroups = !!b.groups && !b.koTeams;
+    let phase, done, total, pillCls = '';
+    if (inGroups) { total = (b.groups || []).reduce((a, g) => { const n = (g.teams || g).length; return a + n * (n - 1) / 2; }, 0); done = gDone; phase = done >= total && total ? 'Xong vòng bảng' : 'Vòng bảng'; }
+    else { total = koTotal; done = koDone; phase = done >= total ? 'Đã có nhà vô địch' : done ? 'Loại trực tiếp' : 'Đã bốc thăm'; }
+    if (done >= total && total) pillCls = 'red';
+    // kết quả mới nhất (KO)
+    const rounds = RN[b.size] || [];
+    const src = inGroups ? gRes : results, scores = inGroups ? (b.groupScores || {}) : (b.scores || {});
+    const latest = Object.entries(src).slice(-3).map(([k, w]) => {
+      const [r, i] = k.split('-'); const idx = Number(i);
+      const name = inGroups ? 'Bảng ' + r : k.startsWith('T') ? 'Tranh hạng Ba' : rounds[Number(r)] || 'Vòng ' + (Number(r) + 1);
+      const sc = scores[k] ? ' · ' + scores[k] : '';
+      return `<div><span>${esc(name)}${isNaN(idx) ? '' : ' · trận ' + (idx + 1)}</span><b>${w === 'A' || w === 'B' ? 'Đội ' + w + ' thắng' : esc(w)}${esc(sc)}</b></div>`;
+    });
+    const champ = done >= total && total && !inGroups ? teamName(b.teams[0]) : '';
+    return `<article class="br"><h3>${esc(s.name)}<span class="pill ${pillCls}">${phase}</span></h3>
+      <div class="meta">${teams} đội · ${b.format === 'mixed' ? 'đôi nam nữ' : 'đôi'}${b.createdAt ? ' · bốc thăm ' + fmtD(b.createdAt.slice(0, 10)) : ''}</div>
+      <div class="prog"><i style="width:${total ? Math.min(100, done / total * 100) : 0}%"></i></div>
+      <div class="meta">${done}/${total} trận đã có kết quả</div>
+      ${latest.length ? `<div class="res">${latest.join('')}</div>` : `<div class="empty">Chưa có kết quả. ${s.items[0] ? 'Thi đấu ' + (s.items[0].time ? s.items[0].time.toLowerCase() + ' ' : '') + fmtRange(s.items[0]) + '.' : ''}</div>`}
+      ${big || !href ? '' : `<a href="${href}">Xem sơ đồ đầy đủ</a>`}</article>`;
+  }
+  function renderBrackets() {
+    const live = SCHEDULE.filter((s) => s.live);
+    $('brs').innerHTML = live.map((s) => bracketCard(s, false)).join('') + SCHEDULE.filter((s) => s.static).map((s) => `<article class="br"><h3>${esc(s.name)}<span class="pill">Theo lịch riêng</span></h3><div class="meta">${s.static.off} người · ${s.static.slots} ${s.static.unit}</div><div class="empty">Kết quả do ban tổ chức bộ môn công bố, xem lịch ở mục Lịch thi đấu.</div></article>`).join('');
+    $('tv-brs').innerHTML = live.map((s) => bracketCard(s, true)).join('');
+  }
+
+  async function load() {
+    try {
+      const r = await fetch(SHEETS_API_URL + '?action=state&t=' + Date.now(), { redirect: 'follow', cache: 'no-store' });
+      const j = await r.json(); if (!j.ok) throw new Error('state');
+      state = j;
+      $('live').classList.add('on'); $('live-text').textContent = 'Trực tuyến · cập nhật ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      $('tv-stats-upd').textContent = 'Cập nhật ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' từ hệ thống đăng ký';
+    } catch (e) {
+      $('live').classList.remove('on'); $('live-text').textContent = 'Số liệu chốt 30/09';
+    }
+    renderStats(); renderBrackets();
+  }
+
+  // ---------- TV mode ----------
+  const slides = [...document.querySelectorAll('.slide')], dots = $('dots');
+  slides.forEach(() => dots.appendChild(document.createElement('span')));
+  let i = 0, timer = null;
+  function show(k) {
+    i = (k + slides.length) % slides.length;
+    slides.forEach((s, j) => s.classList.toggle('on', j === i));
+    const dur = +(slides[i].dataset.dur || 12);
+    [...dots.children].forEach((d, j) => { d.className = j < i ? 'done' : j === i ? 'on' : ''; if (j === i) { d.style.setProperty('--dur', dur + 's'); d.style.animation = 'none'; d.offsetHeight; d.style.animation = ''; } });
+    clearTimeout(timer); timer = setTimeout(() => show(i + 1), dur * 1000);
+  }
+  function fit() { const k = Math.min(innerWidth / 1920, innerHeight / 1080); $('stage').style.setProperty('--k', k.toFixed(5)); }
+  function clock() {
+    const d = new Date();
+    $('tv-date').innerHTML = DAYS[d.getDay()] + '<br>' + p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear();
+    $('tv-time').textContent = p2(d.getHours()) + ':' + p2(d.getMinutes());
+  }
+  function setTV(on) {
+    document.body.classList.toggle('tv', on); $('tv').setAttribute('aria-hidden', on ? 'false' : 'true');
+    if (on) { fit(); clock(); show(0); document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(() => {}); }
+    else { clearTimeout(timer); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+  }
+  function syncHash() { const m = /^#tv(\d)?$/.exec(location.hash); setTV(!!m); if (m && m[1]) show(Math.min(slides.length, +m[1]) - 1); }
+  addEventListener('hashchange', syncHash); addEventListener('resize', fit);
+  addEventListener('keydown', (e) => { if (!document.body.classList.contains('tv')) return; if (e.key === 'Escape') location.hash = ''; if (e.key === 'ArrowRight') show(i + 1); if (e.key === 'ArrowLeft') show(i - 1); });
+  $('tv-exit').addEventListener('click', (e) => { e.preventDefault(); location.hash = ''; });
+  setInterval(clock, 15000);
+
+  // ---------- boot ----------
+  document.querySelectorAll('[data-reg]').forEach((a) => { if (REG_URL) a.href = REG_URL; else a.remove(); });
+  renderSports(); renderToday(); renderStats(); renderBrackets(); syncHash();
+  load(); setInterval(load, 60000);
+  setInterval(() => { renderSports(); renderToday(); }, 10 * 60000); // sang ngày mới thì đổi trạng thái lịch
+})();
+</script>
+</body>
+</html>
