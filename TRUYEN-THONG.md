@@ -47,8 +47,13 @@ liên kết "Xem sơ đồ đầy đủ" của từng môn sẽ dẫn đúng san
 Mở `index.html#tv` trên thiết bị phát, hoặc dùng địa chỉ ngắn `…/vt.internal/tv` (thư mục `tv/` chỉ chứa trang chuyển hướng sang `#tv`). Bố cục một màn hình cố định: thanh tiêu đề có ngày giờ, khung **Tin tiêu điểm** bên trái
 (tiêu đề ngày + ảnh và video xoay vòng), 3 khung bên phải **Hôm nay có gì**, **Đang diễn ra**, **Sắp diễn ra**, dòng chạy phía dưới.
 
-- Tiêu đề và mục thêm tay cho "Hôm nay có gì": hằng `DASH` trong `index.html` (`headline`, `subline`, `today`, số giây mỗi ảnh, giới hạn video, xáo thứ tự).
-- Thẻ mở đầu mỗi vòng chiếu: `DASH.intro` (ảnh 16:9 trong `img/` và số giây), có hiệu ứng pháo hoa hạt vẽ bằng canvas. Đổi ảnh khác cho ngày khác hoặc đặt `intro: null` để bỏ.
+- **Tin tiêu điểm xoay vòng:** mảng `STORIES` trong `index.html`, thứ tự mảng là thứ tự chiếu, mỗi tin chiếu `STORY_SECONDS` giây (25).
+  Thanh story cạnh nhãn "Tin tiêu điểm" tự chia đều theo số tin: tin đang chiếu chạy thanh đỏ, tin đã chiếu thanh trắng mờ, hết vòng lặp lại.
+  Mỗi tin có `tab` (tên ngắn), `title`, `sub`, `tag` (nhãn vàng, tuỳ chọn), `ticker` (câu thêm vào dòng chạy, tuỳ chọn) và một trong hai nguồn:
+  `source: 'drive'` = slideshow ảnh, video Google Drive có bộ đếm, kèm `intro` (thẻ mở đầu có pháo hoa) và `photoSeconds`;
+  hoặc `images: ['img/...jpg']` = poster tĩnh, không bộ đếm. Thêm hay bớt tin chỉ cần sửa mảng này.
+  Tin Drive mỗi lượt quay lại chiếu tiếp từ ảnh kế, không quay về ảnh đầu, để lần lượt hết kho ảnh.
+- Mục thêm tay cho "Hôm nay có gì" và giới hạn video: hằng `DASH`.
 - "Hôm nay có gì" lấy lịch bắt đầu hoặc kết thúc đúng hôm nay; "Đang diễn ra" là giai đoạn hiện tại của từng bộ môn kèm tiến độ trận từ hệ thống;
   "Sắp diễn ra" là 4 lịch gần nhất kèm số ngày còn lại. Tất cả tự đổi theo ngày.
 - Ảnh và video lấy từ thư mục Google Drive công khai (hằng `DRIVE_FOLDER_ID`). Danh sách file nằm trong `media.js` và `media.json`.
@@ -61,7 +66,7 @@ Mở `index.html#tv` trên thiết bị phát, hoặc dùng địa chỉ ngắn 
 - Video iPhone (.MOV, mã HEVC) trình duyệt thường không phát được, nên GitHub Action chuyển mỗi video mới sang H.264 MP4 720p và lưu vào `media/`;
   trang phát file này. Video chưa kịp chuyển mã thì thử phát thẳng từ Drive, không được thì tự bỏ qua sau 15 giây.
   Video dài làm repo nặng, nên giữ clip ngắn dưới 2 phút.
-- Phím mũi tên phải để chuyển ảnh, Esc để thoát.
+- Phím mũi tên phải, trái để chuyển tin, phím cách để chuyển ảnh trong tin Drive, Esc để thoát. `#tv2` mở thẳng tin số 2.
 
 ## Chế độ TV thẻ xoay vòng (`#slides`)
 
