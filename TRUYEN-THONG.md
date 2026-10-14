@@ -62,6 +62,13 @@ Mở `index.html#slides`: xoay vòng 5 thẻ poster, lịch thi đấu, số li�
 - Poster trên TV dùng bản cắt 16:9 `img/poster-tv-1920x1080.webp` (bỏ dải khói dưới cùng, giữ nguyên tiêu đề và nhân vật).
 - Chrome kiosk: `chrome --kiosk "https://<tai-khoan>.github.io/<repo>/#tv"`.
 
+## Tự cập nhật trên TV
+
+Trang tự kiểm tra `index.html` và `media.js` trên máy chủ mỗi 2 phút, thấy khác bản đang chạy thì tự tải lại.
+Vì vậy sau khi push lên GitHub, TV tự nhận bản mới trong vòng vài phút mà không cần ra bấm F5.
+Trang cũng tự tải lại lúc 05:00 mỗi ngày để làm mới nội dung theo ngày và giải phóng bộ nhớ trình duyệt TV.
+Chỉnh trong hằng `AUTO_RELOAD` (`checkSeconds`, `dailyAt`). Lần đầu áp dụng tính năng này vẫn phải F5 tay một lần vì bản đang chạy trên TV chưa có mã kiểm tra.
+
 ## Sửa nội dung
 
 - Lịch thi đấu: mảng `SCHEDULE` (mỗi mục có `label`, `from`, `to`, `time`, `final`).

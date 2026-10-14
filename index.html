@@ -457,6 +457,9 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   // (sinh bằng tools/drive-media.py). Điền DRIVE_API_KEY (Google Cloud, bật Drive API) để trang tự đọc thư mục khi mở.
   const DRIVE_FOLDER_ID = '18QdoAzINpvlfo54nMBTAGTn9avTo214E';
   const DRIVE_API_KEY = '';
+  // Tự cập nhật: mỗi checkSeconds trang tải lại index.html và media.js trên máy chủ, thấy khác bản đang chạy thì tự F5.
+  // dailyAt: giờ tự tải lại mỗi ngày (làm mới nội dung theo ngày, giải phóng bộ nhớ trình duyệt TV). Để '' nếu không cần.
+  const AUTO_RELOAD = { checkSeconds: 120, dailyAt: '05:00', files: ['index.html', 'media.js'] };
 
   // Lịch thi đấu theo poster. from/to là ngày (giờ Việt Nam).
   const SCHEDULE = [
@@ -769,6 +772,25 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   addEventListener('keydown', (e) => { if (!document.body.classList.contains('tv')) return; if (e.key === 'Escape') location.hash = ''; const dash = $('stage').classList.contains('mode-dash'); if (e.key === 'ArrowRight') { if (dash) nextMedia(); else show(i + 1); } if (e.key === 'ArrowLeft' && !dash) show(i - 1); });
   $('tv-exit').addEventListener('click', (e) => { e.preventDefault(); location.hash = ''; });
   setInterval(clock, 15000);
+
+  // ---------- tự tải lại khi có bản mới ----------
+  function hashStr(t) { let h = 5381; for (let k = 0; k < t.length; k++) h = ((h << 5) + h + t.charCodeAt(k)) | 0; return h + ':' + t.length; }
+  const srcDir = location.pathname.replace(/[^/]*$/, '');
+  function fetchAll() {
+    return Promise.all(AUTO_RELOAD.files.map((f) => fetch(srcDir + f + '?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).catch(() => '')))
+      .then((texts) => texts.map(hashStr).join('|'));
+  }
+  let baseline = '';
+  fetchAll().then((h) => { baseline = h; });
+  setInterval(() => {
+    fetchAll().then((h) => { if (baseline && h !== baseline && h.indexOf('5381:0') < 0) location.reload(); });
+  }, Math.max(30, AUTO_RELOAD.checkSeconds) * 1000);
+  let lastDaily = '';
+  setInterval(() => {
+    if (!AUTO_RELOAD.dailyAt) return;
+    const d = new Date(), hm = p2(d.getHours()) + ':' + p2(d.getMinutes()), key = todayKey() + ' ' + hm;
+    if (hm === AUTO_RELOAD.dailyAt && lastDaily !== key) { lastDaily = key; location.reload(); }
+  }, 20000);
 
   // ---------- boot ----------
   document.querySelectorAll('[data-reg]').forEach((a) => { if (REG_URL) a.href = REG_URL; else a.remove(); });
