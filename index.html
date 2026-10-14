@@ -247,6 +247,9 @@
   .media .bg.on { opacity: 1; }
   .media img.pic, .media video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .8s; }
   .media img.pic.on, .media video.on { opacity: 1; }
+  .media canvas.fx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .6s; }
+  .media canvas.fx.on { opacity: 1; }
+  .media .count:empty { display: none; }
   .media .count { position: absolute; right: 20px; bottom: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.6); font-size: 24px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .media .empty-media { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; font-size: 30px; color: var(--ink-3); padding: 0 40px; }
   .side { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); grid-gap: 34px; gap: 34px; min-height: 0; }
@@ -373,7 +376,7 @@
       <div class="glass panel feature">
         <span class="lbl">Tin tiêu điểm</span>
         <h2 class="headline" id="dash-headline"></h2>
-        <div class="media" id="media"><div class="bg" id="media-bg"></div><img class="pic" id="media-a" alt=""><img class="pic" id="media-b" alt=""><div class="count" id="media-count"></div></div>
+        <div class="media" id="media"><div class="bg" id="media-bg"></div><img class="pic" id="media-a" alt=""><img class="pic" id="media-b" alt=""><canvas class="fx" id="media-fx" width="1920" height="1080"></canvas><div class="count" id="media-count"></div></div>
       </div>
       <div class="side">
         <div class="glass panel"><span class="lbl">Hôm nay có gì</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay không có lịch thi đấu."></ul></div>
@@ -448,6 +451,8 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     subline: '14/10/2022 đến 14/10/2026',
     // Mục thêm tay cho khung "Hôm nay có gì", ngoài lịch thi đấu tự lấy theo ngày
     today: [{ t: 'Sinh nhật Viettel Cloud 4 tuổi', s: 'Ra mắt 14/10/2022' }],
+    // Thẻ mở đầu: hiện đầu mỗi vòng chiếu, kèm hiệu ứng pháo hoa hạt. Bỏ (intro: null) nếu không cần.
+    intro: { image: 'img/sinh-nhat-cloud-4.jpg', seconds: 14 },
     imageSeconds: 8,          // mỗi ảnh hiện bao lâu
     videoMaxSeconds: 90,      // video dài hơn sẽ chuyển sau chừng này giây
     shuffle: false            // true = xáo thứ tự ảnh mỗi lần mở
@@ -695,13 +700,44 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   let media = [], mIdx = -1, mTimer = null, mFront = 'a', mediaOn = false, curVideo = null;
   const imgUrl = (id, w) => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 1600);
   const vidUrl = (m) => (m.src ? srcDir + m.src : 'https://drive.google.com/uc?export=download&id=' + m.id);
+  const hasIntro = () => !!(DASH.intro && DASH.intro.image);
+  const off = () => (hasIntro() ? 1 : 0);   // mục 0 của vòng chiếu là thẻ mở đầu
+  // ---- hiệu ứng pháo hoa hạt trên thẻ mở đầu (canvas 1920×1080) ----
+  let fxOn = false, fxParts = [], fxLast = 0, fxNext = 0, fxRaf = null;
+  const fxCtx = $('media-fx').getContext('2d');
+  function fxBurst() {
+    const x = Math.random() < .5 ? 80 + Math.random() * 280 : 1560 + Math.random() * 280, y = 80 + Math.random() * 420;
+    for (let i = 0; i < 65; i++) { const a = Math.random() * Math.PI * 2, v = 35 + Math.random() * 150;
+      fxParts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 1.5 + Math.random(), color: Math.random() < .3 ? '255,65,85' : '255,180,210' }); }
+  }
+  function fxFrame(t) {
+    if (!fxOn) return;
+    const dt = Math.min((t - fxLast) / 1000, .04); fxLast = t;
+    fxCtx.clearRect(0, 0, 1920, 1080);
+    if (t > fxNext) { fxBurst(); fxNext = t + 1400 + Math.random() * 1600; }
+    fxParts = fxParts.filter((p) => p.t < p.life);
+    for (let i = 0; i < fxParts.length; i++) { const p = fxParts[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 32 * dt;
+      fxCtx.beginPath(); fxCtx.fillStyle = 'rgba(' + p.color + ',' + Math.max(0, 1 - p.t / p.life) + ')'; fxCtx.shadowColor = 'rgb(' + p.color + ')'; fxCtx.shadowBlur = 12; fxCtx.arc(p.x, p.y, 1.7, 0, 7); fxCtx.fill(); }
+    fxCtx.shadowBlur = 0; fxRaf = requestAnimationFrame(fxFrame);
+  }
+  function fxStart() { if (fxOn) return; fxOn = true; fxParts = []; fxLast = performance.now(); fxNext = 0; $('media-fx').classList.add('on'); fxRaf = requestAnimationFrame(fxFrame); }
+  function fxStop() { fxOn = false; if (fxRaf) cancelAnimationFrame(fxRaf); $('media-fx').classList.remove('on'); fxCtx.clearRect(0, 0, 1920, 1080); }
+  function showIntro() {
+    stopVideo(); $('media-count').textContent = '';
+    const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + DASH.intro.image + '")'; bg.classList.add('on');
+    const show = mFront === 'a' ? $('media-b') : $('media-a'), hide = mFront === 'a' ? $('media-a') : $('media-b');
+    const pre = new Image(); let done = false;
+    const fin = () => { if (done) return; done = true; show.src = DASH.intro.image; show.classList.add('on'); hide.classList.remove('on'); mFront = mFront === 'a' ? 'b' : 'a'; fxStart();
+      mTimer = setTimeout(() => { fxStop(); nextMedia(); }, (DASH.intro.seconds || 12) * 1000); };
+    pre.onload = fin; pre.onerror = () => { done = true; nextMedia(); }; pre.src = DASH.intro.image; setTimeout(fin, 6000);
+  }
   function setMedia(list) {
     const fresh = (list || []).filter((m) => m && m.id && (m.type === 'image' || m.type === 'video'));
-    const curId = mIdx >= 0 && media[mIdx] ? media[mIdx].id : null;
+    const mi = mIdx - off(); const curId = mi >= 0 && media[mi] ? media[mi].id : null;
     if (fresh.map((m) => m.id).join(',') === media.map((m) => m.id).join(',')) return; // không đổi
     media = fresh;
     if (DASH.shuffle) for (let i = media.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const tmp = media[i]; media[i] = media[j]; media[j] = tmp; }
-    if (curId) { const k = media.findIndex ? media.findIndex((m) => m.id === curId) : -1; mIdx = k >= 0 ? k : Math.min(mIdx, media.length - 1); if ($('media-count') && mIdx >= 0) $('media-count').textContent = (mIdx + 1) + ' / ' + media.length; }
+    if (curId) { const k = media.findIndex ? media.findIndex((m) => m.id === curId) : -1; const ni = k >= 0 ? k : Math.min(mi, media.length - 1); mIdx = ni + off(); if ($('media-count') && ni >= 0) $('media-count').textContent = (ni + 1) + ' / ' + media.length; }
     const box = $('media'); const old = box.querySelector('.empty-media'); if (old) old.remove();
     if (!media.length) { box.insertAdjacentHTML('beforeend', '<div class="empty-media">Chưa có ảnh. Chạy tools/drive-media.py để lấy danh sách từ Google Drive.</div>'); $('media-count').textContent = ''; }
   }
@@ -717,9 +753,12 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   }
   function stopVideo() { if (curVideo) { try { curVideo.pause(); } catch (e) {} curVideo.remove(); curVideo = null; } }
   function nextMedia() {
-    clearTimeout(mTimer); if (!mediaOn || !media.length) return;
-    mIdx = (mIdx + 1) % media.length; const m = media[mIdx];
-    $('media-count').textContent = (mIdx + 1) + ' / ' + media.length;
+    clearTimeout(mTimer); fxStop(); if (!mediaOn) return;
+    const n = media.length + off(); if (!n) return;
+    mIdx = (mIdx + 1) % n;
+    if (hasIntro() && mIdx === 0) { showIntro(); return; }
+    const mi = mIdx - off(); const m = media[mi];
+    $('media-count').textContent = (mi + 1) + ' / ' + media.length;
     const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + imgUrl(m.id, 200) + '")'; bg.classList.add('on');
     if (m.type === 'video') {
       const a = $('media-a'), b = $('media-b'); a.classList.remove('on'); b.classList.remove('on'); stopVideo();
@@ -741,10 +780,10 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     pre.onload = () => fin(true); pre.onerror = () => fin(false); pre.src = imgUrl(m.id, 1600);
     setTimeout(() => fin(true), 12000); // mạng chậm: vẫn chuyển sau 12 giây
     // nạp trước ảnh kế tiếp
-    const n = media[(mIdx + 1) % media.length]; if (n && n.type === 'image') { const p2img = new Image(); p2img.src = imgUrl(n.id, 1600); }
+    const nx = media[(mi + 1) % media.length]; if (nx && nx.type === 'image') { const p2img = new Image(); p2img.src = imgUrl(nx.id, 1600); }
   }
   function startMedia() { if (mediaOn) return; mediaOn = true; mIdx = -1; nextMedia(); }
-  function stopMedia() { mediaOn = false; clearTimeout(mTimer); stopVideo(); }
+  function stopMedia() { mediaOn = false; clearTimeout(mTimer); stopVideo(); fxStop(); }
   function loadDrive() {
     if (!DRIVE_API_KEY) return;
     const q = encodeURIComponent("'" + DRIVE_FOLDER_ID + "' in parents and trashed = false");

@@ -48,6 +48,7 @@ Mở `index.html#tv` trên thiết bị phát, hoặc dùng địa chỉ ngắn 
 (tiêu đề ngày + ảnh và video xoay vòng), 3 khung bên phải **Hôm nay có gì**, **Đang diễn ra**, **Sắp diễn ra**, dòng chạy phía dưới.
 
 - Tiêu đề và mục thêm tay cho "Hôm nay có gì": hằng `DASH` trong `index.html` (`headline`, `subline`, `today`, số giây mỗi ảnh, giới hạn video, xáo thứ tự).
+- Thẻ mở đầu mỗi vòng chiếu: `DASH.intro` (ảnh 16:9 trong `img/` và số giây), có hiệu ứng pháo hoa hạt vẽ bằng canvas. Đổi ảnh khác cho ngày khác hoặc đặt `intro: null` để bỏ.
 - "Hôm nay có gì" lấy lịch bắt đầu hoặc kết thúc đúng hôm nay; "Đang diễn ra" là giai đoạn hiện tại của từng bộ môn kèm tiến độ trận từ hệ thống;
   "Sắp diễn ra" là 4 lịch gần nhất kèm số ngày còn lại. Tất cả tự đổi theo ngày.
 - Ảnh và video lấy từ thư mục Google Drive công khai (hằng `DRIVE_FOLDER_ID`). Danh sách file nằm trong `media.js` và `media.json`.
