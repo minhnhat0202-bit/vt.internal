@@ -47,12 +47,12 @@ liên kết "Xem sơ đồ đầy đủ" của từng môn sẽ dẫn đúng san
 Mở `index.html#tv` trên thiết bị phát, hoặc dùng địa chỉ ngắn `…/vt.internal/tv` (thư mục `tv/` chỉ chứa trang chuyển hướng sang `#tv`). Bố cục một màn hình cố định: thanh tiêu đề có ngày giờ, khung **Tin tiêu điểm** bên trái
 (tiêu đề ngày + ảnh và video xoay vòng), 3 khung bên phải **Hôm nay có gì**, **Đang diễn ra**, **Sắp diễn ra**, dòng chạy phía dưới.
 
-- **Tin tiêu điểm xoay vòng:** mảng `STORIES` trong `index.html`, thứ tự mảng là thứ tự chiếu, mỗi tin chiếu `STORY_SECONDS` giây (25).
+- **Tin tiêu điểm xoay vòng:** mảng `STORIES` trong `index.html`, thứ tự mảng là thứ tự chiếu, mỗi tin chiếu `STORY_SECONDS` giây (60) hoặc `seconds` riêng của tin.
   Thanh story cạnh nhãn "Tin tiêu điểm" tự chia đều theo số tin: tin đang chiếu chạy thanh đỏ, tin đã chiếu thanh trắng mờ, hết vòng lặp lại.
   Mỗi tin có `tab` (tên ngắn), `title`, `sub`, `tag` (nhãn vàng, tuỳ chọn), `ticker` (câu thêm vào dòng chạy, tuỳ chọn) và một trong hai nguồn:
-  `source: 'drive'` = slideshow ảnh, video Google Drive có bộ đếm, kèm `intro` (thẻ mở đầu có pháo hoa) và `photoSeconds`;
+  `source: 'drive'` = slideshow ảnh, video Google Drive có bộ đếm, kèm `intro` (thẻ mở đầu có pháo hoa, giây riêng), `photoSeconds` và `shuffle` (ảnh ngẫu nhiên, không lặp tới khi hết kho);
   hoặc `images: ['img/...jpg']` = poster tĩnh, không bộ đếm. Thêm hay bớt tin chỉ cần sửa mảng này.
-  Tin Drive mỗi lượt quay lại chiếu tiếp từ ảnh kế, không quay về ảnh đầu, để lần lượt hết kho ảnh.
+  Hiện tại: tin Cloud 120 giây gồm thẻ sinh nhật 60 giây rồi ảnh Drive ngẫu nhiên 5 giây/ảnh; hai tin kết quả 60 giây mỗi tin. Tin Drive mỗi lượt quay lại chiếu tiếp các ảnh chưa chiếu, không quay về đầu.
 - Mục thêm tay cho "Hôm nay có gì" và giới hạn video: hằng `DASH`.
 - "Hôm nay có gì" lấy lịch bắt đầu hoặc kết thúc đúng hôm nay; "Đang diễn ra" là giai đoạn hiện tại của từng bộ môn kèm tiến độ trận từ hệ thống;
   "Sắp diễn ra" là 4 lịch gần nhất kèm số ngày còn lại. Tất cả tự đổi theo ngày.

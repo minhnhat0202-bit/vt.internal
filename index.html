@@ -460,12 +460,14 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   // ---- Bản tin (chế độ TV mặc định, #tv) ----
   // ---- Tin tiêu điểm: danh sách tin xoay vòng, thứ tự = thứ tự chiếu. Thêm hoặc bớt tin bằng dữ liệu, thanh story tự chia đều.
   //   tab: tên ngắn trên thanh story · title: tiêu đề in hoa · tag: nhãn vàng (tuỳ chọn) · sub: dòng phụ
-  //   source: 'drive' = slideshow ảnh, video từ Google Drive (media.js), có bộ đếm; intro = thẻ mở đầu kèm pháo hoa, photoSeconds = giây mỗi ảnh
+  //   seconds: thời lượng riêng của tin (không khai thì dùng STORY_SECONDS)
+  //   source: 'drive' = slideshow ảnh, video từ Google Drive (media.js), có bộ đếm; intro = thẻ mở đầu kèm pháo hoa (giây riêng),
+  //     photoSeconds = giây mỗi ảnh, shuffle: true = ảnh chiếu ngẫu nhiên, không lặp cho tới khi hết kho
   //   images: [ảnh] = poster tĩnh, không bộ đếm · ticker: câu thêm vào dòng chạy (tuỳ chọn)
-  const STORY_SECONDS = 25;   // mỗi tin chiếu bao lâu
+  const STORY_SECONDS = 60;   // thời lượng mặc định mỗi tin
   const STORIES = [
     { id: 'cloud', tab: 'Sinh nhật Viettel Cloud', title: 'Chúc mừng sinh nhật Viettel Cloud 4 tuổi', sub: '14/10/2022 đến 14/10/2026',
-      source: 'drive', intro: { image: 'img/sinh-nhat-cloud-4.jpg', seconds: 8 }, photoSeconds: 5 },
+      seconds: 120, source: 'drive', intro: { image: 'img/sinh-nhat-cloud-4.jpg', seconds: 60 }, photoSeconds: 5, shuffle: true },
     { id: 'cau-long', tab: 'Kết quả Cầu lông', title: 'Kết quả giải Cầu lông', sub: 'Vô địch: Hiếu – Thảo', tag: 'Chung cuộc',
       images: ['img/ket-qua-cau-long.jpg'], ticker: 'Vô địch Cầu lông: Hiếu – Thảo' },
     { id: 'pes', tab: 'Kết quả PES', title: 'Kết quả giải PES', sub: 'Vô địch: Hiếu & Trung', tag: 'Chung cuộc',
@@ -474,8 +476,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   const DASH = {
     // Mục thêm tay cho khung "Hôm nay có gì", ngoài lịch thi đấu tự lấy theo ngày
     today: [{ t: 'Sinh nhật Viettel Cloud 4 tuổi', s: 'Ra mắt 14/10/2022' }],
-    videoMaxSeconds: 90,      // video dài hơn sẽ chuyển sau chừng này giây
-    shuffle: false            // true = xáo thứ tự ảnh Drive mỗi lần mở
+    videoMaxSeconds: 90       // video dài hơn sẽ chuyển sau chừng này giây
   };
   // Nguồn ảnh, video: thư mục Google Drive công khai. Danh sách file nằm trong media.js
   // (sinh bằng tools/drive-media.py). Điền DRIVE_API_KEY (Google Cloud, bật Drive API) để trang tự đọc thư mục khi mở.
@@ -717,7 +718,15 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   }
 
   // ---------- Bản tin: ảnh và video từ Google Drive ----------
-  let media = [], mIdx = -1, mTimer = null, mFront = 'a', mediaOn = false, curVideo = null;
+  let media = [], mIdx = -1, mTimer = null, mFront = 'a', mediaOn = false, curVideo = null, bag = [];
+  // Ảnh kế tiếp: tuần tự, hoặc rút ngẫu nhiên từ "túi" các ảnh chưa chiếu (hết túi thì đổ lại) khi tin Drive bật shuffle
+  function pickNext() {
+    if (!driveStory().shuffle) return (mIdx + 1) % media.length;
+    if (!bag.length) { bag = media.map((_, k) => k); for (let i = bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = bag[i]; bag[i] = bag[j]; bag[j] = t; } }
+    let k = bag.pop(); if (k === mIdx && bag.length) { const k2 = bag.pop(); bag.push(k); k = k2; }
+    return k;
+  }
+  const shownCount = () => (driveStory().shuffle ? media.length - bag.length : mIdx + 1);
   const imgUrl = (id, w) => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 1600);
   const vidUrl = (m) => (m.src ? srcDir + m.src : 'https://drive.google.com/uc?export=download&id=' + m.id);
   const driveStory = () => STORIES.find((st) => st.source === 'drive') || {};
@@ -756,9 +765,8 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     const fresh = (list || []).filter((m) => m && m.id && (m.type === 'image' || m.type === 'video'));
     const mi = mIdx; const curId = mi >= 0 && media[mi] ? media[mi].id : null;
     if (fresh.map((m) => m.id).join(',') === media.map((m) => m.id).join(',')) return; // không đổi
-    media = fresh;
-    if (DASH.shuffle) for (let i = media.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const tmp = media[i]; media[i] = media[j]; media[j] = tmp; }
-    if (curId) { const k = media.findIndex ? media.findIndex((m) => m.id === curId) : -1; const ni = k >= 0 ? k : Math.min(mi, media.length - 1); mIdx = ni; if ($('media-count') && ni >= 0) $('media-count').textContent = (ni + 1) + ' / ' + media.length; }
+    media = fresh; bag = [];
+    if (curId) { const k = media.findIndex ? media.findIndex((m) => m.id === curId) : -1; const ni = k >= 0 ? k : Math.min(mi, media.length - 1); mIdx = ni; if ($('media-count') && ni >= 0) $('media-count').textContent = shownCount() + ' / ' + media.length; }
     const box = $('media'); const old = box.querySelector('.empty-media'); if (old) old.remove();
     if (!media.length) { box.insertAdjacentHTML('beforeend', '<div class="empty-media">Chưa có ảnh. Chạy tools/drive-media.py để lấy danh sách từ Google Drive.</div>'); $('media-count').textContent = ''; }
   }
@@ -776,9 +784,9 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   function nextMedia() {
     clearTimeout(mTimer); fxStop(); if (!mediaOn) return;
     const n = media.length; if (!n) return;
-    mIdx = (mIdx + 1) % n;
+    mIdx = pickNext();
     const mi = mIdx; const m = media[mi];
-    $('media-count').textContent = (mi + 1) + ' / ' + media.length;
+    $('media-count').textContent = shownCount() + ' / ' + media.length;
     const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + imgUrl(m.id, 200) + '")'; bg.classList.add('on');
     if (m.type === 'video') {
       const a = $('media-a'), b = $('media-b'); a.classList.remove('on'); b.classList.remove('on'); stopVideo();
@@ -833,7 +841,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   }
   function storyLoop(now) {
     if (!storiesOn) return;
-    const p = Math.min(1, (now - storyT0) / ((STORY_SECONDS || 25) * 1000));
+    const st = STORIES[sIdx]; const p = Math.min(1, (now - storyT0) / (((st && st.seconds) || STORY_SECONDS || 60) * 1000));
     const pb = $('pb'); if (pb) pb.style.width = (p * 100) + '%';
     if (p >= 1) showStory(sIdx + 1);
     storyRaf = requestAnimationFrame(storyLoop);
