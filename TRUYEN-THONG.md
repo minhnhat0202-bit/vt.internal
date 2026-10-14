@@ -4,7 +4,9 @@ Thư mục này là một trang web tĩnh độc lập, không cần build, đ�
 `index.html` là trang bản tin của Giải, đọc số liệu trực tiếp từ Google Apps Script của trang đăng ký.
 
 ```
-index.html          trang bản tin, kèm chế độ TV (#tv)
+index.html          trang bản tin, kèm 2 chế độ TV: bản tin (#tv) và thẻ xoay vòng (#slides)
+media.js            danh sách ảnh, video từ thư mục Google Drive cho khung Tin tiêu điểm
+tools/drive-media.py  sinh lại media.js từ thư mục Drive công khai
 img/                poster đã xử lý (web 2400 và 1200, bản cắt 16:9 cho TV, poster lịch thi đấu), logo
 fonts/              FS Magistral (tiêu đề), Roboto (thân bài)
 TRUYEN-THONG.md     tệp này
@@ -19,7 +21,8 @@ TRUYEN-THONG.md     tệp này
 | Số liệu Cầu lông, Bida, Bóng bàn | Apps Script `?action=state` (hằng `SHEETS_API_URL`) | Mỗi 60 giây |
 | Số liệu PES, Bóng đá | `SCHEDULE[...].static`, chốt 30/09 | Sửa tay |
 | Sơ đồ, kết quả 3 môn | Apps Script, tab Brackets | Mỗi 60 giây |
-| Chế độ TV | Thêm `#tv` vào link | 5 thẻ xoay vòng, 12 đến 15 giây/thẻ |
+| Chế độ TV bản tin | Thêm `#tv` vào link | Ảnh, video từ Drive xoay vòng; 3 khung Hôm nay có gì, Đang diễn ra, Sắp diễn ra tự lấy theo ngày |
+| Chế độ TV thẻ xoay vòng | Thêm `#slides` vào link | 5 thẻ xoay vòng, 12 đến 15 giây/thẻ |
 
 Khi không nối được Apps Script, trang hiện số liệu theo bản chốt 30/09 (hằng `SNAPSHOT`) và góc trên ghi "Số liệu chốt 30/09".
 
@@ -36,13 +39,26 @@ và dán địa chỉ GitHub Pages của trang đăng ký (repo `giai-the-thao-2
 liên kết "Xem sơ đồ đầy đủ" của từng môn sẽ dẫn đúng sang trang đó, có sẵn `#cau-long`, `#bida`, `#bong-ban`.
 Để trống thì các liên kết này được ẩn, trang vẫn chạy bình thường.
 
-## Chế độ TV
+## Chế độ TV bản tin (`#tv`)
 
-Mở `index.html#tv` trên trình duyệt của thiết bị phát, trang tự vào toàn màn hình và xoay vòng 5 thẻ:
-poster, lịch thi đấu, số liệu đăng ký, sơ đồ thi đấu, đếm ngược liên hoan 23/10. Dòng chạy phía dưới lấy lịch của hôm nay và 3 lịch kế tiếp.
+Mở `index.html#tv` trên thiết bị phát. Bố cục một màn hình cố định: thanh tiêu đề có ngày giờ, khung **Tin tiêu điểm** bên trái
+(tiêu đề ngày + ảnh và video xoay vòng), 3 khung bên phải **Hôm nay có gì**, **Đang diễn ra**, **Sắp diễn ra**, dòng chạy phía dưới.
+
+- Tiêu đề và mục thêm tay cho "Hôm nay có gì": hằng `DASH` trong `index.html` (`headline`, `subline`, `today`, số giây mỗi ảnh, giới hạn video, xáo thứ tự).
+- "Hôm nay có gì" lấy lịch bắt đầu hoặc kết thúc đúng hôm nay; "Đang diễn ra" là giai đoạn hiện tại của từng bộ môn kèm tiến độ trận từ hệ thống;
+  "Sắp diễn ra" là 4 lịch gần nhất kèm số ngày còn lại. Tất cả tự đổi theo ngày.
+- Ảnh và video lấy từ thư mục Google Drive công khai (hằng `DRIVE_FOLDER_ID`). Danh sách file nằm trong `media.js`.
+  Thêm ảnh vào Drive xong, chạy `python3 tools/drive-media.py` rồi commit `media.js` và push. Muốn trang tự đọc thư mục khi mở,
+  tạo API key trên Google Cloud (bật Google Drive API) và điền vào `DRIVE_API_KEY`.
+- Ảnh hiện qua đường dẫn thumbnail của Drive nên cả HEIC từ iPhone cũng hiển thị được. Video MOV phát trực tiếp, không phát được thì tự bỏ qua sau 15 giây.
+- Phím mũi tên phải để chuyển ảnh, Esc để thoát.
+
+## Chế độ TV thẻ xoay vòng (`#slides`)
+
+Mở `index.html#slides`: xoay vòng 5 thẻ poster, lịch thi đấu, số liệu đăng ký, sơ đồ thi đấu, đếm ngược liên hoan 23/10.
 
 - Khung dựng ở 1920×1080 và tự thu phóng theo màn hình, cỡ chữ đọc được từ 3 đến 5 mét.
-- Phím mũi tên trái phải để chuyển thẻ, Esc để thoát, `#tv3` mở thẳng thẻ số 3.
+- Phím mũi tên trái phải để chuyển thẻ, Esc để thoát, `#slides3` mở thẳng thẻ số 3.
 - Poster trên TV dùng bản cắt 16:9 `img/poster-tv-1920x1080.webp` (bỏ dải khói dưới cùng, giữ nguyên tiêu đề và nhân vật).
 - Chrome kiosk: `chrome --kiosk "https://<tai-khoan>.github.io/<repo>/#tv"`.
 
@@ -57,6 +73,6 @@ poster, lịch thi đấu, số liệu đăng ký, sơ đồ thi đấu, đếm 
 
 1. Tạo repo mới, ví dụ `dashboard-giai-the-thao`, đẩy toàn bộ thư mục này lên nhánh `main`.
 2. Repo → Settings → Pages → Source: Deploy from a branch → Branch: main / (root) → Save.
-3. Sau 1 đến 2 phút trang có tại `https://<tai-khoan>.github.io/dashboard-giai-the-thao/`, chế độ TV thêm `#tv`.
+3. Sau 1 đến 2 phút trang có tại `https://<tai-khoan>.github.io/dashboard-giai-the-thao/`, chế độ TV bản tin thêm `#tv`, thẻ xoay vòng thêm `#slides`.
 
 Font FS Magistral là font thương mại dùng nội bộ theo bộ nhận diện Viettel. Nếu repo công khai, cân nhắc bỏ `fonts/FSMagistral-*.ttf`; trang tự dùng Roboto thay thế.
