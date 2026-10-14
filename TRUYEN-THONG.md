@@ -41,7 +41,7 @@ liên kết "Xem sơ đồ đầy đủ" của từng môn sẽ dẫn đúng san
 
 ## Chế độ TV bản tin (`#tv`)
 
-Mở `index.html#tv` trên thiết bị phát. Bố cục một màn hình cố định: thanh tiêu đề có ngày giờ, khung **Tin tiêu điểm** bên trái
+Mở `index.html#tv` trên thiết bị phát, hoặc dùng địa chỉ ngắn `…/vt.internal/tv` (thư mục `tv/` chỉ chứa trang chuyển hướng sang `#tv`). Bố cục một màn hình cố định: thanh tiêu đề có ngày giờ, khung **Tin tiêu điểm** bên trái
 (tiêu đề ngày + ảnh và video xoay vòng), 3 khung bên phải **Hôm nay có gì**, **Đang diễn ra**, **Sắp diễn ra**, dòng chạy phía dưới.
 
 - Tiêu đề và mục thêm tay cho "Hôm nay có gì": hằng `DASH` trong `index.html` (`headline`, `subline`, `today`, số giây mỗi ảnh, giới hạn video, xáo thứ tự).
