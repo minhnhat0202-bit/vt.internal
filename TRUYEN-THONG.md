@@ -51,7 +51,10 @@ Mở `index.html#tv` trên thiết bị phát, hoặc dùng địa chỉ ngắn 
   Thanh story cạnh nhãn "Tin tiêu điểm" tự chia đều theo số tin: tin đang chiếu chạy thanh đỏ, tin đã chiếu thanh trắng mờ, hết vòng lặp lại.
   Mỗi tin có `tab` (tên ngắn), `title`, `sub`, `tag` (nhãn vàng, tuỳ chọn), `ticker` (câu thêm vào dòng chạy, tuỳ chọn) và một trong hai nguồn:
   `source: 'drive'` = slideshow ảnh, video Google Drive có bộ đếm, kèm `intro` (thẻ mở đầu có pháo hoa, giây riêng), `photoSeconds` và `shuffle` (ảnh ngẫu nhiên, không lặp tới khi hết kho);
-  hoặc `images: ['img/...jpg']` = poster tĩnh, không bộ đếm. Thêm hay bớt tin chỉ cần sửa mảng này.
+  hoặc `images: ['img/...jpg']` = poster tĩnh, không bộ đếm; hoặc `items: [{type:'video', src}, {type:'image', src}]` = chiếu lần lượt video rồi ảnh
+  (video H.264 MP4 đặt trong `media/`, ảnh trong `img/`). Thêm hay bớt tin chỉ cần sửa mảng này.
+  Thanh story cuộn ngang khi nhiều tin: tab tới lượt mới trượt vào vùng nhìn.
+- **Tin thời sự trong ngày (thư mục Daily News):** chép video sang `media/`, ảnh sang `img/` (ảnh dọc thu về cao 1600, JPG), thêm một mục `items` vào `STORIES`, commit và push.
   Hiện tại: tin Cloud 120 giây gồm thẻ sinh nhật 60 giây rồi ảnh Drive ngẫu nhiên 5 giây/ảnh; hai tin kết quả 60 giây mỗi tin. Tin Drive mỗi lượt quay lại chiếu tiếp các ảnh chưa chiếu, không quay về đầu.
 - Mục thêm tay cho "Hôm nay có gì" và giới hạn video: hằng `DASH`.
 - "Hôm nay có gì" lấy lịch bắt đầu hoặc kết thúc đúng hôm nay; "Đang diễn ra" là giai đoạn hiện tại của từng bộ môn kèm tiến độ trận từ hệ thống;

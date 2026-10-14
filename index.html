@@ -243,7 +243,9 @@
   .feature { padding: 78px 28px 22px; margin-top: -16px; }
   .feature > .lbl { top: -8px; }
   /* thanh story: 1 ô / tin, cùng hàng với nhãn Tin tiêu điểm, bên phải nhãn; tự chia đều theo số tin */
-  .feature .tabs { position: absolute; left: 330px; right: 28px; top: 26px; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; grid-gap: 14px; gap: 14px; z-index: 2; }
+  .feature .tabs { position: absolute; left: 330px; right: 28px; top: 26px; overflow: hidden; z-index: 2; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
+  .feature .tabs .track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr); grid-gap: 14px; gap: 14px; transition: transform .6s ease; will-change: transform; }
+  @media (prefers-reduced-motion: reduce) { .feature .tabs .track { transition: none; } }
   .feature .tab { font-size: 19px; font-weight: 500; color: var(--grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
   .feature .tab i { display: block; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; margin-top: 9px; }
   .feature .tab i b { display: block; height: 100%; width: 0; background: #e3122b; }
@@ -466,6 +468,8 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   //   source: 'drive' = slideshow ảnh, video từ Google Drive (media.js), có bộ đếm; intro = thẻ mở đầu kèm pháo hoa (giây riêng),
   //     photoSeconds = giây mỗi ảnh, shuffle: true = ảnh chiếu ngẫu nhiên, không lặp cho tới khi hết kho
   //   images: [ảnh] = poster tĩnh, không bộ đếm · ticker: câu thêm vào dòng chạy (tuỳ chọn)
+  //   items: [{ type: 'video', src }, { type: 'image', src, seconds? }] = chiếu lần lượt video rồi ảnh trong thời lượng tin;
+  //     video phát hết thì sang mục kế, ảnh không khai seconds thì giữ tới hết tin. File đặt trong media/ (video) và img/ (ảnh)
   const STORY_SECONDS = 60;   // thời lượng mặc định mỗi tin
   const STORIES = [
     { id: 'cloud', tab: 'Sinh nhật Viettel Cloud', title: 'Chúc mừng sinh nhật Viettel Cloud 4 tuổi', sub: '14/10/2022 đến 14/10/2026',
@@ -473,7 +477,11 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     { id: 'cau-long', tab: 'Kết quả Cầu lông', title: 'Kết quả giải Cầu lông', sub: 'Vô địch: Hiếu – Thảo', tag: 'Chung cuộc',
       images: ['img/ket-qua-cau-long.jpg'], ticker: 'Vô địch Cầu lông: Hiếu – Thảo' },
     { id: 'pes', tab: 'Kết quả PES', title: 'Kết quả giải PES', sub: 'Vô địch: Hiếu & Trung', tag: 'Chung cuộc',
-      images: ['img/ket-qua-pes.jpg'], ticker: 'Vô địch PES: Hiếu & Trung' }
+      images: ['img/ket-qua-pes.jpg'], ticker: 'Vô địch PES: Hiếu & Trung' },
+    { id: 'vda-2026', tab: 'Giải thưởng CĐS 2026', title: 'Giải thưởng Chuyển đổi số Việt Nam 2026', tag: 'Vinh danh',
+      sub: 'Hệ thống Quản lý vùng phủ mạng vô tuyến · Viettel Networks',
+      items: [{ type: 'video', src: 'media/daily-2026-10-14.mp4' }, { type: 'image', src: 'img/daily-2026-10-14.jpg' }],
+      ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' }
   ];
   const DASH = {
     // Mục thêm tay cho khung "Hôm nay có gì", ngoài lịch thi đấu tự lấy theo ngày
@@ -819,9 +827,27 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 
   // ---------- Tin tiêu điểm xoay vòng ----------
   let sIdx = -1, storyT0 = 0, storyRaf = null, storiesOn = false;
-  function preloadStills() { STORIES.forEach((st) => (st.images || []).forEach((u) => { const im = new Image(); im.src = u; })); }
+  const preloaded = [];
+  function preloadStills() {
+    STORIES.forEach((st) => {
+      (st.images || []).forEach((u) => { const im = new Image(); im.src = u; preloaded.push(im); });
+      (st.items || []).forEach((it) => {
+        if (it.type === 'image') { const im = new Image(); im.src = it.src; preloaded.push(im); }
+        else if (it.type === 'video' && !preloaded.some((x) => x.tagName === 'VIDEO' && x.dataset.src === it.src)) { const v = document.createElement('video'); v.preload = 'auto'; v.muted = true; v.dataset.src = it.src; v.src = it.src; try { v.load(); } catch (e) {} preloaded.push(v); }
+      });
+    });
+  }
   function renderTabs() {
-    $('tabs').innerHTML = STORIES.map((st, j) => `<div class="tab ${j === sIdx ? 'on' : j < sIdx ? 'done' : ''}">${esc(st.tab)}<i><b${j === sIdx ? ' id="pb"' : ''}></b></i></div>`).join('');
+    const box = $('tabs');
+    let track = box.querySelector('.track');
+    if (!track) { track = document.createElement('div'); track.className = 'track'; box.appendChild(track); }
+    track.innerHTML = STORIES.map((st, j) => `<div class="tab ${j === sIdx ? 'on' : j < sIdx ? 'done' : ''}">${esc(st.tab)}<i><b${j === sIdx ? ' id="pb"' : ''}></b></i></div>`).join('');
+    // kéo tab đang chiếu vào vùng nhìn khi thanh dài hơn chỗ chứa
+    const on = track.children[sIdx]; if (!on) return;
+    const W = box.clientWidth, over = track.scrollWidth - W;
+    let dx = 0;
+    if (over > 0) { dx = Math.max(0, on.offsetLeft + on.offsetWidth - W); if (on.offsetLeft < dx) dx = on.offsetLeft; dx = Math.min(dx, over); }
+    track.style.transform = 'translateX(' + (-dx) + 'px)';
   }
   function renderHead(st) {
     $('dash-headline').innerHTML = `<span>${esc(st.title)}</span>${st.tag ? `<span class="tag">${esc(st.tag)}</span>` : ''}${st.sub ? `<small>${esc(st.sub)}</small>` : ''}`;
@@ -833,12 +859,36 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     const show = mFront === 'a' ? $('media-b') : $('media-a'), hide = mFront === 'a' ? $('media-a') : $('media-b');
     show.src = src; show.classList.add('on'); hide.classList.remove('on'); mFront = mFront === 'a' ? 'b' : 'a';
   }
+  // Tin dạng danh sách: video phát hết thì sang mục kế, ảnh giữ theo seconds hoặc tới hết tin
+  let listRun = 0;
+  function showItems(st, k) {
+    const run = ++listRun; const items = st.items || []; if (!items.length) return;
+    if (k >= items.length) return;                          // hết danh sách: giữ mục cuối tới hết tin
+    const it = items[k];
+    if (it.type === 'video') {
+      pauseMedia(); $('media-count').textContent = '';
+      const a = $('media-a'), b = $('media-b'); a.classList.remove('on'); b.classList.remove('on');
+      const bg = $('media-bg'); bg.classList.remove('on');
+      const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = it.src;
+      $('media').insertBefore(v, $('media-count')); curVideo = v;
+      let moved = false; const go = () => { if (moved || run !== listRun) return; moved = true; stopVideo(); showItems(st, k + 1); };
+      v.addEventListener('ended', go); v.addEventListener('error', go);
+      v.addEventListener('playing', () => { v.classList.add('on'); clearTimeout(mTimer); mTimer = setTimeout(go, (it.seconds || DASH.videoMaxSeconds) * 1000); });
+      mTimer = setTimeout(go, 15000);                       // không phát được trong 15 giây thì bỏ qua
+      const pr = v.play && v.play(); if (pr && pr.catch) pr.catch(() => {});
+      return;
+    }
+    showStill(it.src);
+    if (it.seconds) mTimer = setTimeout(() => { if (run === listRun) showItems(st, k + 1); }, it.seconds * 1000);
+  }
   function showStory(i) {
     if (!STORIES.length) return;
     sIdx = ((i % STORIES.length) + STORIES.length) % STORIES.length; storyT0 = performance.now();
     const st = STORIES[sIdx];
     renderTabs(); renderHead(st); fadeIn($('dash-headline')); fadeIn($('media'));
+    listRun++;
     if (st.source === 'drive') { pauseMedia(); mediaOn = true; if (hasIntro()) showIntro(); else nextMedia(); }   // mở đầu rồi chiếu tiếp từ ảnh kế
+    else if (st.items && st.items.length) showItems(st, 0);
     else showStill((st.images || [])[0] || '');
   }
   function storyLoop(now) {
