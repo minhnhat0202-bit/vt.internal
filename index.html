@@ -694,7 +694,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   // ---------- Bản tin: ảnh và video từ Google Drive ----------
   let media = [], mIdx = -1, mTimer = null, mFront = 'a', mediaOn = false, curVideo = null;
   const imgUrl = (id, w) => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 1600);
-  const vidUrl = (id) => 'https://drive.google.com/uc?export=download&id=' + id;
+  const vidUrl = (m) => (m.src ? srcDir + m.src : 'https://drive.google.com/uc?export=download&id=' + m.id);
   function setMedia(list) {
     const fresh = (list || []).filter((m) => m && m.id && (m.type === 'image' || m.type === 'video'));
     const curId = mIdx >= 0 && media[mIdx] ? media[mIdx].id : null;
@@ -723,7 +723,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + imgUrl(m.id, 200) + '")'; bg.classList.add('on');
     if (m.type === 'video') {
       const a = $('media-a'), b = $('media-b'); a.classList.remove('on'); b.classList.remove('on'); stopVideo();
-      const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = vidUrl(m.id);
+      const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = vidUrl(m);
       $('media').insertBefore(v, $('media-count')); curVideo = v;
       let moved = false; const go = () => { if (moved) return; moved = true; stopVideo(); nextMedia(); };
       v.addEventListener('ended', go); v.addEventListener('error', go);

@@ -1,6 +1,7 @@
 name: Cập nhật ảnh từ Google Drive
 
 # Mỗi 15 phút GitHub tự quét thư mục Drive công khai, ghi lại media.js và media.json nếu có thay đổi.
+# Video mới được chuyển sang H.264 MP4 vào thư mục media/ để mọi trình duyệt phát được.
 # Trang trên TV tự đọc media.json mỗi 5 phút nên ảnh mới xuất hiện mà không cần F5.
 on:
   schedule:
@@ -18,12 +19,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Quét thư mục Drive
+      - name: Bảo đảm có ffmpeg (chuyển video HEVC của iPhone sang H.264)
+        run: ffmpeg -version >/dev/null 2>&1 || (sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg)
+      - name: Quét thư mục Drive và chuyển mã video mới
         run: python3 tools/drive-media.py
       - name: Commit nếu có thay đổi
         run: |
-          if git diff --quiet; then echo "Không có ảnh mới"; exit 0; fi
+          git add -A
+          if git diff --cached --quiet; then echo "Không có ảnh mới"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "Cập nhật danh sách ảnh từ Google Drive"
+          git commit -m "Cập nhật ảnh, video từ Google Drive"
           git push

@@ -6,6 +6,7 @@ Thư mục này là một trang web tĩnh độc lập, không cần build, đ�
 ```
 index.html          trang bản tin, kèm 2 chế độ TV: bản tin (#tv) và thẻ xoay vòng (#slides)
 media.js, media.json  danh sách ảnh, video từ thư mục Google Drive cho khung Tin tiêu điểm
+media/              video đã chuyển mã H.264 MP4 (GitHub Action tạo)
 tools/drive-media.py  sinh lại media.js và media.json từ thư mục Drive công khai
 .github/workflows/    GitHub Action tự chạy tools/drive-media.py mỗi 15 phút
 apps-script/media.gs  tùy chọn: Apps Script trả danh sách ảnh nhanh hơn
@@ -55,7 +56,10 @@ Mở `index.html#tv` trên thiết bị phát, hoặc dùng địa chỉ ngắn 
   không cần làm gì thêm (độ trễ 15 đến 25 phút). Chạy tay khi cần gấp: tab Actions trên GitHub → "Cập nhật ảnh từ Google Drive" → Run workflow,
   hoặc `python3 tools/drive-media.py` rồi commit và push.
   Muốn nhanh hơn (1 đến 2 phút) hoặc thư mục Drive không công khai: cài `apps-script/media.gs` theo hướng dẫn trong file, dán URL vào `MEDIA_API_URL`.
-- Ảnh hiện qua đường dẫn thumbnail của Drive nên cả HEIC từ iPhone cũng hiển thị được. Video MOV phát trực tiếp, không phát được thì tự bỏ qua sau 15 giây.
+- Ảnh hiện qua đường dẫn thumbnail của Drive nên cả HEIC từ iPhone cũng hiển thị được.
+- Video iPhone (.MOV, mã HEVC) trình duyệt thường không phát được, nên GitHub Action chuyển mỗi video mới sang H.264 MP4 720p và lưu vào `media/`;
+  trang phát file này. Video chưa kịp chuyển mã thì thử phát thẳng từ Drive, không được thì tự bỏ qua sau 15 giây.
+  Video dài làm repo nặng, nên giữ clip ngắn dưới 2 phút.
 - Phím mũi tên phải để chuyển ảnh, Esc để thoát.
 
 ## Chế độ TV thẻ xoay vòng (`#slides`)
