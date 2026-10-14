@@ -8,7 +8,7 @@ index.html          trang bản tin, kèm 2 chế độ TV: bản tin (#tv) và 
 media.js            danh sách ảnh, video từ thư mục Google Drive cho khung Tin tiêu điểm
 tools/drive-media.py  sinh lại media.js từ thư mục Drive công khai
 img/                poster đã xử lý (web 2400 và 1200, bản cắt 16:9 cho TV, poster lịch thi đấu), logo
-fonts/              FS Magistral (tiêu đề), Roboto (thân bài)
+fonts/              FS PF BeauSans Pro (tiêu đề), Roboto (thân bài)
 TRUYEN-THONG.md     tệp này
 ```
 
@@ -82,4 +82,4 @@ Chỉnh trong hằng `AUTO_RELOAD` (`checkSeconds`, `dailyAt`). Lần đầu áp
 2. Repo → Settings → Pages → Source: Deploy from a branch → Branch: main / (root) → Save.
 3. Sau 1 đến 2 phút trang có tại `https://<tai-khoan>.github.io/dashboard-giai-the-thao/`, chế độ TV bản tin thêm `#tv`, thẻ xoay vòng thêm `#slides`.
 
-Font FS Magistral là font thương mại dùng nội bộ theo bộ nhận diện Viettel. Nếu repo công khai, cân nhắc bỏ `fonts/FSMagistral-*.ttf`; trang tự dùng Roboto thay thế.
+Font FS PF BeauSans Pro là font nội bộ theo bộ nhận diện Viettel 2024 (FS Magistral không còn được dùng). Nếu repo công khai, cân nhắc bỏ `fonts/FSPFBeauSansPro-*`; trang tự dùng Roboto thay thế.
