@@ -265,8 +265,6 @@
   .ticker .run div { white-space: nowrap; display: flex; padding-left: 40px; animation: run 48s linear infinite; }
   .ticker .run i { font-style: normal; color: var(--red); margin-right: 28px; }
   @keyframes run { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  .tv-exit { position: fixed; right: 16px; top: 16px; z-index: 9; opacity: 0; transition: opacity .3s; }
-  body.tv:hover .tv-exit { opacity: 1; }
   /* tương thích trình duyệt TV cũ: khoảng cách flex bằng margin thay cho gap */
   .top > * { margin: 0 24px 14px 0; }
   .brand > * + * { margin-left: 14px; }
@@ -424,7 +422,6 @@
 
     <footer class="ticker"><div class="tag">Bản tin</div><div class="run"><div id="tv-run"></div></div></footer>
   </div>
-  <a class="btn tv-exit" href="#" id="tv-exit">Thoát chế độ TV (Esc)</a>
 </div>
 
 <div id="err" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:99;background:#B30026;color:#fff;font:14px/1.4 Roboto,Arial,sans-serif;padding:10px 16px;word-break:break-word"></div>
@@ -770,7 +767,6 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   }
   addEventListener('hashchange', syncHash); addEventListener('resize', fit);
   addEventListener('keydown', (e) => { if (!document.body.classList.contains('tv')) return; if (e.key === 'Escape') location.hash = ''; const dash = $('stage').classList.contains('mode-dash'); if (e.key === 'ArrowRight') { if (dash) nextMedia(); else show(i + 1); } if (e.key === 'ArrowLeft' && !dash) show(i - 1); });
-  $('tv-exit').addEventListener('click', (e) => { e.preventDefault(); location.hash = ''; });
   setInterval(clock, 15000);
 
   // ---------- tự tải lại khi có bản mới ----------
