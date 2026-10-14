@@ -156,7 +156,7 @@
   body.tv #tv { display: block; }
   .stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform: translate(-50%, -50%) scale(var(--k, .5)); transform-origin: center; overflow: hidden; color: var(--ink);
     background: radial-gradient(900px 700px at 8% 12%, rgba(238,0,51,.5), transparent 60%), radial-gradient(800px 600px at 96% 92%, rgba(238,0,51,.28), transparent 60%), linear-gradient(135deg, #0c0b0f 0%, #17161b 55%, #0a090c 100%); }
-  .hdr { position: absolute; left: 0; top: 0; right: 0; height: 112px; display: flex; align-items: center; justify-content: space-between; padding: 0 64px; border-bottom: 1.5px solid rgba(255,255,255,.14); background: linear-gradient(180deg, rgba(0,0,0,.5), rgba(0,0,0,0)); z-index: 2; }
+  .hdr { position: absolute; left: 0; top: 0; right: 0; height: 100px; display: flex; align-items: center; justify-content: space-between; padding: 0 64px; border-bottom: 1.5px solid rgba(255,255,255,.14); background: linear-gradient(180deg, rgba(0,0,0,.5), rgba(0,0,0,0)); z-index: 2; }
   .hdr .b { display: flex; align-items: center; }
   .hdr .b img { height: 64px; width: auto; background: #fff; padding: 6px 12px; border-radius: 10px; }
   .hdr .b .sep { width: 2px; height: 48px; background: rgba(255,255,255,.25); }
@@ -164,15 +164,15 @@
   .hdr .c { display: flex; align-items: center; font-variant-numeric: tabular-nums; }
   .hdr .c .d { font-size: 30px; color: var(--ink-2); text-align: right; line-height: 1.2; }
   .hdr .c .t { font-family: var(--display); font-weight: 800; font-size: 60px; letter-spacing: -1px; }
-  .dots { position: absolute; left: 50%; transform: translateX(-50%); top: 88px; display: flex; z-index: 3; }
+  .dots { position: absolute; left: 50%; transform: translateX(-50%); top: 80px; display: flex; z-index: 3; }
   .dots span { width: 52px; height: 8px; border-radius: 4px; background: rgba(255,255,255,.28); overflow: hidden; position: relative; }
   .dots span.done { background: rgba(255,255,255,.6); }
   .dots span.on::after { content: ""; position: absolute; inset: 0; background: var(--red); transform-origin: 0 0; animation: prog var(--dur, 12s) linear forwards; }
   @keyframes prog { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  .slide { position: absolute; left: 0; right: 0; top: 112px; bottom: 128px; padding: 40px 64px; display: none; overflow: hidden; animation: fade .7s ease both; }
+  .slide { position: absolute; left: 0; right: 0; top: 100px; bottom: 128px; padding: 40px 64px; display: none; overflow: hidden; animation: fade .7s ease both; }
   .slide.on { display: grid; }
   @keyframes fade { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  .slide.poster-slide { padding: 0; top: 112px; bottom: 128px; overflow: hidden; }
+  .slide.poster-slide { padding: 0; top: 100px; bottom: 128px; overflow: hidden; }
   .slide.poster-slide::before { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; background: url("img/poster-tv-blur.jpg") center/cover; }
   .slide.poster-slide img { position: relative; width: 100%; height: 100%; object-fit: contain; }
   .slide.poster-slide .cap { position: absolute; left: 64px; bottom: 40px; display: flex; }
@@ -233,13 +233,13 @@
   .s-cd .slog { padding: 26px; text-align: center; font-family: var(--display); font-weight: 800; font-size: 36px; text-transform: uppercase; letter-spacing: .06em; line-height: 1.2; }
   .s-cd .slog span { color: var(--red); text-shadow: 0 0 20px rgba(238,0,51,.6); }
   /* ===== Bố cục bản tin (chế độ TV mặc định) ===== */
-  .dash { display: none; position: absolute; left: 0; right: 0; top: 112px; bottom: 128px; padding: 36px 64px 28px; grid-template-columns: minmax(0, 1fr) 470px; grid-gap: 32px; gap: 32px; }
+  .dash { display: none; position: absolute; left: 0; right: 0; top: 100px; bottom: 128px; padding: 30px 64px 28px; grid-template-columns: minmax(0, 1fr) 470px; grid-gap: 32px; gap: 32px; }
   .stage.mode-dash .dash { display: grid; }
   .stage.mode-dash .slide, .stage.mode-dash .dots { display: none; }
-  .panel { position: relative; padding: 42px 26px 14px; min-height: 0; display: flex; flex-direction: column; }
+  .panel { position: relative; padding: 44px 26px 14px; min-height: 0; display: flex; flex-direction: column; }
   .panel .pg { position: absolute; right: 22px; top: 12px; font-size: 22px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .panel .lbl { position: absolute; left: 26px; top: -24px; padding: 9px 22px; background: var(--red); color: #fff; font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .1em; text-transform: uppercase; border-radius: 8px; box-shadow: 0 0 24px rgba(238,0,51,.55); white-space: nowrap; }
-  .feature { padding: 34px 28px 22px; }
+  .feature { padding: 54px 28px 22px; }
   .feature .headline { margin: 0 0 14px; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.15; text-transform: uppercase; text-align: center; letter-spacing: .01em; text-shadow: 0 0 24px rgba(238,0,51,.45); }
   .feature .headline small { display: inline; font-family: var(--body); font-weight: 400; font-size: 24px; text-transform: none; color: var(--ink-2); margin-left: 16px; letter-spacing: 0; white-space: nowrap; }
   .media { position: relative; flex: 1; min-height: 0; border-radius: 20px; overflow: hidden; background: #000; }
