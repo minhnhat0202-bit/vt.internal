@@ -233,15 +233,15 @@
   .s-cd .slog { padding: 26px; text-align: center; font-family: var(--display); font-weight: 800; font-size: 36px; text-transform: uppercase; letter-spacing: .06em; line-height: 1.2; }
   .s-cd .slog span { color: var(--red); text-shadow: 0 0 20px rgba(238,0,51,.6); }
   /* ===== Bố cục bản tin (chế độ TV mặc định) ===== */
-  .dash { display: none; position: absolute; left: 0; right: 0; top: 112px; bottom: 128px; padding: 46px 64px 36px; grid-template-columns: minmax(0, 1fr) 470px; grid-gap: 32px; gap: 32px; }
+  .dash { display: none; position: absolute; left: 0; right: 0; top: 112px; bottom: 128px; padding: 36px 64px 28px; grid-template-columns: minmax(0, 1fr) 470px; grid-gap: 32px; gap: 32px; }
   .stage.mode-dash .dash { display: grid; }
   .stage.mode-dash .slide, .stage.mode-dash .dots { display: none; }
-  .panel { position: relative; padding: 44px 26px 16px; min-height: 0; display: flex; flex-direction: column; }
+  .panel { position: relative; padding: 42px 26px 14px; min-height: 0; display: flex; flex-direction: column; }
   .panel .pg { position: absolute; right: 22px; top: 12px; font-size: 22px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .panel .lbl { position: absolute; left: 26px; top: -24px; padding: 9px 22px; background: var(--red); color: #fff; font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .1em; text-transform: uppercase; border-radius: 8px; box-shadow: 0 0 24px rgba(238,0,51,.55); white-space: nowrap; }
-  .feature { padding: 44px 32px 28px; }
-  .feature .headline { margin: 0 0 20px; font-family: var(--display); font-weight: 800; font-size: 40px; line-height: 1.15; text-transform: uppercase; text-align: center; letter-spacing: .01em; text-shadow: 0 0 24px rgba(238,0,51,.45); }
-  .feature .headline small { display: block; font-family: var(--body); font-weight: 400; font-size: 26px; text-transform: none; color: var(--ink-2); margin-top: 8px; letter-spacing: 0; }
+  .feature { padding: 34px 28px 22px; }
+  .feature .headline { margin: 0 0 14px; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.15; text-transform: uppercase; text-align: center; letter-spacing: .01em; text-shadow: 0 0 24px rgba(238,0,51,.45); }
+  .feature .headline small { display: inline; font-family: var(--body); font-weight: 400; font-size: 24px; text-transform: none; color: var(--ink-2); margin-left: 16px; letter-spacing: 0; white-space: nowrap; }
   .media { position: relative; flex: 1; min-height: 0; border-radius: 20px; overflow: hidden; background: #000; }
   .media .bg { position: absolute; top: -30px; right: -30px; bottom: -30px; left: -30px; background-position: center; background-size: cover; filter: blur(18px) brightness(.5); opacity: 0; transition: opacity .8s; }
   .media .bg.on { opacity: 1; }
@@ -441,6 +441,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   const REG_URL = '';
   const FINALE = new Date('2026-10-23T18:00:00+07:00');
 
+  const srcDir = location.pathname.replace(/[^/]*$/, '');
   // ---- Bản tin (chế độ TV mặc định, #tv) ----
   const DASH = {
     headline: 'Chúc mừng sinh nhật Viettel Cloud 4 tuổi',
@@ -455,9 +456,13 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   // (sinh bằng tools/drive-media.py). Điền DRIVE_API_KEY (Google Cloud, bật Drive API) để trang tự đọc thư mục khi mở.
   const DRIVE_FOLDER_ID = '18QdoAzINpvlfo54nMBTAGTn9avTo214E';
   const DRIVE_API_KEY = '';
+  // Danh sách ảnh tự làm mới: trang đọc media.json trên máy chủ mỗi mediaRefreshSeconds (GitHub Action cập nhật file này
+  // từ Drive mỗi 15 phút). MEDIA_API_URL (tùy chọn, xem apps-script/media.gs) cho cập nhật nhanh hơn, ưu tiên nếu có.
+  const MEDIA_API_URL = '';
+  const MEDIA_REFRESH_SECONDS = 300;
   // Tự cập nhật: mỗi checkSeconds trang tải lại index.html và media.js trên máy chủ, thấy khác bản đang chạy thì tự F5.
   // dailyAt: giờ tự tải lại mỗi ngày (làm mới nội dung theo ngày, giải phóng bộ nhớ trình duyệt TV). Để '' nếu không cần.
-  const AUTO_RELOAD = { checkSeconds: 120, dailyAt: '05:00', files: ['index.html', 'media.js'] };
+  const AUTO_RELOAD = { checkSeconds: 120, dailyAt: '05:00', files: ['index.html'] };
 
   // Lịch thi đấu theo poster. from/to là ngày (giờ Việt Nam).
   const SCHEDULE = [
@@ -691,10 +696,24 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   const imgUrl = (id, w) => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 1600);
   const vidUrl = (id) => 'https://drive.google.com/uc?export=download&id=' + id;
   function setMedia(list) {
-    media = (list || []).filter((m) => m && m.id && (m.type === 'image' || m.type === 'video'));
+    const fresh = (list || []).filter((m) => m && m.id && (m.type === 'image' || m.type === 'video'));
+    const curId = mIdx >= 0 && media[mIdx] ? media[mIdx].id : null;
+    if (fresh.map((m) => m.id).join(',') === media.map((m) => m.id).join(',')) return; // không đổi
+    media = fresh;
     if (DASH.shuffle) for (let i = media.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const tmp = media[i]; media[i] = media[j]; media[j] = tmp; }
+    if (curId) { const k = media.findIndex ? media.findIndex((m) => m.id === curId) : -1; mIdx = k >= 0 ? k : Math.min(mIdx, media.length - 1); if ($('media-count') && mIdx >= 0) $('media-count').textContent = (mIdx + 1) + ' / ' + media.length; }
     const box = $('media'); const old = box.querySelector('.empty-media'); if (old) old.remove();
     if (!media.length) { box.insertAdjacentHTML('beforeend', '<div class="empty-media">Chưa có ảnh. Chạy tools/drive-media.py để lấy danh sách từ Google Drive.</div>'); $('media-count').textContent = ''; }
+  }
+  function refreshMedia() {
+    if (MEDIA_API_URL) {
+      fetch(MEDIA_API_URL + (MEDIA_API_URL.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now(), { redirect: 'follow', cache: 'no-store' })
+        .then((r) => r.json()).then((j) => { if (j && j.files) setMedia(j.files); }).catch(() => {});
+      return;
+    }
+    if (DRIVE_API_KEY) { loadDrive(); return; }
+    if (location.protocol === 'file:') return;
+    fetch(srcDir + 'media.json?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.length !== undefined) setMedia(j); }).catch(() => {});
   }
   function stopVideo() { if (curVideo) { try { curVideo.pause(); } catch (e) {} curVideo.remove(); curVideo = null; } }
   function nextMedia() {
@@ -772,7 +791,6 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 
   // ---------- tự tải lại khi có bản mới ----------
   function hashStr(t) { let h = 5381; for (let k = 0; k < t.length; k++) h = ((h << 5) + h + t.charCodeAt(k)) | 0; return h + ':' + t.length; }
-  const srcDir = location.pathname.replace(/[^/]*$/, '');
   function fetchAll() {
     return Promise.all(AUTO_RELOAD.files.map((f) => fetch(srcDir + f + '?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).catch(() => '')))
       .then((texts) => texts.map(hashStr).join('|'));
@@ -791,7 +809,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 
   // ---------- boot ----------
   document.querySelectorAll('[data-reg]').forEach((a) => { if (REG_URL) a.href = REG_URL; else a.remove(); });
-  setMedia(window.DRIVE_MEDIA || []); loadDrive();
+  setMedia(window.DRIVE_MEDIA || []); refreshMedia(); setInterval(refreshMedia, Math.max(60, MEDIA_REFRESH_SECONDS) * 1000);
   renderSports(); renderToday(); renderStats(); renderBrackets(); syncHash();
   load(); setInterval(load, 60000);
   setInterval(() => { renderSports(); renderToday(); if ($('stage').classList.contains('mode-dash')) renderDash(); }, 10 * 60000); // sang ngày mới thì đổi trạng thái lịch

@@ -1,0 +1,29 @@
+name: Cập nhật ảnh từ Google Drive
+
+# Mỗi 15 phút GitHub tự quét thư mục Drive công khai, ghi lại media.js và media.json nếu có thay đổi.
+# Trang trên TV tự đọc media.json mỗi 5 phút nên ảnh mới xuất hiện mà không cần F5.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Quét thư mục Drive
+        run: python3 tools/drive-media.py
+      - name: Commit nếu có thay đổi
+        run: |
+          if git diff --quiet; then echo "Không có ảnh mới"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Cập nhật danh sách ảnh từ Google Drive"
+          git push

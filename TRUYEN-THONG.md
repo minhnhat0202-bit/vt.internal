@@ -5,8 +5,10 @@ Thư mục này là một trang web tĩnh độc lập, không cần build, đ�
 
 ```
 index.html          trang bản tin, kèm 2 chế độ TV: bản tin (#tv) và thẻ xoay vòng (#slides)
-media.js            danh sách ảnh, video từ thư mục Google Drive cho khung Tin tiêu điểm
-tools/drive-media.py  sinh lại media.js từ thư mục Drive công khai
+media.js, media.json  danh sách ảnh, video từ thư mục Google Drive cho khung Tin tiêu điểm
+tools/drive-media.py  sinh lại media.js và media.json từ thư mục Drive công khai
+.github/workflows/    GitHub Action tự chạy tools/drive-media.py mỗi 15 phút
+apps-script/media.gs  tùy chọn: Apps Script trả danh sách ảnh nhanh hơn
 img/                poster đã xử lý (web 2400 và 1200, bản cắt 16:9 cho TV, poster lịch thi đấu), logo
 fonts/              FS PF BeauSans Pro (tiêu đề), Roboto (thân bài)
 TRUYEN-THONG.md     tệp này
@@ -47,9 +49,12 @@ Mở `index.html#tv` trên thiết bị phát, hoặc dùng địa chỉ ngắn 
 - Tiêu đề và mục thêm tay cho "Hôm nay có gì": hằng `DASH` trong `index.html` (`headline`, `subline`, `today`, số giây mỗi ảnh, giới hạn video, xáo thứ tự).
 - "Hôm nay có gì" lấy lịch bắt đầu hoặc kết thúc đúng hôm nay; "Đang diễn ra" là giai đoạn hiện tại của từng bộ môn kèm tiến độ trận từ hệ thống;
   "Sắp diễn ra" là 4 lịch gần nhất kèm số ngày còn lại. Tất cả tự đổi theo ngày.
-- Ảnh và video lấy từ thư mục Google Drive công khai (hằng `DRIVE_FOLDER_ID`). Danh sách file nằm trong `media.js`.
-  Thêm ảnh vào Drive xong, chạy `python3 tools/drive-media.py` rồi commit `media.js` và push. Muốn trang tự đọc thư mục khi mở,
-  tạo API key trên Google Cloud (bật Google Drive API) và điền vào `DRIVE_API_KEY`.
+- Ảnh và video lấy từ thư mục Google Drive công khai (hằng `DRIVE_FOLDER_ID`). Danh sách file nằm trong `media.js` và `media.json`.
+  **Tự đồng bộ:** GitHub Action `.github/workflows/drive-media.yml` quét thư mục Drive mỗi 15 phút và commit danh sách mới;
+  trang trên TV đọc lại `media.json` mỗi 5 phút và chèn ảnh mới vào lượt chiếu, không tải lại trang. Thêm ảnh vào Drive là xong,
+  không cần làm gì thêm (độ trễ 15 đến 25 phút). Chạy tay khi cần gấp: tab Actions trên GitHub → "Cập nhật ảnh từ Google Drive" → Run workflow,
+  hoặc `python3 tools/drive-media.py` rồi commit và push.
+  Muốn nhanh hơn (1 đến 2 phút) hoặc thư mục Drive không công khai: cài `apps-script/media.gs` theo hướng dẫn trong file, dán URL vào `MEDIA_API_URL`.
 - Ảnh hiện qua đường dẫn thumbnail của Drive nên cả HEIC từ iPhone cũng hiển thị được. Video MOV phát trực tiếp, không phát được thì tự bỏ qua sau 15 giây.
 - Phím mũi tên phải để chuyển ảnh, Esc để thoát.
 
@@ -64,7 +69,7 @@ Mở `index.html#slides`: xoay vòng 5 thẻ poster, lịch thi đấu, số li�
 
 ## Tự cập nhật trên TV
 
-Trang tự kiểm tra `index.html` và `media.js` trên máy chủ mỗi 2 phút, thấy khác bản đang chạy thì tự tải lại.
+Trang tự kiểm tra `index.html` trên máy chủ mỗi 2 phút, thấy khác bản đang chạy thì tự tải lại.
 Vì vậy sau khi push lên GitHub, TV tự nhận bản mới trong vòng vài phút mà không cần ra bấm F5.
 Trang cũng tự tải lại lúc 05:00 mỗi ngày để làm mới nội dung theo ngày và giải phóng bộ nhớ trình duyệt TV.
 Chỉnh trong hằng `AUTO_RELOAD` (`checkSeconds`, `dailyAt`). Lần đầu áp dụng tính năng này vẫn phải F5 tay một lần vì bản đang chạy trên TV chưa có mã kiểm tra.
