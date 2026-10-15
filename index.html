@@ -428,10 +428,10 @@
       <div class="glass left">
         <div class="eyebrow"><span class="dot"></span>Sắp diễn ra</div>
         <h2 class="hcard">Liên hoan kết thúc thành công</h2>
-        <p class="lead">Trao giải 5 bộ môn, chung kết Bóng đá lúc 16:30 và liên hoan toàn Trung tâm mừng sinh nhật 5 năm.</p>
+        <p class="lead">Trao giải 5 bộ môn, chung kết Bóng đá lúc 16:15 và liên hoan toàn Trung tâm mừng sinh nhật 5 năm.</p>
         <div class="meta">
           <div><span>Thời gian</span><span>Tối Thứ Sáu 23/10/2026</span></div>
-          <div><span>Chung kết</span><span>Bóng đá 16:30 · Bóng bàn cùng ngày</span></div>
+          <div><span>Chung kết</span><span>Bóng đá 16:15 · Bóng bàn cùng ngày</span></div>
         </div>
       </div>
       <div class="right">
@@ -478,6 +478,9 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
       images: ['img/ket-qua-cau-long.jpg'], ticker: 'Vô địch Cầu lông: Hiếu – Thảo' },
     { id: 'pes', tab: 'Kết quả PES', title: 'Kết quả giải PES', sub: 'Vô địch: Hiếu & Trung', tag: 'Chung cuộc',
       images: ['img/ket-qua-pes.jpg'], ticker: 'Vô địch PES: Hiếu & Trung' },
+    { id: 'bida', tab: 'Kết quả Bida', title: 'Kết quả giải Bida', sub: 'Vô địch: Lê Văn Thành & Trần Phan Huy Anh', tag: 'Chung cuộc',
+      images: ['img/ket-qua-bida.jpg'],
+      ticker: 'Kết quả Bida · Nhất: Lê Văn Thành & Trần Phan Huy Anh · Nhì: Lê Ngọc Thái & Phạm Gia Khiêm · Ba: Nguyễn Nhật Minh & Lê Quốc Đạt · Tư: Nguyễn Xuân Huy & Lê Hải Sơn' },
     { id: 'vda-2026', tab: 'Giải thưởng CĐS 2026', title: 'Giải thưởng Chuyển đổi số Việt Nam 2026', tag: 'Vinh danh',
       sub: 'Hệ thống Quản lý vùng phủ mạng vô tuyến · Viettel Networks',
       items: [{ type: 'video', src: 'media/daily-2026-10-14.mp4' }, { type: 'image', src: 'img/daily-2026-10-14.jpg', seconds: 10 },
@@ -507,7 +510,9 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     { id: 'cau-long', name: 'Cầu lông', ab: 'CL', fmt: 'Đôi nam nữ · 16 đôi', live: true,
       items: [{ label: 'Thi đấu', from: '2026-10-10', time: 'Chiều Thứ Bảy' }] },
     { id: 'bong-da', name: 'Bóng đá', ab: 'BĐ', fmt: '4 đội · 83 cầu thủ', static: { reg: 83, off: 83, wait: 0, slots: 4, unit: 'đội' },
-      items: [{ label: 'Vòng bảng', from: '2026-10-15', time: 'Tối' }, { label: 'Tranh hạng Ba', from: '2026-10-22', time: 'Tối' }, { label: 'Chung kết', from: '2026-10-23', time: '16:30', final: true }] },
+      place: 'Sân bóng Đình Thôn 2',
+      info: 'Bóng đá · Bảng A: Phòng Nền tảng Công nghệ; Liên quân P. Giải pháp băng rộng cố định và Cơ điện, P. Hợp tác triển khai và P. Kiểm soát chất lượng · Bảng B: Liên quân P. Giải pháp di động và P. Giải pháp CNTT và Quy trình; Liên quân P. Hạ tầng Cloud và P. Trí tuệ nhân tạo',
+      items: [{ label: 'Vòng bảng', from: '2026-10-15', time: '19:15' }, { label: 'Tranh hạng Ba', from: '2026-10-22', time: '19:15' }, { label: 'Chung kết', from: '2026-10-23', time: '16:15', final: true }] },
     { id: 'bida', name: 'Bida', ab: 'BI', fmt: 'Đôi · 12 đôi', live: true,
       items: [{ label: 'Vòng 1 và tứ kết', from: '2026-10-09', time: 'Tối' }, { label: 'Bán kết, chung kết', from: '2026-10-14', time: 'Tối' }] },
     { id: 'bong-ban', name: 'Bóng bàn', ab: 'BB', fmt: 'Đôi · 9 đôi', live: true,
@@ -557,7 +562,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   // Hôm nay và sắp tới: gom mọi mục lịch, sắp theo ngày
   function renderToday() {
     const all = [];
-    SCHEDULE.forEach((s) => s.items.forEach((it) => all.push(Object.assign({ sport: s.name }, it, { st: status(it) }))));
+    SCHEDULE.forEach((s) => s.items.forEach((it) => all.push(Object.assign({ sport: s.name, place: s.place }, it, { st: status(it) }))));
     all.push({ sport: 'Toàn Trung tâm', label: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối', st: status({ from: '2026-10-23' }), final: true });
     all.sort((a, b) => a.from.localeCompare(b.from));
     const now = all.filter((x) => x.st === 'now');
@@ -567,11 +572,12 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     $('today-sub').textContent = now.length ? `Hôm nay ${DAYS[new Date().getDay()]} ${fmtD(todayKey())} có ${now.length} lịch thi đấu.` : `Hôm nay ${fmtD(todayKey())} không có lịch thi đấu. Lịch kế tiếp bên dưới.`;
     $('today').innerHTML = (list.length ? list : recent).map((x) => `
       <div class="ev ${x.st}"><div class="d">${fmtD(x.from)}<small>${x.to ? 'đến ' + fmtD(x.to) : dayName(x.from)}</small></div>
-        <div class="n">${esc(x.sport)} · ${esc(x.label)}</div><div class="m">${x.time ? esc(x.time) + ' · ' : ''}${x.st === 'now' ? 'Đang diễn ra' : x.st === 'done' ? 'Đã kết thúc' : 'Còn ' + daysLeft(vnDate(x.from)) + ' ngày'}</div></div>`).join('');
+        <div class="n">${esc(x.sport)} · ${esc(x.label)}</div><div class="m">${x.time ? esc(x.time) + ' · ' : ''}${x.place ? esc(x.place) + ' · ' : ''}${x.st === 'now' ? 'Đang diễn ra' : x.st === 'done' ? 'Đã kết thúc' : 'Còn ' + daysLeft(vnDate(x.from)) + ' ngày'}</div></div>`).join('');
     // ticker
     const msgs = [];
-    now.forEach((x) => msgs.push(`Hôm nay: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}`));
+    now.forEach((x) => msgs.push(`Hôm nay: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}${x.place ? ' · ' + x.place : ''}`));
     next.slice(0, 3).forEach((x) => msgs.push(`${fmtD(x.from)}: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}`));
+    SCHEDULE.forEach((s) => { if (s.info && s.items.some((it) => status(it) !== 'done')) msgs.push(s.info); });
     STORIES.forEach((st) => { if (st.ticker) msgs.push(st.ticker); });
     msgs.push('Liên hoan kết thúc thành công tối Thứ Sáu 23/10 · Gắn kết, Bứt phá, Thi đấu hết mình');
     msgs.push('Xem sơ đồ và kết quả tại trang đăng ký của Giải');
@@ -705,7 +711,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     all.push({ sport: { name: 'Toàn Trung tâm' }, it: { label: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối' }, st: status({ from: '2026-10-23' }), end: '2026-10-23' });
     // Hôm nay có gì: mục thêm tay + lịch bắt đầu hoặc kết thúc đúng hôm nay
     const today = (DASH.today || []).map((x) => li(x.t, x.s))
-      .concat(all.filter((x) => x.st === 'now' && (x.it.from === t || x.end === t)).map((x) => li(x.sport.name + ' · ' + x.it.label, (x.it.time ? x.it.time + ' · ' : '') + (x.it.from === x.end ? dayName(x.it.from) + ' ' + fmtD(x.it.from) : 'kết thúc hôm nay'))));
+      .concat(all.filter((x) => x.st === 'now' && (x.it.from === t || x.end === t)).map((x) => li(x.sport.name + ' · ' + x.it.label, (x.it.time ? x.it.time + ' · ' : '') + (x.it.from === x.end ? dayName(x.it.from) + ' ' + fmtD(x.it.from) : 'kết thúc hôm nay') + (x.sport.place ? ' · ' + x.sport.place : ''))));
     dashLists['p-today'] = today;
     // Đang diễn ra: từng bộ môn đang ở giai đoạn nào, kèm tiến độ từ hệ thống nếu có
     const now = SCHEDULE.map((s) => {
