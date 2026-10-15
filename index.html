@@ -351,7 +351,7 @@
   </section>
 
   <section id="lich">
-    <div class="sh"><h2>Lịch thi đấu</h2><p>5 bộ môn, từ 06/10 đến 23/10. Trận đang hoặc sắp diễn ra được viền đỏ.</p></div>
+    <div class="sh"><h2>Lịch thi đấu</h2><p>Các bộ môn còn thi đấu, tới 23/10. Trận đang hoặc sắp diễn ra được viền đỏ.</p></div>
     <div class="sched">
       <div class="sports" id="sports"></div>
       <div class="frame"><img src="img/lich-thi-dau.webp" alt="Poster lịch thi đấu 5 bộ môn" loading="lazy" width="1055" height="1491"></div>
@@ -407,7 +407,7 @@
     </section>
 
     <section class="slide s-sched" data-dur="15">
-      <div class="eyebrow"><span class="dot"></span>Lịch thi đấu 5 bộ môn<span class="upd" id="tv-sched-sub"></span></div>
+      <div class="eyebrow"><span class="dot"></span>Lịch thi đấu<span class="upd" id="tv-sched-sub"></span></div>
       <div class="cols" id="tv-sched"></div>
     </section>
 
@@ -517,9 +517,11 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
       items: [{ label: 'Vòng 1 và tứ kết', from: '2026-10-09', time: 'Tối' }, { label: 'Bán kết, chung kết', from: '2026-10-14', time: 'Tối' }] },
     { id: 'bong-ban', name: 'Bóng bàn', ab: 'BB', fmt: 'Đôi · 9 đôi', live: true,
       items: [{ label: 'Vòng bảng', from: '2026-10-06', to: '2026-10-09' }, { label: 'Tứ kết', from: '2026-10-13', to: '2026-10-14' }, { label: 'Bán kết', from: '2026-10-16', to: '2026-10-19' }, { label: 'Tranh hạng Ba', from: '2026-10-22' }, { label: 'Chung kết', from: '2026-10-23', final: true }] },
-    { id: 'pes', name: 'PES', ab: 'PES', fmt: 'Đôi · 14 đôi', static: { reg: 28, off: 28, wait: 0, slots: 14, unit: 'đôi' },
+    { id: 'pes', name: 'PES', ab: 'PES', fmt: 'Đôi · 14 đôi', ended: true, static: { reg: 28, off: 28, wait: 0, slots: 14, unit: 'đôi' },
       items: [{ label: 'Vòng bảng', from: '2026-10-07' }, { label: 'Tứ kết đến chung kết', from: '2026-10-12', to: '2026-10-16' }] }
   ];
+  // Lịch còn hiển thị: bỏ các môn đã thi đấu xong (ended), môn đó chỉ còn tin kết quả và số liệu đăng ký
+  const PLAN = SCHEDULE.filter((s) => !s.ended);
   // Số liệu chốt 30/09 (ảnh tổng kết đăng ký), dùng khi không nối được hệ thống.
   const SNAPSHOT = { athletes: 129, regTotal: 193, offTotal: 185, waitTotal: 8, depts: 9,
     live: { 'cau-long': { off: 32, wait: 5, slots: 16, unit: 'đôi' }, 'bida': { off: 24, wait: 0, slots: 12, unit: 'đôi' }, 'bong-ban': { off: 18, wait: 0, slots: 9, unit: 'đôi' } } };
@@ -538,7 +540,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 
   // ---------- schedule rendering ----------
   function renderSports() {
-    const html = SCHEDULE.map((s) => `
+    const html = PLAN.map((s) => `
       <article class="sport" id="s-${s.id}">
         <h3><span class="ab">${s.ab}</span>${esc(s.name)}</h3>
         <div class="f">${esc(s.fmt)}</div>
@@ -553,7 +555,8 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     $('k-cd').textContent = cd; $('tv-cd').textContent = cd;
 
     // TV schedule columns
-    $('tv-sched').innerHTML = SCHEDULE.map((s) => `
+    $('tv-sched').style.gridTemplateColumns = 'repeat(' + PLAN.length + ', 1fr)';
+    $('tv-sched').innerHTML = PLAN.map((s) => `
       <div class="glass col"><h3>${esc(s.name)}</h3><div class="f">${esc(s.fmt)}</div>
         <ul>${s.items.map((it) => { const st = status(it); return `<li class="${st}${it.final ? ' final' : ''}"><b>${esc(it.label)}</b>${it.time ? esc(it.time) + ' · ' : ''}${fmtRange(it)}</li>`; }).join('')}</ul></div>`).join('');
     $('tv-sched-sub').textContent = 'Liên hoan tổng kết tối 23/10 · còn ' + cd + ' ngày';
@@ -562,7 +565,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   // Hôm nay và sắp tới: gom mọi mục lịch, sắp theo ngày
   function renderToday() {
     const all = [];
-    SCHEDULE.forEach((s) => s.items.forEach((it) => all.push(Object.assign({ sport: s.name, place: s.place }, it, { st: status(it) }))));
+    PLAN.forEach((s) => s.items.forEach((it) => all.push(Object.assign({ sport: s.name, place: s.place }, it, { st: status(it) }))));
     all.push({ sport: 'Toàn Trung tâm', label: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối', st: status({ from: '2026-10-23' }), final: true });
     all.sort((a, b) => a.from.localeCompare(b.from));
     const now = all.filter((x) => x.st === 'now');
@@ -577,7 +580,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     const msgs = [];
     now.forEach((x) => msgs.push(`Hôm nay: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}${x.place ? ' · ' + x.place : ''}`));
     next.slice(0, 3).forEach((x) => msgs.push(`${fmtD(x.from)}: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}`));
-    SCHEDULE.forEach((s) => { if (s.info && s.items.some((it) => status(it) !== 'done')) msgs.push(s.info); });
+    PLAN.forEach((s) => { if (s.info && s.items.some((it) => status(it) !== 'done')) msgs.push(s.info); });
     STORIES.forEach((st) => { if (st.ticker) msgs.push(st.ticker); });
     msgs.push('Liên hoan kết thúc thành công tối Thứ Sáu 23/10 · Gắn kết, Bứt phá, Thi đấu hết mình');
     msgs.push('Xem sơ đồ và kết quả tại trang đăng ký của Giải');
@@ -677,7 +680,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   }
   function renderBrackets() {
     const live = SCHEDULE.filter((s) => s.live);
-    $('brs').innerHTML = live.map((s) => bracketCard(s, false)).join('') + SCHEDULE.filter((s) => s.static).map((s) => `<article class="br"><h3>${esc(s.name)}<span class="pill">Theo lịch riêng</span></h3><div class="meta">${s.static.off} người · ${s.static.slots} ${s.static.unit}</div><div class="empty">Kết quả do ban tổ chức bộ môn công bố, xem lịch ở mục Lịch thi đấu.</div></article>`).join('');
+    $('brs').innerHTML = live.map((s) => bracketCard(s, false)).join('') + PLAN.filter((s) => s.static).map((s) => `<article class="br"><h3>${esc(s.name)}<span class="pill">Theo lịch riêng</span></h3><div class="meta">${s.static.off} người · ${s.static.slots} ${s.static.unit}</div><div class="empty">Kết quả do ban tổ chức bộ môn công bố, xem lịch ở mục Lịch thi đấu.</div></article>`).join('');
     $('tv-brs').innerHTML = live.map((s) => bracketCard(s, true)).join('');
   }
 
@@ -707,14 +710,14 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   function li(t, sub, cls) { return `<li${cls ? ' class="' + cls + '"' : ''}><b>${esc(t)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</li>`; }
   function renderDash() {
     const t = todayKey(); const all = [];
-    SCHEDULE.forEach((s) => s.items.forEach((it) => all.push({ sport: s, it, st: status(it), end: it.to || it.from })));
+    PLAN.forEach((s) => s.items.forEach((it) => all.push({ sport: s, it, st: status(it), end: it.to || it.from })));
     all.push({ sport: { name: 'Toàn Trung tâm' }, it: { label: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối' }, st: status({ from: '2026-10-23' }), end: '2026-10-23' });
     // Hôm nay có gì: mục thêm tay + lịch bắt đầu hoặc kết thúc đúng hôm nay
     const today = (DASH.today || []).map((x) => li(x.t, x.s))
       .concat(all.filter((x) => x.st === 'now' && (x.it.from === t || x.end === t)).map((x) => li(x.sport.name + ' · ' + x.it.label, (x.it.time ? x.it.time + ' · ' : '') + (x.it.from === x.end ? dayName(x.it.from) + ' ' + fmtD(x.it.from) : 'kết thúc hôm nay') + (x.sport.place ? ' · ' + x.sport.place : ''))));
     dashLists['p-today'] = today;
     // Đang diễn ra: từng bộ môn đang ở giai đoạn nào, kèm tiến độ từ hệ thống nếu có
-    const now = SCHEDULE.map((s) => {
+    const now = PLAN.map((s) => {
       const cur = s.items.find((it) => status(it) === 'now'); const nxt = s.items.find((it) => status(it) === 'next');
       const b = state && state.brackets && state.brackets[s.id];
       let prog = '';
