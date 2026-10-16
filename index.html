@@ -267,14 +267,7 @@
   .media .count:empty { display: none; }
   .media .count { position: absolute; right: 20px; bottom: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.6); font-size: 24px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .media .empty-media { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; font-size: 30px; color: var(--ink-3); padding: 0 40px; }
-  .side { display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); grid-gap: 26px; gap: 26px; min-height: 0; }
-  .nm-panel { padding: 44px 22px 14px; }
-  .nm-list { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; min-height: 0; }
-  .nm-row { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; min-height: 0; }
-  .nm-row img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: linear-gradient(180deg, #f2f2f2, #dedddd); }
-  .nm-row b { display: block; font-size: 20px; font-weight: 700; line-height: 1.15; }
-  .nm-row span { display: block; font-size: 16px; color: var(--ink-2); line-height: 1.2; }
-  .nm-row small { display: block; font-size: 14px; color: var(--red-soft); line-height: 1.2; }
+  .side { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); grid-gap: 34px; gap: 34px; min-height: 0; }
   .panel ul { list-style: none; margin: 0; padding: 0; display: block; overflow: hidden; flex: 1; min-height: 0; }
   .panel li { position: relative; padding: 9px 0 9px 30px; font-size: 26px; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,.08); }
   .panel li:last-child { border-bottom: 0; }
@@ -405,14 +398,6 @@
         <div class="glass panel"><span class="lbl">Hôm nay có gì</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay không có lịch thi đấu."></ul></div>
         <div class="glass panel"><span class="lbl">Đang diễn ra</span><span class="pg"></span><ul id="p-now" data-empty="Chưa có bộ môn nào thi đấu."></ul></div>
         <div class="glass panel"><span class="lbl">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
-        <div class="glass panel nm-panel">
-          <span class="lbl">Thành viên mới</span><span class="pg">16/10/2026</span>
-          <div class="nm-list">
-            <div class="nm-row"><img src="img/Nghiêm Xuân Sơn.png" alt=""><div><b>Nghiêm Xuân Sơn</b><span>Kỹ sư Giải pháp nghiệp vụ</span><small>Phòng Hợp tác Triển khai</small></div></div>
-            <div class="nm-row"><img src="img/Đàm Ngọc Khánh.png" alt=""><div><b>Đàm Ngọc Khánh</b><span>Kỹ sư Trí tuệ Nhân tạo</span><small>Phòng Trí tuệ Nhân tạo</small></div></div>
-            <div class="nm-row"><img src="img/Tống Trần Minh Đức.png" alt=""><div><b>Tống Trần Minh Đức</b><span>Kỹ sư Trí tuệ Nhân tạo</span><small>Phòng Trí tuệ Nhân tạo</small></div></div>
-          </div>
-        </div>
       </div>
     </section>
 
@@ -501,7 +486,15 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
       items: [{ type: 'video', src: 'media/daily-2026-10-14.mp4' }, { type: 'image', src: 'img/daily-2026-10-14.jpg', seconds: 10 },
         { type: 'image', src: 'img/daily-2026-10-15-1.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-2.jpg', seconds: 7 },
         { type: 'image', src: 'img/daily-2026-10-15-3.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-4.jpg', seconds: 7 }],
-      ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' }
+      ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' },
+    { id: 'new-member', tab: 'Thành viên mới', title: 'Chào mừng thành viên mới gia nhập Trung tâm', tag: 'Gia nhập 16/10/2026',
+      sub: 'Nghiêm Xuân Sơn · Đàm Ngọc Khánh · Tống Trần Minh Đức',
+      items: [
+        { type: 'image', src: 'img/Nghiêm Xuân Sơn.png', seconds: 8 },
+        { type: 'image', src: 'img/Đàm Ngọc Khánh.png', seconds: 8 },
+        { type: 'image', src: 'img/Tống Trần Minh Đức.png', seconds: 8 }
+      ],
+      ticker: 'Chào mừng 3 thành viên mới gia nhập Trung tâm: Nghiêm Xuân Sơn, Đàm Ngọc Khánh, Tống Trần Minh Đức' }
   ];
   const DASH = {
     // Mục thêm tay cho khung "Hôm nay có gì", ngoài lịch thi đấu tự lấy theo ngày
