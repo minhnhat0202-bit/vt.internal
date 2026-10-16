@@ -231,6 +231,17 @@
   .s-cd .count { background: linear-gradient(160deg, rgba(238,0,51,.92), rgba(150,0,32,.92)); border-color: rgba(255,255,255,.5); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-shadow: var(--glow); }
   .s-cd .count .big { font-family: var(--display); font-weight: 800; font-size: 220px; line-height: .95; letter-spacing: -6px; font-variant-numeric: tabular-nums; }
   .s-cd .count .lbl { font-size: 40px; font-family: var(--display); font-weight: 700; color: var(--red-soft); text-transform: uppercase; letter-spacing: .06em; }
+  /* tv new members */
+  .s-new { grid-template-rows: auto minmax(0, 1fr); grid-gap: 30px; gap: 30px; }
+  .newgrid { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 30px; gap: 30px; min-height: 0; }
+  .nm { display: grid; grid-template-rows: 1fr auto; overflow: hidden; min-height: 0; }
+  .nm .ph { position: relative; display: flex; align-items: flex-end; justify-content: center; min-height: 0; background: radial-gradient(300px 220px at 50% 100%, #ffd9e0, transparent 75%), linear-gradient(180deg, #f2f2f2, #dedddd); }
+  .nm .ph img { height: 100%; max-height: 100%; width: auto; object-fit: contain; object-position: bottom; display: block; mix-blend-mode: multiply; }
+  .nm .inf { padding: 26px 36px 32px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; border-top: 1.5px solid rgba(255,255,255,.18); background: rgba(0,0,0,.22); }
+  .nm .nn { font-family: var(--display); font-weight: 800; font-size: 50px; line-height: 1.08; letter-spacing: -1px; }
+  .nm .rl { font-size: 32px; color: var(--ink); line-height: 1.25; }
+  .nm .dp { font-size: 30px; color: var(--red-soft); line-height: 1.25; }
+  .nm .src { font-size: 26px; color: var(--ink-3); margin-top: 4px; }
   .s-cd .slog { padding: 26px; text-align: center; font-family: var(--display); font-weight: 800; font-size: 36px; text-transform: uppercase; letter-spacing: .06em; line-height: 1.2; }
   .s-cd .slog span { color: var(--red); text-shadow: 0 0 20px rgba(238,0,51,.6); }
   /* ===== Bố cục bản tin (chế độ TV mặc định) ===== */
@@ -437,6 +448,18 @@
       <div class="right">
         <div class="glass count"><div class="big" id="tv-cd">14</div><div class="lbl">ngày nữa</div></div>
         <div class="glass slog">Gắn kết · <span>Bứt phá</span> · Thi đấu hết mình</div>
+      </div>
+    </section>
+
+    <section class="slide s-new" data-dur="15">
+      <div class="eyebrow"><span class="dot"></span>Chào mừng thành viên mới · Gia nhập Trung tâm<span class="upd">16/10/2026</span></div>
+      <div class="newgrid">
+        <div class="glass nm"><div class="ph"><img src="img/Nghiêm Xuân Sơn.png" alt="Nghiêm Xuân Sơn"></div>
+          <div class="inf"><div class="nn">Nghiêm Xuân Sơn</div><div class="rl">Kỹ sư Giải pháp nghiệp vụ</div><div class="dp">Phòng Hợp tác Triển khai</div><div class="src">Chuyển về từ TT Kỹ thuật Toàn cầu</div></div></div>
+        <div class="glass nm"><div class="ph"><img src="img/Đàm Ngọc Khánh.png" alt="Đàm Ngọc Khánh"></div>
+          <div class="inf"><div class="nn">Đàm Ngọc Khánh</div><div class="rl">Kỹ sư Trí tuệ Nhân tạo</div><div class="dp">Phòng Trí tuệ Nhân tạo</div><div class="src">Chuyển về từ TT Kỹ thuật Toàn cầu</div></div></div>
+        <div class="glass nm"><div class="ph"><img src="img/Tống Trần Minh Đức.png" alt="Tống Trần Minh Đức"></div>
+          <div class="inf"><div class="nn">Tống Trần Minh Đức</div><div class="rl">Kỹ sư Trí tuệ Nhân tạo</div><div class="dp">Phòng Trí tuệ Nhân tạo</div><div class="src">Chuyển từ VTIT sang TT NTCN&CĐS</div></div></div>
       </div>
     </section>
 
