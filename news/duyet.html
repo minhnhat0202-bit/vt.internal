@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../img/logo-vtnet.png">
+<title>Duyệt tin Bản tin TV</title>
+<link rel="stylesheet" href="news.css">
+<!-- Trang Ban Truyền thông duyệt, biên tập tin các phòng gửi. Mật khẩu = ADMIN_KEY trong Apps Script. -->
+</head>
+<body>
+<header class="top">
+  <img src="../img/logo-vtnet.png" alt="">
+  <div class="ttl"><b>Duyệt tin Bản tin TV</b><span>Ban Truyền thông · Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số</span></div>
+  <span class="sp"></span>
+  <span class="demo" id="demo" hidden title="Chưa nối máy chủ: dữ liệu chỉ nằm trong trình duyệt này">Chế độ thử</span>
+  <button class="lnk" id="copy" type="button">Sao chép link gửi tin</button>
+  <a class="lnk" href="../tv/" target="_blank" rel="noopener">Mở Bản tin TV</a>
+  <button class="lnk" id="logout" type="button" hidden>Đăng xuất</button>
+</header>
+
+<form class="login" id="login" hidden>
+  <h2>Đăng nhập duyệt tin</h2>
+  <p>Nhập mật khẩu Ban Truyền thông.</p>
+  <label class="f"><span class="fl">Mật khẩu</span><input type="password" id="key" autocomplete="current-password" required></label>
+  <p class="errs" id="lerr" role="alert"></p>
+  <button class="btn primary lg" type="submit">Vào trang duyệt</button>
+</form>
+
+<div class="admin-wrap" id="app" hidden>
+  <aside class="inbox">
+    <div class="head">
+      <div class="stats">
+        <div><b id="s-pending">0</b><span>Chờ duyệt</span></div>
+        <div class="live"><b id="s-live">0</b><span>Đang lên TV</span></div>
+        <div><b id="s-week">0</b><span>Gửi 7 ngày qua</span></div>
+      </div>
+      <div class="filters" id="filters"></div>
+      <input class="search" id="q" type="search" placeholder="Tìm tiêu đề, phòng ban, người gửi, mã tin…">
+    </div>
+    <ul class="items" id="items"></ul>
+  </aside>
+
+  <main class="editor" id="editor">
+    <div class="blank" id="blank"><div><b>Chọn một tin để xem</b>Tin mới gửi nằm ở mục Chờ duyệt.</div></div>
+    <div id="edit" hidden>
+      <div class="ebar">
+        <div class="who"><b id="e-title"></b><span id="e-meta"></span></div>
+        <span class="chip" id="e-chip"></span>
+        <button class="btn ghost" id="b-del" type="button">Xoá</button>
+        <button class="btn" id="b-reject" type="button">Từ chối</button>
+        <button class="btn" id="b-archive" type="button">Gỡ khỏi TV</button>
+        <button class="btn dark" id="b-save" type="button">Lưu</button>
+        <button class="btn primary" id="b-approve" type="button">Duyệt &amp; đưa lên TV</button>
+      </div>
+      <div class="ecols">
+        <div id="fields"></div>
+        <aside class="side"><div class="sticky">
+          <div class="panel">
+            <h3><span class="dot"></span>Xem trước trên TV</h3>
+            <div class="tvbox"><iframe id="tv" title="Xem trước Bản tin TV"></iframe></div>
+            <p class="note">Tin đang mở chiếu đầu tiên, sau đó là các tin đang lên TV. Sửa bên trái, bản xem trước tự cập nhật.</p>
+          </div>
+          <div class="panel" id="e-extra"></div>
+        </div></aside>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="shared.js"></script>
+<script src="form.js"></script>
+<script>
+(function () {
+  'use strict';
+  const N = window.VTNews, esc = VTForm.esc, $ = (id) => document.getElementById(id);
+  const KEY_SS = 'vtnews-admin';
+  let key = '', items = [], cur = null, form = null, filter = 'pending', dirty = false;
+  $('demo').hidden = !N.isDemo();
+
+  function toast(msg, bad) {
+    const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = msg;
+    document.body.appendChild(t); setTimeout(() => t.remove(), bad ? 6000 : 2800);
+  }
+  const ss = (v) => { try { if (v === undefined) return sessionStorage.getItem(KEY_SS) || ''; if (v) sessionStorage.setItem(KEY_SS, v); else sessionStorage.removeItem(KEY_SS); } catch (e) { return ''; } };
+
+  // ---------- đăng nhập ----------
+  function start(k) {
+    return N.call('login', { key: k }).then(() => { key = k; ss(k); $('login').hidden = true; $('app').hidden = false; $('logout').hidden = N.isDemo(); return load(); })
+      .then(() => { const r = items.filter((x) => '#' + x.id === location.hash)[0]; if (r) { filter = 'all'; open(r); } });   // duyet.html#<mã tin>
+  }
+  $('login').addEventListener('submit', (e) => {
+    e.preventDefault(); $('lerr').textContent = '';
+    start($('key').value).catch((err) => { $('lerr').textContent = err.message; });
+  });
+  $('logout').addEventListener('click', () => { ss(null); location.reload(); });
+  $('copy').addEventListener('click', () => {
+    const u = new URL('./', location.href).href;
+    (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => toast('Đã chép link gửi tin: ' + u), () => prompt('Link gửi tin cho các phòng:', u));
+  });
+
+  // ---------- danh sách ----------
+  const FILTERS = [['pending', 'Chờ duyệt'], ['live', 'Đang lên TV'], ['scheduled', 'Chờ ngày chiếu'], ['done', 'Đã xử lý'], ['all', 'Tất cả']];
+  const inFilter = (r, f) => { const s = N.stateOf(r).key; return f === 'all' || s === f || (f === 'done' && ['rejected', 'archived', 'expired'].indexOf(s) > -1); };
+  const fmtTime = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
+  const titleOf = (r) => r.title || (r.event && r.event.title) || r.ticker || '(Chưa có tiêu đề)';
+  const whereText = (r) => [r.where && r.where.story && 'Tiêu điểm', r.where && r.where.agenda && 'Lịch', r.where && r.where.ticker && 'Dòng chạy'].filter(Boolean).join(' · ');
+
+  function load() {
+    return N.call('list', { key }).then((j) => { items = j.items || []; renderList(); if (cur) { const r = items.filter((x) => x.id === cur.id)[0]; if (r) open(r, true); } })
+      .catch((e) => toast('Không tải được danh sách: ' + e.message, true));
+  }
+  function renderList() {
+    const weekAgo = Date.now() - 7 * 864e5;
+    $('s-pending').textContent = items.filter((r) => r.status === 'pending').length;
+    $('s-live').textContent = items.filter((r) => N.onAir(r)).length;
+    $('s-week').textContent = items.filter((r) => new Date(r.createdAt) > weekAgo).length;
+    $('filters').innerHTML = FILTERS.map(([k, t]) => `<button type="button" data-f="${k}" class="${k === filter ? 'on' : ''}">${t}<i>${items.filter((r) => inFilter(r, k)).length}</i></button>`).join('');
+    const q = $('q').value.trim().toLowerCase();
+    const list = items.filter((r) => inFilter(r, filter) && (!q || [r.id, r.title, r.dept, r.sender, r.ticker, r.event && r.event.title].join(' ').toLowerCase().indexOf(q) > -1));
+    $('items').innerHTML = list.length ? list.map((r) => {
+      const st = N.stateOf(r), img = r.images && r.images[0] && r.images[0].url;
+      return `<li data-id="${esc(r.id)}" class="${cur && cur.id === r.id ? 'on' : ''}">
+        <div class="th" ${img ? `style="background-image:url('${esc(img)}')"` : ''}>${img ? '' : esc(whereText(r).split(' · ')[0] || '')}</div>
+        <div><div class="tt">${esc(titleOf(r))}</div>
+        <div class="mt"><span class="chip ${st.key}">${st.label}</span><span>${esc(N.deptShort(r.dept) || r.dept)} · ${fmtTime(r.createdAt)}</span></div></div></li>`;
+    }).join('') : '<li class="empty">Không có tin nào ở mục này.</li>';
+  }
+  $('filters').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { filter = b.dataset.f; renderList(); } });
+  $('q').addEventListener('input', renderList);
+  $('items').addEventListener('click', (e) => {
+    const li = e.target.closest('li[data-id]'); if (!li) return;
+    if (dirty && !confirm('Tin đang mở có thay đổi chưa lưu. Bỏ thay đổi?')) return;
+    open(items.filter((r) => r.id === li.dataset.id)[0]);
+  });
+
+  // ---------- biên tập ----------
+  const tv = $('tv');
+  function preview(r) {
+    N.setPreview(r);
+    if (!tv.src) tv.src = '../tv/?preview=1'; else { try { tv.contentWindow.location.reload(); } catch (e) { tv.src = '../tv/?preview=1&t=' + Date.now(); } }
+  }
+  function open(r, keepScroll) {
+    cur = r; dirty = false;
+    $('blank').hidden = true; $('edit').hidden = false;
+    if (!form) form = VTForm.mount($('fields'), r, { admin: true, onChange: (x) => { dirty = true; head(x); preview(x); } });
+    else form.set(r);
+    head(r); preview(form.get()); renderList();
+    if (!keepScroll) window.scrollTo(0, innerWidth <= 900 ? $('editor').offsetTop - 58 : 0);
+  }
+  function head(r) {
+    const st = N.stateOf(cur);
+    $('e-title').textContent = titleOf(r);
+    $('e-meta').textContent = `${cur.id} · ${cur.dept || ''} · ${cur.sender || ''}${cur.contact ? ' (' + cur.contact + ')' : ''} · gửi ${fmtTime(cur.createdAt)}`;
+    $('e-chip').className = 'chip ' + st.key; $('e-chip').textContent = st.label + (dirty ? ' · chưa lưu' : '');
+    $('b-archive').hidden = cur.status !== 'approved';
+    $('b-reject').hidden = cur.status === 'rejected';
+    $('b-approve').textContent = cur.status === 'approved' ? 'Lưu & cập nhật TV' : 'Duyệt & đưa lên TV';
+    $('b-save').hidden = cur.status === 'approved';
+    const links = [cur.videoLink && `<li>Video: <a href="${esc(cur.videoLink)}" target="_blank" rel="noopener">${esc(cur.videoLink)}</a></li>`,
+      cur.message && `<li>Lời nhắn: ${esc(cur.message)}</li>`,
+      cur.updatedAt && cur.updatedAt !== cur.createdAt && `<li>Sửa lần cuối ${fmtTime(cur.updatedAt)}</li>`].filter(Boolean);
+    $('e-extra').innerHTML = `<h3>Từ đơn vị</h3><ul class="tips">${links.join('') || '<li>Không có lời nhắn hay video kèm theo.</li>'}</ul>`;
+  }
+  function save(status, label) {
+    const errs = status === 'approved' ? form.validate() : [];
+    if (errs.length) { toast('Chưa duyệt được: ' + errs.join(' · '), true); return; }
+    const p = form.payload();
+    if (status) p.record.status = status;
+    if (status === 'rejected' && !p.record.note) { toast('Ghi lý do ở ô "Phản hồi cho đơn vị" trước khi từ chối.', true); document.querySelector('[data-k="note"]').focus(); return; }
+    const btns = document.querySelectorAll('.ebar .btn'); btns.forEach((b) => (b.disabled = true));
+    N.call('save', Object.assign({ key }, p)).then((j) => {
+      dirty = false; items = items.map((x) => (x.id === j.record.id ? j.record : x)); cur = j.record;
+      form.set(j.record); head(j.record); renderList(); preview(form.get());
+      toast(label + (j.mailed ? ' · đã gửi email cho ' + j.mailed : ''));
+    }).catch((e) => toast('Lỗi: ' + e.message, true)).then(() => btns.forEach((b) => (b.disabled = false)));
+  }
+  $('b-save').addEventListener('click', () => save('', 'Đã lưu'));
+  $('b-approve').addEventListener('click', () => save('approved', cur.status === 'approved' ? 'Đã cập nhật, TV nhận bản mới trong vài phút' : 'Đã duyệt, tin lên TV trong vài phút'));
+  $('b-reject').addEventListener('click', () => save('rejected', 'Đã từ chối'));
+  $('b-archive').addEventListener('click', () => { if (confirm('Gỡ tin này khỏi TV?')) save('archived', 'Đã gỡ khỏi TV'); });
+  $('b-del').addEventListener('click', () => {
+    if (!confirm('Xoá hẳn tin ' + cur.id + '? Không khôi phục được.')) return;
+    N.call('delete', { key, id: cur.id }).then(() => {
+      items = items.filter((x) => x.id !== cur.id); cur = null; dirty = false;
+      $('edit').hidden = true; $('blank').hidden = false; renderList(); toast('Đã xoá');
+    }).catch((e) => toast('Lỗi: ' + e.message, true));
+  });
+  window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+  setInterval(() => { if (!dirty && !document.hidden && key) N.call('list', { key }).then((j) => { items = j.items || []; renderList(); }).catch(() => {}); }, 60000);
+
+  // ---------- khởi động ----------
+  const saved = N.isDemo() ? 'demo' : ss();
+  if (saved) start(saved).catch(() => { ss(null); $('login').hidden = false; });
+  else $('login').hidden = false;
+})();
+</script>
+</body>
+</html>

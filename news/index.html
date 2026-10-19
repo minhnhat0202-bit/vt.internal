@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../img/logo-vtnet.png">
+<title>Gửi tin lên Bản tin TV</title>
+<link rel="stylesheet" href="news.css">
+<!-- Trang các phòng ban gửi tin. Tin vào hàng chờ, Ban Truyền thông duyệt ở duyet.html rồi mới lên TV. -->
+</head>
+<body>
+<header class="top">
+  <img src="../img/logo-vtnet.png" alt="">
+  <div class="ttl"><b>Gửi tin lên Bản tin TV</b><span>Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số</span></div>
+  <span class="sp"></span>
+  <span class="demo" id="demo" hidden title="Chưa nối máy chủ: tin chỉ lưu trong trình duyệt này">Chế độ thử</span>
+  <a class="lnk" href="../tv/" target="_blank" rel="noopener">Xem Bản tin TV</a>
+</header>
+
+<main class="wrap" id="main">
+  <div class="hero">
+    <div>
+      <h1>Có tin hay của phòng? <span>Đưa lên TV Trung tâm.</span></h1>
+      <p>Điền mẫu dưới đây, kèm ảnh. Ban Truyền thông sẽ biên tập, duyệt và đưa tin lên màn hình TV tại Trung tâm, thường trong 1 ngày làm việc.</p>
+    </div>
+    <ol class="steps"><li class="on">Đơn vị gửi tin</li><li>Ban TT duyệt</li><li>Lên TV</li></ol>
+  </div>
+
+  <div class="cols">
+    <form id="form" novalidate>
+      <div id="fields"></div>
+      <div class="actions">
+        <p class="errs" id="errs" role="alert"></p>
+        <button type="button" class="btn ghost" id="reset">Làm lại</button>
+        <button type="submit" class="btn primary lg" id="send">Gửi tin để duyệt</button>
+      </div>
+    </form>
+
+    <aside class="side">
+      <div class="sticky">
+        <div class="panel">
+          <h3><span class="dot"></span>Xem trước trên TV</h3>
+          <div class="tvbox"><iframe id="tv" title="Xem trước Bản tin TV" loading="lazy"></iframe></div>
+          <p class="note">Dùng đúng giao diện TV. Tin của bạn chiếu đầu tiên trong bản xem trước. Ban Truyền thông có thể chỉnh câu chữ trước khi đăng.</p>
+        </div>
+        <div class="panel tips-panel">
+          <h3>Để tin lên TV đẹp</h3>
+          <ul class="tips">
+            <li><b>Ảnh ngang 16:9</b>, rõ mặt người, ít chữ trong ảnh. Ảnh dọc vẫn dùng được nhưng sẽ có nền mờ hai bên.</li>
+            <li><b>Tiêu đề dưới 44 ký tự</b> để nằm gọn một dòng, người xem đọc được từ xa 3 đến 5 mét.</li>
+            <li><b>3 đến 5 ảnh</b> là vừa: mỗi ảnh chiếu 8 giây, cả tin khoảng 30 đến 40 giây.</li>
+            <li>Sự kiện có ngày giờ: chọn thêm <b>Lịch sự kiện</b> để hiện ở khung Sắp diễn ra.</li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<section class="done" id="done" hidden>
+  <div class="ok"><svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <h2>Đã gửi tin</h2>
+  <p>Ban Truyền thông sẽ xem và phản hồi. Ghi lại mã tin khi cần hỏi:</p>
+  <div class="code" id="code"></div>
+  <p id="mailnote"></p>
+  <button class="btn primary" id="again">Gửi tin khác</button>
+</section>
+
+<script src="config.js"></script>
+<script src="shared.js"></script>
+<script src="form.js"></script>
+<script>
+(function () {
+  'use strict';
+  const N = window.VTNews, $ = (id) => document.getElementById(id);
+  $('demo').hidden = !N.isDemo();
+
+  const tv = $('tv');
+  let first = true;
+  function preview(r) {
+    N.setPreview(Object.assign({}, r, { id: 'preview' }));
+    if (first) { tv.src = '../tv/?preview=1'; first = false; } else { try { tv.contentWindow.location.reload(); } catch (e) { tv.src = '../tv/?preview=1&t=' + Date.now(); } }
+  }
+
+  // Nhớ phòng ban, người gửi, liên hệ cho lần gửi sau (chỉ trên máy này)
+  const ME_KEY = 'vtnews-me';
+  const me = N.store(ME_KEY) || {};
+  const fresh = () => ({ dept: me.dept || '', sender: me.sender || '', contact: me.contact || '', where: { story: true } });
+  const form = VTForm.mount($('fields'), fresh(), { onChange: preview });
+  preview(form.get());
+
+  $('reset').addEventListener('click', () => { if (confirm('Xoá toàn bộ nội dung đang điền?')) { form.set(fresh()); preview(form.get()); } });
+
+  $('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const errs = form.validate();
+    $('errs').textContent = errs.length ? 'Còn thiếu: ' + errs.join(' · ') : '';
+    if (errs.length) return;
+    const p = form.payload(), btn = $('send');
+    btn.disabled = true; btn.textContent = p.files.length ? 'Đang gửi ' + p.files.length + ' ảnh…' : 'Đang gửi…';
+    N.call('submit', p).then((j) => {
+      N.store(ME_KEY, { dept: p.record.dept, sender: p.record.sender, contact: p.record.contact });
+      Object.assign(me, { dept: p.record.dept, sender: p.record.sender, contact: p.record.contact });
+      $('code').textContent = j.record.id;
+      $('mailnote').textContent = /@/.test(p.record.contact) ? 'Kết quả duyệt sẽ gửi về ' + p.record.contact + '.' : '';
+      $('main').hidden = true; $('done').hidden = false; window.scrollTo(0, 0);
+    }).catch((err) => {
+      $('errs').textContent = 'Chưa gửi được: ' + err.message + '. Thử lại, hoặc gửi ảnh và nội dung qua email cho Ban Truyền thông.';
+    }).then(() => { btn.disabled = false; btn.textContent = 'Gửi tin để duyệt'; });
+  });
+
+  $('again').addEventListener('click', () => {
+    form.set(fresh()); preview(form.get());
+    $('done').hidden = true; $('main').hidden = false; window.scrollTo(0, 0);
+  });
+})();
+</script>
+</body>
+</html>

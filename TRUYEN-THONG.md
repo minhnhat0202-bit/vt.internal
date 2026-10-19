@@ -72,6 +72,21 @@ Mở `https://minhnhat0202-bit.github.io/vt.internal/tv/` trên thiết bị ph�
 - Phím mũi tên phải, trái để chuyển tin, phím cách để chuyển ảnh trong tin Drive, F hoặc Enter để toàn màn hình. `tv/#2` mở thẳng tin số 2.
 - Chrome kiosk: `chrome --kiosk "https://minhnhat0202-bit.github.io/vt.internal/tv/"`.
 
+## Tin các phòng ban gửi lên (`news/`)
+
+| Trang | Địa chỉ | Ai dùng |
+|---|---|---|
+| Gửi tin | `…/vt.internal/news/` | Các phòng ban: điền mẫu, đính kèm ảnh, có khung xem trước đúng giao diện TV |
+| Duyệt tin | `…/vt.internal/news/duyet.html` | Ban Truyền thông: sửa câu chữ, xếp, bỏ ảnh, ghim, đặt ngày chiếu, duyệt, từ chối, gỡ |
+
+- Đơn vị chọn tin hiện ở đâu: **Tin tiêu điểm** (tiêu đề + ảnh), **Lịch sự kiện** (3 khung phải), **Dòng chạy**; một tin có thể chọn nhiều nơi.
+- Ảnh được thu về cạnh dài 1600 px JPG ngay trên máy người gửi, lưu vào thư mục Drive của Apps Script. Video gửi qua link, Ban Truyền thông xử lý tay như tin Daily News.
+- Tin đã duyệt được TV ghép vào sau các tin trong `content.js` (tin ghim lên đầu), tự rời TV sau ngày "Chiếu đến hết ngày". Duyệt, sửa, gỡ xong thì TV tự tải lại trong khoảng 2 phút.
+- Duyệt hoặc từ chối: nếu đơn vị để lại email, Apps Script gửi email báo kết quả kèm "Phản hồi cho đơn vị". Có tin mới: email về `ADMIN_EMAIL`, link mở thẳng tin đó (`duyet.html#<mã tin>`).
+- **Cài máy chủ một lần:** làm theo 4 bước ở đầu `apps-script/news.gs`, rồi dán URL `/exec` vào `API_URL` trong `news/config.js`, commit, push.
+  Khi `API_URL` còn trống, hai trang chạy ở **chế độ thử**: tin lưu trong trình duyệt đang mở, chỉ để xem thử trên một máy.
+- Tin, ảnh nằm trong Google Sheet và Drive của tài khoản cài Apps Script, không nằm trong repo. Link ảnh dạng "ai có link đều xem được".
+
 ## Chế độ TV thẻ xoay vòng (`#slides`)
 
 Mở `index.html#slides`: xoay vòng 5 thẻ poster, lịch thi đấu, số liệu đăng ký, sơ đồ thi đấu, đếm ngược liên hoan 23/10.

@@ -127,8 +127,11 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 </script>
 <script src="../media.js"></script>
 <script src="content.js"></script>
+<script src="../news/config.js"></script>
+<script src="../news/shared.js"></script>
 <script>
-(function () {
+// Chạy sau khi ghép tin các phòng đã duyệt (news/, Apps Script) vào window.TV. ?preview=1 = khung xem trước của trang gửi tin, trang duyệt.
+function bootTV(PREVIEW) {
   'use strict';
   const C = window.TV || {};
   const STORY_SECONDS = C.STORY_SECONDS || 60;
@@ -383,7 +386,8 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     return Promise.all(AUTO_RELOAD.files.map((f) => fetch(f + '?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).catch(() => '')))
       .then((texts) => texts.map(hashStr).join('|'));
   }
-  if (location.protocol !== 'file:') {
+  if (location.protocol !== 'file:' && !PREVIEW) {
+    if (window.VTNews) VTNews.watch(AUTO_RELOAD.checkSeconds);   // tin phòng ban đổi (duyệt, gỡ, sửa) thì tải lại
     let baseline = '';
     fetchAll().then((h) => { baseline = h; });
     setInterval(() => { fetchAll().then((h) => { if (baseline && h !== baseline && h.indexOf('5381:0') < 0) location.reload(); }); }, Math.max(30, AUTO_RELOAD.checkSeconds) * 1000);
@@ -404,6 +408,11 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   preloadStills();
   const m = /^#(\d+)$/.exec(location.hash);                           // #2 mở thẳng tin số 2
   showStory(m ? +m[1] - 1 : 0); storyRaf = requestAnimationFrame(storyLoop);
+}
+(function () {
+  const PREVIEW = /[?&]preview\b/.test(location.search);
+  let booted = false; const go = () => { if (!booted) { booted = true; bootTV(PREVIEW); } };
+  if (window.VTNews) VTNews.loadForTV(window.TV = window.TV || {}, PREVIEW).then(go, go); else go();
 })();
 </script>
 </body>
