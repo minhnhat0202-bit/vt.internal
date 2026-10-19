@@ -2,10 +2,408 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8">
-<title>Bản tin TV</title>
-<meta http-equiv="refresh" content="0; url=../#tv">
-<script>location.replace('../#tv');</script>
-<style>body{margin:0;background:#070608;color:#f2f2f2;font:16px Roboto,Arial,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh}</style>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Bản tin trình chiếu TV của Trung tâm Nền tảng Công nghệ và Chuyển đổi số.">
+<link rel="icon" type="image/png" href="../img/logo-vtnet.png">
+<title>Bản tin TV · TT Nền tảng Công nghệ & CĐS</title>
+<!-- Trang bản tin TV, độc lập với trang Giải thể thao (../index.html). Nội dung nằm trong content.js. -->
+<style>
+  @font-face { font-family: "FS PF BeauSans Pro"; font-weight: 600; font-display: swap; src: url("../fonts/FSPFBeauSansPro-SemiBold.ttf") format("truetype"); }
+  @font-face { font-family: "FS PF BeauSans Pro"; font-weight: 700; font-display: swap; src: url("../fonts/FSPFBeauSansPro-Bold.otf") format("opentype"); }
+  @font-face { font-family: "FS PF BeauSans Pro"; font-weight: 800; font-display: swap; src: url("../fonts/FSPFBeauSansPro-Black.ttf") format("truetype"); }
+  @font-face { font-family: "Roboto"; font-weight: 400; font-display: swap; src: url("../fonts/Roboto-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "Roboto"; font-weight: 500; font-display: swap; src: url("../fonts/Roboto-Medium.ttf") format("truetype"); }
+  @font-face { font-family: "Roboto"; font-weight: 700; font-display: swap; src: url("../fonts/Roboto-Bold.ttf") format("truetype"); }
+
+  /* Neon Tech, nền tối. Chỉ 5 màu Viettel và tint của chúng. */
+  :root {
+    --ink: #F2F2F2; --ink-2: rgba(242,242,242,.78); --ink-3: rgba(242,242,242,.52);
+    --red: #EE0033; --red-soft: #FFD9E0; --grey: #B5B4B4;
+    --display: "FS PF BeauSans Pro", "Roboto", "Segoe UI", Helvetica, Arial, sans-serif;
+    --body: "Roboto", "Segoe UI", Helvetica, Arial, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; overflow: hidden; background: #000; color: var(--ink); font-family: var(--body); -webkit-font-smoothing: antialiased; cursor: none; }
+  .stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform: translate(-50%, -50%) scale(var(--k, .5)); transform-origin: center; overflow: hidden;
+    background: radial-gradient(900px 700px at 8% 12%, rgba(238,0,51,.5), transparent 60%), radial-gradient(800px 600px at 96% 92%, rgba(238,0,51,.28), transparent 60%), linear-gradient(135deg, #0c0b0f 0%, #17161b 55%, #0a090c 100%); }
+
+  /* header */
+  .hdr { position: absolute; left: 0; top: 0; right: 0; height: 100px; display: flex; align-items: center; justify-content: space-between; padding: 0 64px; border-bottom: 1.5px solid rgba(255,255,255,.14); background: linear-gradient(180deg, rgba(0,0,0,.5), rgba(0,0,0,0)); z-index: 2; }
+  .hdr .org { font-family: var(--display); font-weight: 700; font-size: 32px; text-transform: uppercase; color: var(--ink-2); letter-spacing: .02em; }
+  .hdr .c { display: flex; align-items: center; font-variant-numeric: tabular-nums; }
+  .hdr .c .d { font-size: 30px; color: var(--ink-2); text-align: right; line-height: 1.2; }
+  .hdr .c .t { font-family: var(--display); font-weight: 800; font-size: 60px; letter-spacing: -1px; }
+
+  .glass { position: relative; background: rgba(255,255,255,.09); border: 1.5px solid rgba(255,255,255,.28); border-radius: 30px; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 28px 70px rgba(0,0,0,.45); }
+  .glass::before { content: ""; position: absolute; left: 28px; right: 28px; top: 0; height: 1.5px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent); }
+
+  /* bố cục: Tin tiêu điểm bên trái, 3 khung bên phải */
+  .dash { position: absolute; left: 0; right: 0; top: 100px; bottom: 128px; padding: 36px 64px 28px; display: grid; grid-template-columns: minmax(0, 1fr) 470px; grid-gap: 32px; gap: 32px; }
+  .panel { position: relative; padding: 44px 26px 14px; min-height: 0; display: flex; flex-direction: column; }
+  .panel .pg { position: absolute; right: 22px; top: 12px; font-size: 22px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .panel .lbl { position: absolute; left: 26px; top: -24px; padding: 9px 22px; background: var(--red); color: #fff; font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .1em; text-transform: uppercase; border-radius: 8px; box-shadow: 0 0 24px rgba(238,0,51,.55); white-space: nowrap; }
+  .feature { padding: 78px 28px 22px; margin-top: -16px; }
+  .feature > .lbl { top: -8px; }
+  /* thanh story: 1 ô / tin, cùng hàng với nhãn Tin tiêu điểm; tối đa 4 ô hiển thị, còn lại cuộn ngang */
+  .feature .tabs { position: absolute; left: 330px; right: 28px; top: 26px; overflow: hidden; z-index: 2; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
+  .feature .tabs .track { display: flex; gap: 14px; transition: transform .6s ease; will-change: transform; align-items: stretch; }
+  .feature .tab { flex: 0 0 calc((100% - 14px * 3) / 4); min-width: 0; font-size: 19px; font-weight: 500; color: var(--grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+  .feature .tab i { display: block; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; margin-top: 9px; }
+  .feature .tab i b { display: block; height: 100%; width: 0; background: #e3122b; }
+  .feature .tab.on { color: #fff; }
+  .feature .tab.done i b { width: 100%; background: rgba(255,255,255,.55); }
+  .feature .tabs .tab-count { flex: 0 0 auto; padding: 0 14px; display: flex; align-items: center; font-size: 18px; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+  /* dòng tiêu đề: tiêu đề in hoa, nhãn (tuỳ chọn), dòng phụ */
+  .feature .headline { margin: 0 0 14px; display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; column-gap: 20px; row-gap: 4px; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.15; text-transform: uppercase; letter-spacing: .01em; text-shadow: 0 0 24px rgba(238,0,51,.45); }
+  .feature .headline .tag { font-size: 18px; font-weight: 700; letter-spacing: .12em; color: #1a1204; background: #f2c14e; border-radius: 6px; padding: 8px 12px; align-self: center; text-shadow: none; line-height: 1; }
+  .feature .headline small { font-family: var(--body); font-weight: 400; font-size: 24px; text-transform: none; color: var(--ink-2); letter-spacing: 0; white-space: nowrap; text-shadow: none; }
+  .fade { animation: fd .7s ease both; }
+  @keyframes fd { from { opacity: 0; transform: translateY(10px); } }
+  .media { position: relative; flex: 1; min-height: 0; border-radius: 20px; overflow: hidden; background: #000; }
+  .media .bg { position: absolute; top: -30px; right: -30px; bottom: -30px; left: -30px; background-position: center; background-size: cover; filter: blur(18px) brightness(.5); opacity: 0; transition: opacity .8s; }
+  .media .bg.on { opacity: 1; }
+  .media img.pic, .media video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .8s; }
+  .media img.pic.on, .media video.on { opacity: 1; }
+  .media canvas.fx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .6s; }
+  .media canvas.fx.on { opacity: 1; }
+  .media .count:empty { display: none; }
+  .media .count { position: absolute; right: 20px; bottom: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.6); font-size: 24px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .media .empty-media { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; font-size: 30px; color: var(--ink-3); padding: 0 40px; }
+  .side { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); grid-gap: 34px; gap: 34px; min-height: 0; }
+  .panel ul { list-style: none; margin: 0; padding: 0; display: block; overflow: hidden; flex: 1; min-height: 0; }
+  .panel li { position: relative; padding: 9px 0 9px 30px; font-size: 26px; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .panel li:last-child { border-bottom: 0; }
+  .panel li::before { content: ""; position: absolute; left: 4px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px var(--red); }
+  .panel li b { font-weight: 700; }
+  .panel li small { display: block; font-size: 21px; color: var(--ink-3); }
+  .panel li.muted::before { background: var(--grey); box-shadow: none; }
+  .panel .none { font-size: 26px; color: var(--ink-3); padding: 10px 0; }
+
+  /* ticker */
+  .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 128px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
+  .ticker .tag { flex: 0 0 auto; display: flex; align-items: center; padding: 0 84px 0 64px; background: var(--red); font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .1em; text-transform: uppercase; -webkit-clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); box-shadow: 0 0 30px rgba(238,0,51,.6); }
+  .ticker .run { flex: 1; overflow: hidden; display: flex; align-items: center; font-size: 40px; position: relative; }
+  .ticker .run::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 220px; z-index: 1; background: linear-gradient(90deg, #0d0c10 35%, rgba(13,12,16,0)); }
+  .ticker .run div { white-space: nowrap; display: flex; padding-left: 40px; animation: run 48s linear infinite; }
+  .ticker .run i { font-style: normal; color: var(--red); margin-right: 28px; }
+  @keyframes run { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* tương thích trình duyệt TV cũ: khoảng cách flex bằng margin thay cho gap */
+  .hdr .c > * + * { margin-left: 28px; }
+  .ticker .run div > * + * { margin-left: 120px; }
+  @media (prefers-reduced-motion: reduce) { .fade { animation: none; } .ticker .run div { animation: none; } .feature .tabs .track { transition: none; } }
+</style>
 </head>
-<body><p>Đang mở chế độ TV… <a href="../#tv" style="color:#FFD9E0">Bấm vào đây nếu không tự chuyển</a></p></body>
+<body>
+<div class="stage" id="stage">
+  <header class="hdr">
+    <span class="org">Bản tin · Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số</span>
+    <div class="c"><div class="d" id="tv-date"></div><div class="t" id="tv-time"></div></div>
+  </header>
+
+  <section class="dash">
+    <div class="glass panel feature">
+      <span class="lbl">Tin tiêu điểm</span>
+      <div class="tabs" id="tabs"></div>
+      <h2 class="headline" id="dash-headline"></h2>
+      <div class="media" id="media"><div class="bg" id="media-bg"></div><img class="pic" id="media-a" alt=""><img class="pic" id="media-b" alt=""><canvas class="fx" id="media-fx" width="1920" height="1080"></canvas><div class="count" id="media-count"></div></div>
+    </div>
+    <div class="side">
+      <div class="glass panel"><span class="lbl">Hôm nay có gì</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay chưa có lịch."></ul></div>
+      <div class="glass panel"><span class="lbl">Đang diễn ra</span><span class="pg"></span><ul id="p-now" data-empty="Chưa có hoạt động nào đang diễn ra."></ul></div>
+      <div class="glass panel"><span class="lbl">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
+    </div>
+  </section>
+
+  <footer class="ticker"><div class="tag">Bản tin</div><div class="run"><div id="tv-run"></div></div></footer>
+</div>
+
+<div id="err" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:99;background:#B30026;color:#fff;font:14px/1.4 Roboto,Arial,sans-serif;padding:10px 16px;word-break:break-word"></div>
+<script>
+window.onerror = function (msg, src, line) { var e = document.getElementById('err'); if (!e) return; e.style.display = 'block'; e.textContent = 'Lỗi trang: ' + msg + (line ? ' (dòng ' + line + ')' : '') + ' · Trình duyệt: ' + navigator.userAgent; };
+if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', function () { var e = document.getElementById('err'); e.style.display = 'block'; e.textContent = 'Trình duyệt: ' + navigator.userAgent + ' · ' + window.innerWidth + '×' + window.innerHeight; }); }
+</script>
+<script src="../media.js"></script>
+<script src="content.js"></script>
+<script>
+(function () {
+  'use strict';
+  const C = window.TV || {};
+  const STORY_SECONDS = C.STORY_SECONDS || 60;
+  const VIDEO_MAX_SECONDS = C.VIDEO_MAX_SECONDS || 90;
+  // Nguồn ảnh Drive: media.js / media.json ở gốc repo, GitHub Action cập nhật mỗi 15 phút.
+  // MEDIA_API_URL (tuỳ chọn, xem apps-script/media.gs) cho cập nhật nhanh hơn.
+  const MEDIA_API_URL = '';
+  const MEDIA_REFRESH_SECONDS = 300;
+  // Tự cập nhật: thấy index.html hoặc content.js trên máy chủ khác bản đang chạy thì tự F5; mỗi ngày tải lại lúc dailyAt.
+  const AUTO_RELOAD = { checkSeconds: 120, dailyAt: '05:00', files: ['index.html', 'content.js'] };
+
+  const ROOT = '../';
+  const R = (p) => (!p || /^(https?:|data:|blob:|\/|\.\.?\/)/.test(p) ? p : ROOT + p);   // đường dẫn tính từ gốc repo
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const p2 = (n) => (n < 10 ? '0' : '') + n;
+  const DAYS = ['Chủ nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  const vnDate = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
+  const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()); };
+  const fmtD = (iso) => iso.slice(8, 10) + '/' + iso.slice(5, 7);
+  const fmtRange = (it) => it.to ? fmtD(it.from) + ' đến ' + fmtD(it.to) : fmtD(it.from);
+  const dayName = (iso) => DAYS[vnDate(iso).getDay()];
+  function daysLeft(date) { const now = new Date(); const a = new Date(now.getFullYear(), now.getMonth(), now.getDate()); const b = new Date(date.getFullYear(), date.getMonth(), date.getDate()); return Math.max(0, Math.round((b - a) / 86400000)); }
+  const alive = (x) => !x.until || x.until >= todayKey();
+  const inRange = (x) => { const t = todayKey(); return (!x.from || x.from <= t) && (!x.to || x.to >= t); };
+
+  // Tin còn hạn (until), lọc lúc mở trang; trang tự tải lại mỗi sáng nên tin hết hạn tự rơi ra.
+  const STORIES = (C.STORIES || []).filter(alive);
+  const AGENDA = (C.AGENDA || []).slice().sort((a, b) => a.from.localeCompare(b.from));
+  const status = (it) => { const t = todayKey(); const end = it.to || it.from; return end < t ? 'done' : it.from <= t ? 'now' : 'next'; };
+
+  // ---------- 3 khung bên phải ----------
+  const PER_PAGE = 2; let dashLists = {}, dashPage = 0;
+  function paintPanels() {
+    Object.keys(dashLists).forEach((id) => {
+      const items = dashLists[id], el = $(id), pages = Math.max(1, Math.ceil(items.length / PER_PAGE)), pg = dashPage % pages;
+      el.innerHTML = items.length ? items.slice(pg * PER_PAGE, pg * PER_PAGE + PER_PAGE).join('') : '<div class="none">' + esc(el.getAttribute('data-empty')) + '</div>';
+      el.parentNode.querySelector('.pg').textContent = pages > 1 ? (pg + 1) + '/' + pages : '';
+    });
+  }
+  function li(t, sub, cls) { return `<li${cls ? ' class="' + cls + '"' : ''}><b>${esc(t)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</li>`; }
+  const meta = (x, extra) => [x.time, extra, x.place].filter(Boolean).join(' · ');
+  function renderDash() {
+    const t = todayKey();
+    // Hôm nay có gì: mục thêm tay + sự kiện một ngày hôm nay + giai đoạn bắt đầu/kết thúc hôm nay
+    dashLists['p-today'] = (C.TODAY || []).filter(inRange).map((x) => li(x.t || x.title, x.s || x.sub))
+      .concat(AGENDA.filter((x) => status(x) === 'now' && (!x.to || x.from === t || x.to === t))
+        .map((x) => li(x.title, meta(x, x.to ? (x.to === t ? 'kết thúc hôm nay' : 'bắt đầu hôm nay') : dayName(x.from) + ' ' + fmtD(x.from)))));
+    // Đang diễn ra: các giai đoạn (có to) bao trùm hôm nay
+    dashLists['p-now'] = AGENDA.filter((x) => x.to && status(x) === 'now').map((x) => li(x.title, meta(x, fmtRange(x) + (daysLeft(vnDate(x.to)) ? ' · còn ' + daysLeft(vnDate(x.to)) + ' ngày' : ' · kết thúc hôm nay'))));
+    // Sắp diễn ra: 4 mục gần nhất chưa tới
+    dashLists['p-next'] = AGENDA.filter((x) => status(x) === 'next').slice(0, 4).map((x) => li(x.title, meta(x, fmtRange(x) + ' · còn ' + daysLeft(vnDate(x.from)) + ' ngày')));
+    paintPanels();
+  }
+
+  // ---------- dòng chạy ----------
+  function renderTicker() {
+    const msgs = [];
+    AGENDA.filter((x) => status(x) === 'now' && !x.to).forEach((x) => msgs.push('Hôm nay: ' + x.title + (x.time ? ' · ' + x.time : '') + (x.place ? ' · ' + x.place : '')));
+    AGENDA.filter((x) => status(x) === 'next').slice(0, 3).forEach((x) => msgs.push(fmtD(x.from) + ': ' + x.title + (x.time ? ' · ' + x.time : '')));
+    STORIES.forEach((st) => { [].concat(st.ticker || []).forEach((m) => msgs.push(m)); });
+    (C.TICKER || []).forEach((m) => { if (typeof m === 'string') msgs.push(m); else if (alive(m)) msgs.push(m.text); });
+    const h = msgs.map((m) => `<span><i>▶</i>${esc(m)}</span>`).join('');
+    $('tv-run').innerHTML = h + h;
+  }
+
+  // ---------- ảnh và video từ Google Drive ----------
+  let media = [], mIdx = -1, mTimer = null, mFront = 'a', mediaOn = false, curVideo = null, bag = [];
+  const driveStory = () => STORIES.find((st) => st.source === 'drive') || {};
+  const hasIntro = () => !!(driveStory().intro && driveStory().intro.image);
+  // Ảnh kế tiếp: tuần tự, hoặc rút ngẫu nhiên từ "túi" các ảnh chưa chiếu (hết túi thì đổ lại) khi bật shuffle
+  function pickNext() {
+    if (!driveStory().shuffle) return (mIdx + 1) % media.length;
+    if (!bag.length) { bag = media.map((_, k) => k); for (let i = bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = bag[i]; bag[i] = bag[j]; bag[j] = t; } }
+    let k = bag.pop(); if (k === mIdx && bag.length) { const k2 = bag.pop(); bag.push(k); k = k2; }
+    return k;
+  }
+  const shownCount = () => (driveStory().shuffle ? media.length - bag.length : mIdx + 1);
+  const imgUrl = (id, w) => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 1600);
+  const vidUrl = (m) => (m.src ? R(m.src) : 'https://drive.google.com/uc?export=download&id=' + m.id);
+  // pháo hoa hạt trên thẻ mở đầu (canvas 1920×1080)
+  let fxOn = false, fxParts = [], fxLast = 0, fxNext = 0, fxRaf = null;
+  const fxCtx = $('media-fx').getContext('2d');
+  function fxBurst() {
+    const x = Math.random() < .5 ? 80 + Math.random() * 280 : 1560 + Math.random() * 280, y = 80 + Math.random() * 420;
+    for (let i = 0; i < 65; i++) { const a = Math.random() * Math.PI * 2, v = 35 + Math.random() * 150;
+      fxParts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 1.5 + Math.random(), color: Math.random() < .3 ? '255,65,85' : '255,180,210' }); }
+  }
+  function fxFrame(t) {
+    if (!fxOn) return;
+    const dt = Math.min((t - fxLast) / 1000, .04); fxLast = t;
+    fxCtx.clearRect(0, 0, 1920, 1080);
+    if (t > fxNext) { fxBurst(); fxNext = t + 1400 + Math.random() * 1600; }
+    fxParts = fxParts.filter((p) => p.t < p.life);
+    for (let i = 0; i < fxParts.length; i++) { const p = fxParts[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 32 * dt;
+      fxCtx.beginPath(); fxCtx.fillStyle = 'rgba(' + p.color + ',' + Math.max(0, 1 - p.t / p.life) + ')'; fxCtx.shadowColor = 'rgb(' + p.color + ')'; fxCtx.shadowBlur = 12; fxCtx.arc(p.x, p.y, 1.7, 0, 7); fxCtx.fill(); }
+    fxCtx.shadowBlur = 0; fxRaf = requestAnimationFrame(fxFrame);
+  }
+  function fxStart() { if (fxOn) return; fxOn = true; fxParts = []; fxLast = performance.now(); fxNext = 0; $('media-fx').classList.add('on'); fxRaf = requestAnimationFrame(fxFrame); }
+  function fxStop() { fxOn = false; if (fxRaf) cancelAnimationFrame(fxRaf); $('media-fx').classList.remove('on'); fxCtx.clearRect(0, 0, 1920, 1080); }
+  function swapTo(src) {
+    const show = mFront === 'a' ? $('media-b') : $('media-a'), hide = mFront === 'a' ? $('media-a') : $('media-b');
+    show.src = src; show.classList.add('on'); hide.classList.remove('on'); mFront = mFront === 'a' ? 'b' : 'a';
+  }
+  function showIntro() {
+    stopVideo(); $('media-count').textContent = '';
+    const src = R(driveStory().intro.image), secs = driveStory().intro.seconds || 12;
+    const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + src + '")'; bg.classList.add('on');
+    const pre = new Image(); let done = false;
+    const fin = () => { if (done || !mediaOn) return; done = true; swapTo(src); fxStart();
+      mTimer = setTimeout(() => { fxStop(); nextMedia(); }, secs * 1000); };
+    pre.onload = fin; pre.onerror = () => { done = true; nextMedia(); }; pre.src = src; setTimeout(fin, 6000);
+  }
+  function setMedia(list) {
+    const fresh = (list || []).filter((m) => m && m.id && (m.type === 'image' || m.type === 'video'));
+    const mi = mIdx; const curId = mi >= 0 && media[mi] ? media[mi].id : null;
+    if (fresh.map((m) => m.id).join(',') === media.map((m) => m.id).join(',')) return; // không đổi
+    media = fresh; bag = [];
+    if (curId) { const k = media.findIndex((m) => m.id === curId); const ni = k >= 0 ? k : Math.min(mi, media.length - 1); mIdx = ni; if (mediaOn && ni >= 0) $('media-count').textContent = shownCount() + ' / ' + media.length; }
+  }
+  function refreshMedia() {
+    if (MEDIA_API_URL) {
+      fetch(MEDIA_API_URL + (MEDIA_API_URL.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now(), { redirect: 'follow', cache: 'no-store' })
+        .then((r) => r.json()).then((j) => { if (j && j.files) setMedia(j.files); }).catch(() => {});
+      return;
+    }
+    if (location.protocol === 'file:') return;
+    fetch(ROOT + 'media.json?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.length !== undefined) setMedia(j); }).catch(() => {});
+  }
+  function stopVideo() { if (curVideo) { try { curVideo.pause(); } catch (e) {} curVideo.remove(); curVideo = null; } }
+  function playVideo(src, maxSeconds, onDone) {
+    const a = $('media-a'), b = $('media-b'); a.classList.remove('on'); b.classList.remove('on'); stopVideo();
+    const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = src;
+    $('media').insertBefore(v, $('media-count')); curVideo = v;
+    let moved = false; const go = () => { if (moved) return; moved = true; stopVideo(); onDone(); };
+    v.addEventListener('ended', go); v.addEventListener('error', go);
+    v.addEventListener('playing', () => { v.classList.add('on'); clearTimeout(mTimer); mTimer = setTimeout(go, maxSeconds * 1000); });
+    mTimer = setTimeout(go, 15000); // không phát được trong 15 giây thì bỏ qua
+    const pr = v.play && v.play(); if (pr && pr.catch) pr.catch(() => {});
+  }
+  function nextMedia() {
+    clearTimeout(mTimer); fxStop(); if (!mediaOn) return;
+    if (!media.length) { $('media').insertAdjacentHTML('beforeend', '<div class="empty-media">Chưa có ảnh từ Google Drive.</div>'); return; }
+    mIdx = pickNext();
+    const mi = mIdx, m = media[mi];
+    $('media-count').textContent = shownCount() + ' / ' + media.length;
+    const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + imgUrl(m.id, 200) + '")'; bg.classList.add('on');
+    if (m.type === 'video') { playVideo(vidUrl(m), VIDEO_MAX_SECONDS, () => { if (mediaOn) nextMedia(); }); return; }
+    stopVideo();
+    const pre = new Image();
+    let done = false; const fin = (ok) => { if (done) return; done = true;
+      if (!mediaOn) return;
+      if (ok) { swapTo(pre.src); mTimer = setTimeout(nextMedia, (driveStory().photoSeconds || 5) * 1000); }
+      else mTimer = setTimeout(nextMedia, 1500); };
+    pre.onload = () => fin(true); pre.onerror = () => fin(false); pre.src = imgUrl(m.id, 1600);
+    setTimeout(() => fin(true), 12000); // mạng chậm: vẫn chuyển sau 12 giây
+    const nx = media[(mi + 1) % media.length]; if (nx && nx.type === 'image') { const im = new Image(); im.src = imgUrl(nx.id, 1600); }
+  }
+  // Dừng slideshow Drive nhưng giữ vị trí (mIdx) để lượt sau chiếu tiếp từ ảnh kế
+  function pauseMedia() { mediaOn = false; clearTimeout(mTimer); stopVideo(); fxStop(); const e = $('media').querySelector('.empty-media'); if (e) e.remove(); }
+
+  // ---------- Tin tiêu điểm xoay vòng ----------
+  let sIdx = -1, storyT0 = 0, storyRaf = null, run = 0;
+  const preloaded = [];
+  function preloadStills() {
+    STORIES.forEach((st) => {
+      [].concat(st.image || [], (st.slides || []).map((s) => s.src), (st.items || []).filter((it) => it.type === 'image').map((it) => it.src))
+        .forEach((u) => { const im = new Image(); im.src = R(u); preloaded.push(im); });
+      (st.items || []).filter((it) => it.type === 'video').forEach((it) => { const v = document.createElement('video'); v.preload = 'auto'; v.muted = true; v.src = R(it.src); preloaded.push(v); });
+    });
+  }
+  function renderTabs() {
+    const box = $('tabs');
+    let track = box.querySelector('.track');
+    if (!track) { track = document.createElement('div'); track.className = 'track'; box.appendChild(track); }
+    track.innerHTML = STORIES.map((st, j) => `<div class="tab ${j === sIdx ? 'on' : j < sIdx ? 'done' : ''}">${esc(st.tab)}<i><b${j === sIdx ? ' id="pb"' : ''}></b></i></div>`).join('') + `<div class="tab-count">${sIdx + 1} / ${STORIES.length}</div>`;
+    // kéo tab đang chiếu vào vùng nhìn: tối đa 4 ô, ưu tiên giữ tab đang chiếu ở vị trí 2–3
+    const on = track.children[sIdx]; if (!on) return;
+    const W = box.clientWidth, over = track.scrollWidth - W;
+    const dx = over > 0 ? Math.max(0, Math.min(on.offsetLeft - W * 0.4, over)) : 0;
+    track.style.transform = 'translateX(' + (-dx) + 'px)';
+  }
+  function renderHead(st, sub) {
+    $('dash-headline').innerHTML = `<span>${esc(st.title)}</span>${st.tag ? `<span class="tag">${esc(st.tag)}</span>` : ''}${sub ? `<small>${esc(sub)}</small>` : ''}`;
+  }
+  function fadeIn(el) { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); }
+  function showStill(src) {
+    pauseMedia(); $('media-count').textContent = '';
+    const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + src + '")'; bg.classList.add('on');
+    swapTo(src);
+  }
+  // Nhiều ảnh lần lượt, có bộ đếm; sub riêng của ảnh thay dòng phụ
+  function showSlides(st, k, r) {
+    if (r !== run) return;
+    const list = st.slides, s = list[k % list.length];
+    showStill(R(s.src));
+    $('media-count').textContent = (k % list.length + 1) + ' / ' + list.length;
+    if (k > 0 && s.sub !== list[(k - 1) % list.length].sub) { renderHead(st, s.sub || st.sub); fadeIn($('dash-headline')); }
+    mTimer = setTimeout(() => showSlides(st, k + 1, r), (s.seconds || st.slideSeconds || 8) * 1000);
+  }
+  // Danh sách: video phát hết thì sang mục kế, ảnh giữ theo seconds hoặc tới hết tin
+  function showItems(st, k, r) {
+    if (r !== run) return;
+    const items = st.items; if (k >= items.length) return;           // hết danh sách: giữ mục cuối tới hết tin
+    const it = items[k];
+    if (it.type === 'video') { pauseMedia(); $('media-count').textContent = ''; $('media-bg').classList.remove('on'); playVideo(R(it.src), it.seconds || VIDEO_MAX_SECONDS, () => showItems(st, k + 1, r)); return; }
+    showStill(R(it.src));
+    if (it.seconds) mTimer = setTimeout(() => showItems(st, k + 1, r), it.seconds * 1000);
+  }
+  function storyMs(st) {
+    if (st.seconds) return st.seconds * 1000;
+    if (st.slides && st.slides.length) return st.slides.reduce((a, s) => a + (s.seconds || st.slideSeconds || 8), 0) * 1000;
+    return STORY_SECONDS * 1000;
+  }
+  function showStory(i) {
+    if (!STORIES.length) return;
+    sIdx = ((i % STORIES.length) + STORIES.length) % STORIES.length; storyT0 = performance.now();
+    const st = STORIES[sIdx], r = ++run;
+    pauseMedia(); clearTimeout(mTimer);
+    renderTabs(); renderHead(st, st.slides && st.slides[0] && st.slides[0].sub || st.sub); fadeIn($('dash-headline')); fadeIn($('media'));
+    if (st.source === 'drive') { mediaOn = true; if (hasIntro()) showIntro(); else nextMedia(); }   // mở đầu rồi chiếu tiếp từ ảnh kế
+    else if (st.items && st.items.length) showItems(st, 0, r);
+    else if (st.slides && st.slides.length) showSlides(st, 0, r);
+    else showStill(R(st.image || ''));
+  }
+  function storyLoop(now) {
+    const p = Math.min(1, (now - storyT0) / storyMs(STORIES[sIdx]));
+    const pb = $('pb'); if (pb) pb.style.width = (p * 100) + '%';
+    if (p >= 1) showStory(sIdx + 1);
+    storyRaf = requestAnimationFrame(storyLoop);
+  }
+
+  // ---------- khung, đồng hồ, phím ----------
+  function fit() { const k = Math.min(innerWidth / 1920, innerHeight / 1080); $('stage').style.setProperty('--k', k.toFixed(5)); }
+  function clock() {
+    const d = new Date();
+    $('tv-date').innerHTML = DAYS[d.getDay()] + '<br>' + p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear();
+    $('tv-time').textContent = p2(d.getHours()) + ':' + p2(d.getMinutes());
+  }
+  addEventListener('resize', fit);
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') showStory(sIdx + 1);
+    if (e.key === 'ArrowLeft') showStory(sIdx - 1);
+    if (e.key === ' ' && mediaOn) { e.preventDefault(); nextMedia(); }
+    if (e.key === 'f' || e.key === 'Enter') { try { const fs = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (fs && fs.catch) fs.catch(() => {}); } catch (x) {} }
+  });
+
+  // ---------- tự tải lại khi có bản mới ----------
+  function hashStr(t) { let h = 5381; for (let k = 0; k < t.length; k++) h = ((h << 5) + h + t.charCodeAt(k)) | 0; return h + ':' + t.length; }
+  function fetchAll() {
+    return Promise.all(AUTO_RELOAD.files.map((f) => fetch(f + '?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).catch(() => '')))
+      .then((texts) => texts.map(hashStr).join('|'));
+  }
+  if (location.protocol !== 'file:') {
+    let baseline = '';
+    fetchAll().then((h) => { baseline = h; });
+    setInterval(() => { fetchAll().then((h) => { if (baseline && h !== baseline && h.indexOf('5381:0') < 0) location.reload(); }); }, Math.max(30, AUTO_RELOAD.checkSeconds) * 1000);
+  }
+  let lastDaily = '';
+  setInterval(() => {
+    if (!AUTO_RELOAD.dailyAt) return;
+    const d = new Date(), hm = p2(d.getHours()) + ':' + p2(d.getMinutes()), key = todayKey() + ' ' + hm;
+    if (hm === AUTO_RELOAD.dailyAt && lastDaily !== key) { lastDaily = key; location.reload(); }
+  }, 20000);
+
+  // ---------- boot ----------
+  fit(); clock(); setInterval(clock, 15000);
+  setMedia(window.DRIVE_MEDIA || []); refreshMedia(); setInterval(refreshMedia, Math.max(60, MEDIA_REFRESH_SECONDS) * 1000);
+  renderDash(); renderTicker();
+  setInterval(() => { dashPage++; paintPanels(); }, 7000);
+  setInterval(() => { renderDash(); renderTicker(); }, 10 * 60000);   // sang ngày mới thì đổi trạng thái lịch
+  preloadStills();
+  const m = /^#(\d+)$/.exec(location.hash);                           // #2 mở thẳng tin số 2
+  showStory(m ? +m[1] - 1 : 0); storyRaf = requestAnimationFrame(storyLoop);
+})();
+</script>
+</body>
 </html>

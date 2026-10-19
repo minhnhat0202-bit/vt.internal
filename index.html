@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Bản tin Giải thể thao gắn kết tinh thần, thi đua phong trào tháng 10 của Trung tâm Nền tảng Công nghệ và Chuyển đổi số: lịch thi đấu, số liệu đăng ký, sơ đồ thi đấu và chế độ trình chiếu TV.">
+<meta name="description" content="Trang thống kê Giải thể thao gắn kết tinh thần, thi đua phong trào tháng 10 của Trung tâm Nền tảng Công nghệ và Chuyển đổi số: lịch thi đấu, số liệu đăng ký, sơ đồ thi đấu và thẻ trình chiếu TV.">
 <meta property="og:title" content="Giải thể thao tháng 10 · TT Nền tảng Công nghệ & CĐS">
 <meta property="og:image" content="img/poster-1200.jpg">
 <link rel="icon" type="image/png" href="img/logo-vtnet.png">
@@ -233,50 +233,6 @@
   .s-cd .count .lbl { font-size: 40px; font-family: var(--display); font-weight: 700; color: var(--red-soft); text-transform: uppercase; letter-spacing: .06em; }
   .s-cd .slog { padding: 26px; text-align: center; font-family: var(--display); font-weight: 800; font-size: 36px; text-transform: uppercase; letter-spacing: .06em; line-height: 1.2; }
   .s-cd .slog span { color: var(--red); text-shadow: 0 0 20px rgba(238,0,51,.6); }
-  /* ===== Bố cục bản tin (chế độ TV mặc định) ===== */
-  .dash { display: none; position: absolute; left: 0; right: 0; top: 100px; bottom: 128px; padding: 36px 64px 28px; grid-template-columns: minmax(0, 1fr) 470px; grid-gap: 32px; gap: 32px; }
-  .stage.mode-dash .dash { display: grid; }
-  .stage.mode-dash .slide, .stage.mode-dash .dots { display: none; }
-  .panel { position: relative; padding: 44px 26px 14px; min-height: 0; display: flex; flex-direction: column; }
-  .panel .pg { position: absolute; right: 22px; top: 12px; font-size: 22px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-  .panel .lbl { position: absolute; left: 26px; top: -24px; padding: 9px 22px; background: var(--red); color: #fff; font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .1em; text-transform: uppercase; border-radius: 8px; box-shadow: 0 0 24px rgba(238,0,51,.55); white-space: nowrap; }
-  .feature { padding: 78px 28px 22px; margin-top: -16px; }
-  .feature > .lbl { top: -8px; }
-  /* thanh story: 1 ô / tin, cùng hàng với nhãn Tin tiêu điểm, bên phải nhãn; tối đa 4 ô hiển thị, còn lại cuộn ngang */
-  .feature .tabs { position: absolute; left: 330px; right: 28px; top: 26px; overflow: hidden; z-index: 2; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
-  .feature .tabs .track { display: flex; gap: 14px; transition: transform .6s ease; will-change: transform; align-items: stretch; }
-  @media (prefers-reduced-motion: reduce) { .feature .tabs .track { transition: none; } }
-  .feature .tab { flex: 0 0 calc((100% - 14px * 3) / 4); min-width: 0; font-size: 19px; font-weight: 500; color: var(--grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
-  .feature .tab i { display: block; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; margin-top: 9px; }
-  .feature .tab i b { display: block; height: 100%; width: 0; background: #e3122b; }
-  .feature .tab.on { color: #fff; }
-  .feature .tab.done i b { width: 100%; background: rgba(255,255,255,.55); }
-  .feature .tabs .tab-count { flex: 0 0 auto; padding: 0 14px; display: flex; align-items: center; font-size: 18px; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; letter-spacing: .04em; }
-  /* dòng tiêu đề: tiêu đề in hoa, nhãn (tuỳ chọn), dòng phụ */
-  .feature .headline { margin: 0 0 14px; display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; column-gap: 20px; row-gap: 4px; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.15; text-transform: uppercase; letter-spacing: .01em; text-shadow: 0 0 24px rgba(238,0,51,.45); }
-  .feature .headline .tag { font-size: 18px; font-weight: 700; letter-spacing: .12em; color: #1a1204; background: #f2c14e; border-radius: 6px; padding: 8px 12px; align-self: center; text-shadow: none; line-height: 1; }
-  .feature .headline small { font-family: var(--body); font-weight: 400; font-size: 24px; text-transform: none; color: var(--ink-2); letter-spacing: 0; white-space: nowrap; text-shadow: none; }
-  .fade { animation: fd .7s ease both; }
-  @keyframes fd { from { opacity: 0; transform: translateY(10px); } }
-  .media { position: relative; flex: 1; min-height: 0; border-radius: 20px; overflow: hidden; background: #000; }
-  .media .bg { position: absolute; top: -30px; right: -30px; bottom: -30px; left: -30px; background-position: center; background-size: cover; filter: blur(18px) brightness(.5); opacity: 0; transition: opacity .8s; }
-  .media .bg.on { opacity: 1; }
-  .media img.pic, .media video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .8s; }
-  .media img.pic.on, .media video.on { opacity: 1; }
-  .media canvas.fx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .6s; }
-  .media canvas.fx.on { opacity: 1; }
-  .media .count:empty { display: none; }
-  .media .count { position: absolute; right: 20px; bottom: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.6); font-size: 24px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
-  .media .empty-media { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; font-size: 30px; color: var(--ink-3); padding: 0 40px; }
-  .side { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); grid-gap: 34px; gap: 34px; min-height: 0; }
-  .panel ul { list-style: none; margin: 0; padding: 0; display: block; overflow: hidden; flex: 1; min-height: 0; }
-  .panel li { position: relative; padding: 9px 0 9px 30px; font-size: 26px; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,.08); }
-  .panel li:last-child { border-bottom: 0; }
-  .panel li::before { content: ""; position: absolute; left: 4px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px var(--red); }
-  .panel li b { font-weight: 700; }
-  .panel li small { display: block; font-size: 21px; color: var(--ink-3); }
-  .panel li.muted::before { background: var(--grey); box-shadow: none; }
-  .panel .none { font-size: 26px; color: var(--ink-3); padding: 10px 0; }
   /* ticker */
   .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 128px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
   .ticker .tag { flex: 0 0 auto; display: flex; align-items: center; padding: 0 84px 0 64px; background: var(--red); font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .1em; text-transform: uppercase; -webkit-clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); box-shadow: 0 0 30px rgba(238,0,51,.6); }
@@ -324,8 +280,8 @@
       <a href="#so-lieu">Số liệu</a>
       <a href="#so-do">Sơ đồ</a>
       <a class="btn" href="#" data-reg>Đăng ký &amp; sơ đồ chi tiết</a>
-      <a class="btn" href="#slides">Thẻ xoay vòng</a>
-      <a class="btn red" href="#tv" id="tv-btn">Chế độ TV</a>
+      <a class="btn red" href="#slides" id="tv-btn">Chế độ TV</a>
+      <a class="btn" href="tv/">Bản tin TV Trung tâm</a>
     </nav>
   </header>
 
@@ -383,24 +339,10 @@
 <div id="tv" aria-hidden="true">
   <div class="stage" id="stage">
     <header class="hdr">
-      <div class="b"><span class="org" id="tv-org">Bản tin · Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số</span></div>
+      <div class="b"><span class="org" id="tv-org">Giải thể thao tháng 10 · TT Nền tảng Công nghệ &amp; CĐS</span></div>
       <div class="c"><div class="d" id="tv-date"></div><div class="t" id="tv-time"></div></div>
     </header>
     <div class="dots" id="dots"></div>
-
-    <section class="dash" id="dash">
-      <div class="glass panel feature">
-        <span class="lbl">Tin tiêu điểm</span>
-        <div class="tabs" id="tabs"></div>
-        <h2 class="headline" id="dash-headline"></h2>
-        <div class="media" id="media"><div class="bg" id="media-bg"></div><img class="pic" id="media-a" alt=""><img class="pic" id="media-b" alt=""><canvas class="fx" id="media-fx" width="1920" height="1080"></canvas><div class="count" id="media-count"></div></div>
-      </div>
-      <div class="side">
-        <div class="glass panel"><span class="lbl">Hôm nay có gì</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay không có lịch thi đấu."></ul></div>
-        <div class="glass panel"><span class="lbl">Đang diễn ra</span><span class="pg"></span><ul id="p-now" data-empty="Chưa có bộ môn nào thi đấu."></ul></div>
-        <div class="glass panel"><span class="lbl">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
-      </div>
-    </section>
 
     <section class="slide poster-slide on" data-dur="12">
       <img src="img/poster-tv-1920x1080.webp" alt="Poster giải thể thao">
@@ -446,7 +388,6 @@
 </div>
 
 <div id="err" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:99;background:#B30026;color:#fff;font:14px/1.4 Roboto,Arial,sans-serif;padding:10px 16px;word-break:break-word"></div>
-<script src="media.js"></script>
 <script>
 window.onerror = function (msg, src, line) { var e = document.getElementById('err'); if (!e) return; e.style.display = 'block'; e.textContent = 'Lỗi trang: ' + msg + (line ? ' (dòng ' + line + ')' : '') + ' · Trình duyệt: ' + navigator.userAgent; };
 if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', function () { var e = document.getElementById('err'); e.style.display = 'block'; e.textContent = 'Trình duyệt: ' + navigator.userAgent + ' · ' + window.innerWidth + '×' + window.innerHeight; }); }
@@ -462,52 +403,8 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   const FINALE = new Date('2026-10-23T18:00:00+07:00');
 
   const srcDir = location.pathname.replace(/[^/]*$/, '');
-  // ---- Bản tin (chế độ TV mặc định, #tv) ----
-  // ---- Tin tiêu điểm: danh sách tin xoay vòng, thứ tự = thứ tự chiếu. Thêm hoặc bớt tin bằng dữ liệu, thanh story tự chia đều.
-  //   tab: tên ngắn trên thanh story · title: tiêu đề in hoa · tag: nhãn vàng (tuỳ chọn) · sub: dòng phụ
-  //   seconds: thời lượng riêng của tin (không khai thì dùng STORY_SECONDS)
-  //   source: 'drive' = slideshow ảnh, video từ Google Drive (media.js), có bộ đếm; intro = thẻ mở đầu kèm pháo hoa (giây riêng),
-  //     photoSeconds = giây mỗi ảnh, shuffle: true = ảnh chiếu ngẫu nhiên, không lặp cho tới khi hết kho
-  //   images: [ảnh] = poster tĩnh, không bộ đếm · ticker: câu thêm vào dòng chạy (tuỳ chọn)
-  //   items: [{ type: 'video', src }, { type: 'image', src, seconds? }] = chiếu lần lượt video rồi ảnh trong thời lượng tin;
-  //     video phát hết thì sang mục kế, ảnh không khai seconds thì giữ tới hết tin. File đặt trong media/ (video) và img/ (ảnh)
-  const STORY_SECONDS = 60;   // thời lượng mặc định mỗi tin
-  const STORIES = [
-    { id: 'cloud', tab: 'Sinh nhật Viettel Cloud', title: 'Chúc mừng sinh nhật Viettel Cloud 4 tuổi', sub: '14/10/2022 đến 14/10/2026',
-      seconds: 120, source: 'drive', intro: { image: 'img/sinh-nhat-cloud-4.jpg', seconds: 60 }, photoSeconds: 5, shuffle: true },
-    { id: 'cau-long', tab: 'Kết quả Cầu lông', title: 'Kết quả giải Cầu lông', sub: 'Vô địch: Hiếu – Thảo', tag: 'Chung cuộc',
-      images: ['img/ket-qua-cau-long.jpg?v=2'], ticker: 'Vô địch Cầu lông: Hiếu – Thảo' },
-    { id: 'pes', tab: 'Kết quả PES', title: 'Kết quả giải PES', sub: 'Vô địch: Hiếu & Trung', tag: 'Chung cuộc',
-      images: ['img/ket-qua-pes.jpg'], ticker: 'Vô địch PES: Hiếu & Trung' },
-    { id: 'bida', tab: 'Kết quả Bida', title: 'Kết quả giải Bida', sub: 'Vô địch: Lê Văn Thành & Trần Phan Huy Anh', tag: 'Chung cuộc',
-      images: ['img/ket-qua-bida.jpg'],
-      ticker: 'Kết quả Bida · Nhất: Lê Văn Thành & Trần Phan Huy Anh · Nhì: Lê Ngọc Thái & Phạm Gia Khiêm · Ba: Nguyễn Nhật Minh & Lê Quốc Đạt · Tư: Nguyễn Xuân Huy & Lê Hải Sơn' },
-    { id: 'vda-2026', tab: 'Giải thưởng CĐS 2026', title: 'Giải thưởng Chuyển đổi số Việt Nam 2026', tag: 'Vinh danh',
-      sub: 'Hệ thống Quản lý vùng phủ mạng vô tuyến · Viettel Networks',
-      items: [{ type: 'video', src: 'media/daily-2026-10-14.mp4' }, { type: 'image', src: 'img/daily-2026-10-14.jpg', seconds: 10 },
-        { type: 'image', src: 'img/daily-2026-10-15-1.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-2.jpg', seconds: 7 },
-        { type: 'image', src: 'img/daily-2026-10-15-3.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-4.jpg', seconds: 7 }],
-      ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' },
-    { id: 'new-member', tab: 'Thành viên mới', title: 'Chào mừng thành viên mới gia nhập Trung tâm', tag: 'Gia nhập 16/10/2026',
-      images: ['img/01-nghiem-xuan-son.png', 'img/02-dam-ngoc-khanh.png', 'img/03-tong-tran-minh-duc.png'],
-      photoMs: 8000, storyMs: 'auto',
-      ticker: 'Chào mừng 3 thành viên mới gia nhập Trung tâm: Nghiêm Xuân Sơn, Đàm Ngọc Khánh, Tống Trần Minh Đức' }
-  ];
-  const DASH = {
-    // Mục thêm tay cho khung "Hôm nay có gì", ngoài lịch thi đấu tự lấy theo ngày
-    today: [{ t: 'Sinh nhật Viettel Cloud 4 tuổi', s: 'Ra mắt 14/10/2022' }],
-    videoMaxSeconds: 90       // video dài hơn sẽ chuyển sau chừng này giây
-  };
-  // Nguồn ảnh, video: thư mục Google Drive công khai. Danh sách file nằm trong media.js
-  // (sinh bằng tools/drive-media.py). Điền DRIVE_API_KEY (Google Cloud, bật Drive API) để trang tự đọc thư mục khi mở.
-  const DRIVE_FOLDER_ID = '18QdoAzINpvlfo54nMBTAGTn9avTo214E';
-  const DRIVE_API_KEY = '';
-  // Danh sách ảnh tự làm mới: trang đọc media.json trên máy chủ mỗi mediaRefreshSeconds (GitHub Action cập nhật file này
-  // từ Drive mỗi 15 phút). MEDIA_API_URL (tùy chọn, xem apps-script/media.gs) cho cập nhật nhanh hơn, ưu tiên nếu có.
-  const MEDIA_API_URL = '';
-  const MEDIA_REFRESH_SECONDS = 300;
-  // Tự cập nhật: mỗi checkSeconds trang tải lại index.html và media.js trên máy chủ, thấy khác bản đang chạy thì tự F5.
-  // dailyAt: giờ tự tải lại mỗi ngày (làm mới nội dung theo ngày, giải phóng bộ nhớ trình duyệt TV). Để '' nếu không cần.
+  // Tự cập nhật: mỗi checkSeconds trang tải lại index.html trên máy chủ, thấy khác bản đang chạy thì tự F5.
+  // dailyAt: giờ tự tải lại mỗi ngày (làm mới trạng thái lịch theo ngày). Để '' nếu không cần.
   const AUTO_RELOAD = { checkSeconds: 120, dailyAt: '05:00', files: ['index.html'] };
 
   // Lịch thi đấu theo poster. from/to là ngày (giờ Việt Nam).
@@ -586,7 +483,6 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     now.forEach((x) => msgs.push(`Hôm nay: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}${x.place ? ' · ' + x.place : ''}`));
     next.slice(0, 3).forEach((x) => msgs.push(`${fmtD(x.from)}: ${x.sport} · ${x.label}${x.time ? ' · ' + x.time : ''}`));
     PLAN.forEach((s) => { if (s.info && s.items.some((it) => status(it) !== 'done')) msgs.push(s.info); });
-    STORIES.forEach((st) => { if (st.ticker) msgs.push(st.ticker); });
     msgs.push('Liên hoan kết thúc thành công tối Thứ Sáu 23/10 · Gắn kết, Bứt phá, Thi đấu hết mình');
     msgs.push('Xem sơ đồ và kết quả tại trang đăng ký của Giải');
     const h = msgs.map((m) => `<span><i>▶</i>${esc(m)}</span>`).join('');
@@ -700,254 +596,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
         $('tv-stats-upd').textContent = 'Cập nhật ' + t + ' từ hệ thống đăng ký';
       })
       .catch(() => { $('live').classList.remove('on'); $('live-text').textContent = 'Số liệu chốt 30/09'; })
-      .then(() => { renderStats(); renderBrackets(); if ($('stage').classList.contains('mode-dash')) renderDash(); });
-  }
-
-  // ---------- Bản tin: 3 khung bên phải ----------
-  const PER_PAGE = 2; let dashLists = {}, dashPage = 0, dashTimer = null;
-  function paintPanels() {
-    Object.keys(dashLists).forEach((id) => {
-      const items = dashLists[id], el = $(id), pages = Math.max(1, Math.ceil(items.length / PER_PAGE)), pg = dashPage % pages;
-      el.innerHTML = items.length ? items.slice(pg * PER_PAGE, pg * PER_PAGE + PER_PAGE).join('') : '<div class="none">' + esc(el.getAttribute('data-empty')) + '</div>';
-      el.parentNode.querySelector('.pg').textContent = pages > 1 ? (pg + 1) + '/' + pages : '';
-    });
-  }
-  function li(t, sub, cls) { return `<li${cls ? ' class="' + cls + '"' : ''}><b>${esc(t)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</li>`; }
-  function renderDash() {
-    const t = todayKey(); const all = [];
-    PLAN.forEach((s) => s.items.forEach((it) => all.push({ sport: s, it, st: status(it), end: it.to || it.from })));
-    all.push({ sport: { name: 'Toàn Trung tâm' }, it: { label: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối' }, st: status({ from: '2026-10-23' }), end: '2026-10-23' });
-    // Hôm nay có gì: mục thêm tay + lịch bắt đầu hoặc kết thúc đúng hôm nay
-    const today = (DASH.today || []).map((x) => li(x.t, x.s))
-      .concat(all.filter((x) => x.st === 'now' && (x.it.from === t || x.end === t)).map((x) => li(x.sport.name + ' · ' + x.it.label, (x.it.time ? x.it.time + ' · ' : '') + (x.it.from === x.end ? dayName(x.it.from) + ' ' + fmtD(x.it.from) : 'kết thúc hôm nay') + (x.sport.place ? ' · ' + x.sport.place : ''))));
-    dashLists['p-today'] = today;
-    // Đang diễn ra: từng bộ môn đang ở giai đoạn nào, kèm tiến độ từ hệ thống nếu có
-    const now = PLAN.map((s) => {
-      const cur = s.items.find((it) => status(it) === 'now'); const nxt = s.items.find((it) => status(it) === 'next');
-      const b = state && state.brackets && state.brackets[s.id];
-      let prog = '';
-      if (b && b.teams && b.teams.length) {
-        const g = b.groups && !b.koTeams; const done = Object.keys((g ? b.groupResults : b.results) || {}).length;
-        const total = g ? (b.groups || []).reduce((a, x) => { const n = (x.teams || x).length; return a + n * (n - 1) / 2; }, 0) : (b.size || b.teams.length);
-        prog = ' · ' + done + '/' + total + ' trận';
-      }
-      if (cur) return li(s.name + ' · ' + cur.label, (cur.time ? cur.time + ' · ' : '') + fmtRange(cur) + prog);
-      if (nxt) return li(s.name + ' · chờ ' + nxt.label.toLowerCase(), (nxt.time ? nxt.time + ' · ' : '') + fmtRange(nxt) + prog, 'muted');
-      return li(s.name + ' · đã thi đấu xong', prog ? prog.slice(3) : '', 'muted');
-    });
-    dashLists['p-now'] = now;
-    // Sắp diễn ra: lịch chưa tới, gần nhất trước
-    const next = all.filter((x) => x.st === 'next').sort((a, b) => a.it.from.localeCompare(b.it.from)).slice(0, 4)
-      .map((x) => li(x.sport.name + ' · ' + x.it.label, (x.it.time ? x.it.time + ' · ' : '') + fmtRange(x.it) + ' · còn ' + daysLeft(vnDate(x.it.from)) + ' ngày'));
-    dashLists['p-next'] = next;
-    paintPanels();
-  }
-
-  // ---------- Bản tin: ảnh và video từ Google Drive ----------
-  let media = [], mIdx = -1, mTimer = null, mFront = 'a', mediaOn = false, curVideo = null, bag = [];
-  // Ảnh kế tiếp: tuần tự, hoặc rút ngẫu nhiên từ "túi" các ảnh chưa chiếu (hết túi thì đổ lại) khi tin Drive bật shuffle
-  function pickNext() {
-    if (!driveStory().shuffle) return (mIdx + 1) % media.length;
-    if (!bag.length) { bag = media.map((_, k) => k); for (let i = bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = bag[i]; bag[i] = bag[j]; bag[j] = t; } }
-    let k = bag.pop(); if (k === mIdx && bag.length) { const k2 = bag.pop(); bag.push(k); k = k2; }
-    return k;
-  }
-  const shownCount = () => (driveStory().shuffle ? media.length - bag.length : mIdx + 1);
-  const imgUrl = (id, w) => 'https://drive.google.com/thumbnail?id=' + id + '&sz=w' + (w || 1600);
-  const vidUrl = (m) => (m.src ? srcDir + m.src : 'https://drive.google.com/uc?export=download&id=' + m.id);
-  const driveStory = () => STORIES.find((st) => st.source === 'drive') || {};
-  const hasIntro = () => !!(driveStory().intro && driveStory().intro.image);
-  // ---- hiệu ứng pháo hoa hạt trên thẻ mở đầu (canvas 1920×1080) ----
-  let fxOn = false, fxParts = [], fxLast = 0, fxNext = 0, fxRaf = null;
-  const fxCtx = $('media-fx').getContext('2d');
-  function fxBurst() {
-    const x = Math.random() < .5 ? 80 + Math.random() * 280 : 1560 + Math.random() * 280, y = 80 + Math.random() * 420;
-    for (let i = 0; i < 65; i++) { const a = Math.random() * Math.PI * 2, v = 35 + Math.random() * 150;
-      fxParts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 1.5 + Math.random(), color: Math.random() < .3 ? '255,65,85' : '255,180,210' }); }
-  }
-  function fxFrame(t) {
-    if (!fxOn) return;
-    const dt = Math.min((t - fxLast) / 1000, .04); fxLast = t;
-    fxCtx.clearRect(0, 0, 1920, 1080);
-    if (t > fxNext) { fxBurst(); fxNext = t + 1400 + Math.random() * 1600; }
-    fxParts = fxParts.filter((p) => p.t < p.life);
-    for (let i = 0; i < fxParts.length; i++) { const p = fxParts[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 32 * dt;
-      fxCtx.beginPath(); fxCtx.fillStyle = 'rgba(' + p.color + ',' + Math.max(0, 1 - p.t / p.life) + ')'; fxCtx.shadowColor = 'rgb(' + p.color + ')'; fxCtx.shadowBlur = 12; fxCtx.arc(p.x, p.y, 1.7, 0, 7); fxCtx.fill(); }
-    fxCtx.shadowBlur = 0; fxRaf = requestAnimationFrame(fxFrame);
-  }
-  function fxStart() { if (fxOn) return; fxOn = true; fxParts = []; fxLast = performance.now(); fxNext = 0; $('media-fx').classList.add('on'); fxRaf = requestAnimationFrame(fxFrame); }
-  function fxStop() { fxOn = false; if (fxRaf) cancelAnimationFrame(fxRaf); $('media-fx').classList.remove('on'); fxCtx.clearRect(0, 0, 1920, 1080); }
-  function showIntro() {
-    stopVideo(); $('media-count').textContent = '';
-    const intro = driveStory().intro;
-    const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + intro.image + '")'; bg.classList.add('on');
-    const show = mFront === 'a' ? $('media-b') : $('media-a'), hide = mFront === 'a' ? $('media-a') : $('media-b');
-    const pre = new Image(); let done = false;
-    const fin = () => { if (done || !mediaOn) return; done = true; show.src = intro.image; show.classList.add('on'); hide.classList.remove('on'); mFront = mFront === 'a' ? 'b' : 'a'; fxStart();
-      mTimer = setTimeout(() => { fxStop(); nextMedia(); }, (intro.seconds || 12) * 1000); };
-    pre.onload = fin; pre.onerror = () => { done = true; nextMedia(); }; pre.src = intro.image; setTimeout(fin, 6000);
-  }
-  function setMedia(list) {
-    const fresh = (list || []).filter((m) => m && m.id && (m.type === 'image' || m.type === 'video'));
-    const mi = mIdx; const curId = mi >= 0 && media[mi] ? media[mi].id : null;
-    if (fresh.map((m) => m.id).join(',') === media.map((m) => m.id).join(',')) return; // không đổi
-    media = fresh; bag = [];
-    if (curId) { const k = media.findIndex ? media.findIndex((m) => m.id === curId) : -1; const ni = k >= 0 ? k : Math.min(mi, media.length - 1); mIdx = ni; if ($('media-count') && ni >= 0) $('media-count').textContent = shownCount() + ' / ' + media.length; }
-    const box = $('media'); const old = box.querySelector('.empty-media'); if (old) old.remove();
-    if (!media.length) { box.insertAdjacentHTML('beforeend', '<div class="empty-media">Chưa có ảnh. Chạy tools/drive-media.py để lấy danh sách từ Google Drive.</div>'); $('media-count').textContent = ''; }
-  }
-  function refreshMedia() {
-    if (MEDIA_API_URL) {
-      fetch(MEDIA_API_URL + (MEDIA_API_URL.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now(), { redirect: 'follow', cache: 'no-store' })
-        .then((r) => r.json()).then((j) => { if (j && j.files) setMedia(j.files); }).catch(() => {});
-      return;
-    }
-    if (DRIVE_API_KEY) { loadDrive(); return; }
-    if (location.protocol === 'file:') return;
-    fetch(srcDir + 'media.json?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.length !== undefined) setMedia(j); }).catch(() => {});
-  }
-  function stopVideo() { if (curVideo) { try { curVideo.pause(); } catch (e) {} curVideo.remove(); curVideo = null; } }
-  function nextMedia() {
-    clearTimeout(mTimer); fxStop(); if (!mediaOn) return;
-    const n = media.length; if (!n) return;
-    mIdx = pickNext();
-    const mi = mIdx; const m = media[mi];
-    $('media-count').textContent = shownCount() + ' / ' + media.length;
-    const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + imgUrl(m.id, 200) + '")'; bg.classList.add('on');
-    if (m.type === 'video') {
-      const a = $('media-a'), b = $('media-b'); a.classList.remove('on'); b.classList.remove('on'); stopVideo();
-      const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = vidUrl(m);
-      $('media').insertBefore(v, $('media-count')); curVideo = v;
-      let moved = false; const go = () => { if (moved) return; moved = true; stopVideo(); nextMedia(); };
-      v.addEventListener('ended', go); v.addEventListener('error', go);
-      v.addEventListener('playing', () => { v.classList.add('on'); clearTimeout(mTimer); mTimer = setTimeout(go, DASH.videoMaxSeconds * 1000); });
-      mTimer = setTimeout(go, 15000); // không phát được trong 15 giây thì bỏ qua
-      const pr = v.play && v.play(); if (pr && pr.catch) pr.catch(() => {});
-      return;
-    }
-    stopVideo();
-    const show = mFront === 'a' ? $('media-b') : $('media-a'), hide = mFront === 'a' ? $('media-a') : $('media-b');
-    const pre = new Image();
-    let done = false; const fin = (ok) => { if (done) return; done = true;
-      if (!mediaOn) return;
-      if (ok) { show.src = pre.src; show.classList.add('on'); hide.classList.remove('on'); mFront = mFront === 'a' ? 'b' : 'a'; mTimer = setTimeout(nextMedia, (driveStory().photoSeconds || 5) * 1000); }
-      else mTimer = setTimeout(nextMedia, 1500); };
-    pre.onload = () => fin(true); pre.onerror = () => fin(false); pre.src = imgUrl(m.id, 1600);
-    setTimeout(() => fin(true), 12000); // mạng chậm: vẫn chuyển sau 12 giây
-    // nạp trước ảnh kế tiếp
-    const nx = media[(mi + 1) % media.length]; if (nx && nx.type === 'image') { const p2img = new Image(); p2img.src = imgUrl(nx.id, 1600); }
-  }
-  // Tạm dừng slideshow Drive nhưng giữ vị trí (mIdx) để lượt sau chiếu tiếp từ ảnh kế
-  function pauseMedia() { mediaOn = false; clearTimeout(mTimer); stopVideo(); fxStop(); }
-  function stopMedia() { pauseMedia(); mIdx = -1; }
-
-  // ---------- Tin tiêu điểm xoay vòng ----------
-  let sIdx = -1, storyT0 = 0, storyRaf = null, storiesOn = false;
-  const preloaded = [];
-  function preloadStills() {
-    STORIES.forEach((st) => {
-      (st.images || []).forEach((u) => { const im = new Image(); im.src = u; preloaded.push(im); });
-      (st.items || []).forEach((it) => {
-        if (it.type === 'image') { const im = new Image(); im.src = it.src; preloaded.push(im); }
-        else if (it.type === 'video' && !preloaded.some((x) => x.tagName === 'VIDEO' && x.dataset.src === it.src)) { const v = document.createElement('video'); v.preload = 'auto'; v.muted = true; v.dataset.src = it.src; v.src = it.src; try { v.load(); } catch (e) {} preloaded.push(v); }
-      });
-    });
-  }
-  function renderTabs() {
-    const box = $('tabs');
-    let track = box.querySelector('.track');
-    if (!track) { track = document.createElement('div'); track.className = 'track'; box.appendChild(track); }
-    const total = STORIES.length;
-    track.innerHTML = STORIES.map((st, j) => `<div class="tab ${j === sIdx ? 'on' : j < sIdx ? 'done' : ''}">${esc(st.tab)}<i><b${j === sIdx ? ' id="pb"' : ''}></b></i></div>`).join('') + `<div class="tab-count">${(sIdx + 1)} / ${total}</div>`;
-    // kéo tab đang chiếu vào vùng nhìn: tối đa 4 ô hiển thị, ưu tiên giữ tab đang chiếu ở vị trí 2–3
-    const on = track.children[sIdx]; if (!on) return;
-    const W = box.clientWidth, over = track.scrollWidth - W;
-    let dx = 0;
-    if (over > 0) {
-      const ideal = on.offsetLeft - W * 0.4;
-      dx = Math.max(0, Math.min(ideal, over));
-    }
-    track.style.transform = 'translateX(' + (-dx) + 'px)';
-  }
-  function renderHead(st) {
-    $('dash-headline').innerHTML = `<span>${esc(st.title)}</span>${st.tag ? `<span class="tag">${esc(st.tag)}</span>` : ''}${st.sub ? `<small>${esc(st.sub)}</small>` : ''}`;
-  }
-  function fadeIn(el) { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); }
-  function showStill(src) {
-    pauseMedia(); $('media-count').textContent = '';
-    const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + src + '")'; bg.classList.add('on');
-    const show = mFront === 'a' ? $('media-b') : $('media-a'), hide = mFront === 'a' ? $('media-a') : $('media-b');
-    show.src = src; show.classList.add('on'); hide.classList.remove('on'); mFront = mFront === 'a' ? 'b' : 'a';
-  }
-  // Slideshow cho story có images[] + photoMs: chiếu lần lượt, có bộ đếm n/total, fade 0.5s
-  let slideRun = 0, slideIdx = 0;
-  function showSlides(st) {
-    const run = ++slideRun; const imgs = st.images || []; if (!imgs.length) return;
-    const total = imgs.length; const dur = st.photoMs || 5000;
-    const tick = () => {
-      if (run !== slideRun) return;
-      if (slideIdx >= total) return;
-      const src = imgs[slideIdx];
-      showStill(src);
-      $('media-count').textContent = (slideIdx + 1) + ' / ' + total;
-      slideIdx++;
-      mTimer = setTimeout(tick, dur);
-    };
-    slideIdx = 0;
-    tick();
-  }
-  // Tin dạng danh sách: video phát hết thì sang mục kế, ảnh giữ theo seconds hoặc tới hết tin
-  let listRun = 0;
-  function showItems(st, k) {
-    const run = ++listRun; const items = st.items || []; if (!items.length) return;
-    if (k >= items.length) return;                          // hết danh sách: giữ mục cuối tới hết tin
-    const it = items[k];
-    if (it.type === 'video') {
-      pauseMedia(); $('media-count').textContent = '';
-      const a = $('media-a'), b = $('media-b'); a.classList.remove('on'); b.classList.remove('on');
-      const bg = $('media-bg'); bg.classList.remove('on');
-      const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = it.src;
-      $('media').insertBefore(v, $('media-count')); curVideo = v;
-      let moved = false; const go = () => { if (moved || run !== listRun) return; moved = true; stopVideo(); showItems(st, k + 1); };
-      v.addEventListener('ended', go); v.addEventListener('error', go);
-      v.addEventListener('playing', () => { v.classList.add('on'); clearTimeout(mTimer); mTimer = setTimeout(go, (it.seconds || DASH.videoMaxSeconds) * 1000); });
-      mTimer = setTimeout(go, 15000);                       // không phát được trong 15 giây thì bỏ qua
-      const pr = v.play && v.play(); if (pr && pr.catch) pr.catch(() => {});
-      return;
-    }
-    showStill(it.src);
-    if (it.seconds) mTimer = setTimeout(() => { if (run === listRun) showItems(st, k + 1); }, it.seconds * 1000);
-  }
-  function showStory(i) {
-    if (!STORIES.length) return;
-    sIdx = ((i % STORIES.length) + STORIES.length) % STORIES.length; storyT0 = performance.now();
-    const st = STORIES[sIdx];
-    renderTabs(); renderHead(st); fadeIn($('dash-headline')); fadeIn($('media'));
-    listRun++;
-    if (st.source === 'drive') { pauseMedia(); mediaOn = true; if (hasIntro()) showIntro(); else nextMedia(); }   // mở đầu rồi chiếu tiếp từ ảnh kế
-    else if (st.items && st.items.length) showItems(st, 0);
-    else if (st.images && st.images.length && st.photoMs) showSlides(st);
-    else showStill((st.images || [])[0] || '');
-  }
-  function storyLoop(now) {
-    if (!storiesOn) return;
-    const st = STORIES[sIdx];
-    const dur = (st && st.storyMs === 'auto') ? ((st.images || []).length * (st.photoMs || 5000))
-              : (((st && st.seconds) || STORY_SECONDS || 60) * 1000);
-    const p = Math.min(1, (now - storyT0) / dur);
-    const pb = $('pb'); if (pb) pb.style.width = (p * 100) + '%';
-    if (p >= 1) showStory(sIdx + 1);
-    storyRaf = requestAnimationFrame(storyLoop);
-  }
-  function startStories(from) { if (storiesOn) return; storiesOn = true; mIdx = -1; preloadStills(); showStory(from || 0); storyRaf = requestAnimationFrame(storyLoop); }
-  function stopStories() { storiesOn = false; if (storyRaf) cancelAnimationFrame(storyRaf); storyRaf = null; stopMedia(); }
-  function loadDrive() {
-    if (!DRIVE_API_KEY) return;
-    const q = encodeURIComponent("'" + DRIVE_FOLDER_ID + "' in parents and trashed = false");
-    fetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&orderBy=name&pageSize=500&fields=files(id,name,mimeType)&key=' + DRIVE_API_KEY)
-      .then((r) => r.json())
-      .then((j) => { if (!j.files) return; setMedia(j.files.map((f) => ({ id: f.id, name: f.name, type: f.mimeType.indexOf('video/') === 0 ? 'video' : f.mimeType.indexOf('image/') === 0 ? 'image' : '' }))); })
-      .catch(() => {});
+      .then(() => { renderStats(); renderBrackets(); });
   }
 
   // ---------- TV mode ----------
@@ -967,22 +616,20 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     $('tv-date').innerHTML = DAYS[d.getDay()] + '<br>' + p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear();
     $('tv-time').textContent = p2(d.getHours()) + ':' + p2(d.getMinutes());
   }
-  function setTV(on, mode) {
+  function setTV(on) {
     document.body.classList.toggle('tv', on); $('tv').setAttribute('aria-hidden', on ? 'false' : 'true');
-    const dash = on && mode === 'dash'; $('stage').classList.toggle('mode-dash', dash);
-    $('tv-org').textContent = dash ? 'Bản tin · Trung tâm Nền tảng Công nghệ & Chuyển đổi số' : 'Giải thể thao tháng 10 · TT Nền tảng Công nghệ & CĐS';
-    clearInterval(dashTimer);
-    if (dash) { dashPage = 0; renderDash(); startStories(mode === 'dash' && setTV.startStory ? setTV.startStory : 0); clearTimeout(timer); dashTimer = setInterval(() => { dashPage++; paintPanels(); }, 7000); } else { stopStories(); }
-    if (on) { fit(); clock(); if (!dash) show(0); try { const fs = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (fs && fs.catch) fs.catch(() => {}); } catch (e) {} }
+    if (on) { fit(); clock(); show(0); try { const fs = document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); if (fs && fs.catch) fs.catch(() => {}); } catch (e) {} }
     else { clearTimeout(timer); try { if (document.fullscreenElement) { const ex = document.exitFullscreen(); if (ex && ex.catch) ex.catch(() => {}); } } catch (e) {} }
   }
   function syncHash() {
-    const d = /^#tv(\d)?$/.exec(location.hash), sl = /^#slides(\d)?$/.exec(location.hash);
-    if (d) { setTV.startStory = d[1] ? Math.max(0, +d[1] - 1) : 0; setTV(true, 'dash'); return; }
-    setTV(!!sl, 'deck'); if (sl && sl[1]) show(Math.min(slides.length, +sl[1]) - 1);
+    // Bản tin TV đã tách sang trang riêng tv/. Link cũ #tv, #tv2 tự chuyển sang đó.
+    const d = /^#tv(\d)?$/.exec(location.hash);
+    if (d) { location.replace(srcDir + 'tv/' + (d[1] ? '#' + d[1] : '')); return; }
+    const sl = /^#slides(\d)?$/.exec(location.hash);
+    setTV(!!sl); if (sl && sl[1]) show(Math.min(slides.length, +sl[1]) - 1);
   }
   addEventListener('hashchange', syncHash); addEventListener('resize', fit);
-  addEventListener('keydown', (e) => { if (!document.body.classList.contains('tv')) return; if (e.key === 'Escape') location.hash = ''; const dash = $('stage').classList.contains('mode-dash'); if (e.key === 'ArrowRight') { if (dash) showStory(sIdx + 1); else show(i + 1); } if (e.key === 'ArrowLeft') { if (dash) showStory(sIdx - 1); else show(i - 1); } if (e.key === ' ' && dash && mediaOn) { e.preventDefault(); nextMedia(); } });
+  addEventListener('keydown', (e) => { if (!document.body.classList.contains('tv')) return; if (e.key === 'Escape') location.hash = ''; if (e.key === 'ArrowRight') show(i + 1); if (e.key === 'ArrowLeft') show(i - 1); });
   setInterval(clock, 15000);
 
   // ---------- tự tải lại khi có bản mới ----------
@@ -1005,10 +652,9 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 
   // ---------- boot ----------
   document.querySelectorAll('[data-reg]').forEach((a) => { if (REG_URL) a.href = REG_URL; else a.remove(); });
-  setMedia(window.DRIVE_MEDIA || []); refreshMedia(); setInterval(refreshMedia, Math.max(60, MEDIA_REFRESH_SECONDS) * 1000);
   renderSports(); renderToday(); renderStats(); renderBrackets(); syncHash();
   load(); setInterval(load, 60000);
-  setInterval(() => { renderSports(); renderToday(); if ($('stage').classList.contains('mode-dash')) renderDash(); }, 10 * 60000); // sang ngày mới thì đổi trạng thái lịch
+  setInterval(() => { renderSports(); renderToday(); }, 10 * 60000); // sang ngày mới thì đổi trạng thái lịch
 })();
 </script>
 </body>
