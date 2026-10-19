@@ -23,7 +23,7 @@ window.TV = {
   //   image: 'img/...'  một poster tĩnh
   STORIES: [
     { id: 'phu-nu-20-10', tab: 'Ngày Phụ nữ Việt Nam', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
-      image: 'img/daily-2026-10-19.jpg', until: '2026-10-20',
+      image: 'img/daily-2026-10-19.jpg?v=2', until: '2026-10-20',
       ticker: 'Chúc mừng Ngày Phụ nữ Việt Nam 20/10 · Yêu thương & Tôn vinh' },
 
     { id: 'cloud', tab: 'Sinh nhật Viettel Cloud', title: 'Chúc mừng sinh nhật Viettel Cloud 4 tuổi', sub: '14/10/2022 đến 14/10/2026',
