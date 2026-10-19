@@ -50,7 +50,8 @@
     var imgs = (r.images || []).map(function (i) { return i.url; }).filter(Boolean);
     if (w.story && r.title && (imgs.length || preview)) {
       var st = { id: 'n-' + r.id, news: r.id, tab: r.tab || r.title, title: r.title, tag: r.tag || '',
-        sub: [r.sub, deptShort(r.dept)].filter(Boolean).join(' · '), until: r.showUntil || '', pin: !!r.pin };
+        sub: [r.sub, deptShort(r.dept)].filter(Boolean).join(' · '), until: r.showUntil || '', pin: !!r.pin,
+        dept: deptShort(r.dept) || r.dept || '', cover: imgs[0] || '' };
       if (imgs.length > 1) { st.slides = imgs.map(function (u) { return { src: u }; }); st.slideSeconds = +r.slideSeconds || CFG.SLIDE_SECONDS || 8; }
       else st.image = imgs[0] || '';
       out.stories.push(st);
@@ -66,17 +67,18 @@
     if (w.ticker && r.ticker) out.ticker.push({ text: r.ticker, until: r.showUntil || '' });
     return out;
   }
-  // Ghép tin đã duyệt vào window.TV: tin ghim lên đầu, tin thường nối sau tin trong content.js
+  // Ghép tin đã duyệt vào window.TV: tin được ghim (pin) vào khung lớn Tin tiêu điểm, đứng đầu;
+  // tin thường vào DEPT_NEWS = khung "Tin các phòng" bên phải.
   function mergeInto(TV, recs) {
-    var pinned = [], rest = [];
-    TV.STORIES = TV.STORIES || []; TV.AGENDA = TV.AGENDA || []; TV.TICKER = TV.TICKER || [];
+    var pinned = [];
+    TV.STORIES = TV.STORIES || []; TV.AGENDA = TV.AGENDA || []; TV.TICKER = TV.TICKER || []; TV.DEPT_NEWS = TV.DEPT_NEWS || [];
     recs.forEach(function (r) {
       var x = toTV(r);
-      x.stories.forEach(function (s) { (s.pin ? pinned : rest).push(s); });
+      x.stories.forEach(function (s) { (s.pin ? pinned : TV.DEPT_NEWS).push(s); });
       TV.AGENDA = TV.AGENDA.concat(x.agenda);
       TV.TICKER = TV.TICKER.concat(x.ticker);
     });
-    TV.STORIES = pinned.concat(TV.STORIES, rest);
+    TV.STORIES = pinned.concat(TV.STORIES);
   }
   function publicOf(r) { var o = {}; Object.keys(r).forEach(function (k) { if (PRIVATE.indexOf(k) < 0) o[k] = r[k]; }); return o; }
   function sig(items) { return items.map(function (r) { return r.id + '@' + r.updatedAt; }).sort().join('|'); }
@@ -148,7 +150,7 @@
       mergeInto(TV, items);
       if (draft) {
         var x = toTV(draft, true);
-        TV.STORIES = x.stories.concat(TV.STORIES);
+        x.stories.forEach(function (s) { if (s.pin) TV.STORIES.unshift(s); else TV.DEPT_NEWS.unshift(s); });
         TV.AGENDA = TV.AGENDA.concat(x.agenda);
         TV.TICKER = x.ticker.concat(TV.TICKER);
       }

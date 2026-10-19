@@ -19,7 +19,7 @@ GitHub Pages, nhánh `main`. `git push` = deploy, 1 đến 2 phút. TV tự tả
 ## Công thức hay dùng
 - **Thêm tin Daily News:** ảnh vào `img/daily-YYYY-MM-DD[-n].jpg` (cạnh dài ≤ 1600, JPG: `sips -Z 1600 -s format jpeg in --out out.jpg`), video vào `media/daily-YYYY-MM-DD[-n].mp4` (H.264 MP4; **bắt buộc tiền tố `daily-`**, tên khác có thể bị GitHub Action dọn mất), rồi thêm một mục vào `STORIES` trong `tv/content.js`. Đặt `until` nếu tin chỉ chiếu vài ngày.
 - **Thêm kết quả một môn:** poster vào `img/ket-qua-<mon>.jpg`, thêm `{ src, sub: 'Môn · Vô địch: …' }` vào `slides` của tin `id: 'ket-qua'`, thêm câu vào `ticker` của tin đó. Không tạo tab riêng cho từng môn.
-- **Tin các phòng gửi qua `news/`:** không sửa `content.js`; admin duyệt ở `news/duyet.html`, TV tự nhận trong khoảng 2 phút. Thêm hoặc đổi tên phòng ban: sửa `DEPARTMENTS` trong `news/config.js` (`short` = tên hiện trên TV).
+- **Tin các phòng gửi qua `news/`:** không sửa `content.js`; admin duyệt ở `news/duyet.html`, TV tự nhận trong khoảng 2 phút. Tin thường vào khung Tin các phòng (`DEPT_NEWS`), tin được "Đưa lên khung lớn" (`pin`) vào đầu `STORIES`. Thêm hoặc đổi tên phòng ban: sửa `DEPARTMENTS` trong `news/config.js` (`short` = tên hiện trên TV).
 - **Đổi lịch 3 khung phải:** sửa `AGENDA` (có `to` = giai đoạn, không `to` = sự kiện một ngày).
 
 ## Kiểm tra trước khi commit

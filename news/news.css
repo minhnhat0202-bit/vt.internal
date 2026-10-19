@@ -80,7 +80,9 @@ a { color: var(--red-d); }
 .tvmap .z-dim { fill: #44494D; }
 .tvmap .z { fill: #2e2d33; stroke: #44494D; stroke-width: .6; transition: fill .2s; }
 .tvmap .z.on { fill: var(--red); stroke: var(--red); }
-.tvmap .z-t { fill: #7C8085; font: 700 7.5px var(--body); text-anchor: middle; }
+.tvmap .z-big { fill: #26252b; stroke-dasharray: 2 1.5; }
+.tvmap .z-t { fill: #7C8085; font: 700 7px var(--body); text-anchor: middle; }
+.tvmap [data-z-t] { font-size: 5.6px; }
 .tvmap .z-t.on { fill: #fff; }
 .opts { display: grid; gap: 8px; }
 .opt { display: flex; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; transition: border-color .15s, background .15s; }

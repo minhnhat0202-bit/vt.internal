@@ -71,15 +71,29 @@
   .media .count:empty { display: none; }
   .media .count { position: absolute; right: 20px; bottom: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.6); font-size: 24px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .media .empty-media { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; font-size: 30px; color: var(--ink-3); padding: 0 40px; }
-  .side { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); grid-gap: 34px; gap: 34px; min-height: 0; }
+  /* bên phải: Tin các phòng (cao hơn), Hôm nay, Sắp diễn ra */
+  .side { display: grid; grid-template-rows: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); grid-gap: 30px; gap: 30px; min-height: 0; }
   .panel ul { list-style: none; margin: 0; padding: 0; display: block; overflow: hidden; flex: 1; min-height: 0; }
-  .panel li { position: relative; padding: 9px 0 9px 30px; font-size: 26px; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,.08); }
-  .panel li:last-child { border-bottom: 0; }
-  .panel li::before { content: ""; position: absolute; left: 4px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px var(--red); }
+  .panel li { position: relative; padding: 6px 0 6px 30px; font-size: 26px; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .panel li:last-child, .panel li.end { border-bottom: 0; }
+  .panel li::before { content: ""; position: absolute; left: 4px; top: 17px; width: 12px; height: 12px; border-radius: 50%; background: var(--red); box-shadow: 0 0 10px var(--red); }
   .panel li b { font-weight: 700; }
   .panel li small { display: block; font-size: 21px; color: var(--ink-3); }
   .panel li.muted::before { background: var(--grey); box-shadow: none; }
   .panel .none { font-size: 26px; color: var(--ink-3); padding: 10px 0; }
+
+  /* Tin các phòng: một tin một lượt, ảnh đại diện + tiêu đề + tên phòng */
+  .panel.dept { padding-bottom: 18px; }
+  .dn { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .dn .ph { position: relative; flex: 1; min-height: 0; border-radius: 14px; overflow: hidden; background: #000 center / cover no-repeat; }
+  .dn .ph .tag { position: absolute; left: 12px; top: 12px; font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #1a1204; background: #f2c14e; border-radius: 6px; padding: 6px 10px; line-height: 1; }
+  .dn b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 10px; font-size: 25px; line-height: 1.22; font-weight: 700; }
+  .dn small { display: block; margin-top: 3px; font-size: 20px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dn small i { font-style: normal; color: var(--red); }
+  .dn .cta { flex: 1; display: flex; align-items: center; }
+  .dn .cta img { flex: none; width: 150px; height: 150px; padding: 8px; background: #fff; border-radius: 12px; }
+  .dn .cta div { margin-left: 22px; font-size: 24px; line-height: 1.3; color: var(--ink-2); }
+  .dn .cta div b { display: block; margin: 0 0 6px; font-size: 27px; color: #fff; -webkit-line-clamp: 3; }
 
   /* ticker */
   .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 128px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
@@ -111,13 +125,13 @@
       <div class="media" id="media"><div class="bg" id="media-bg"></div><img class="pic" id="media-a" alt=""><img class="pic" id="media-b" alt=""><canvas class="fx" id="media-fx" width="1920" height="1080"></canvas><div class="count" id="media-count"></div></div>
     </div>
     <div class="side">
-      <div class="glass panel"><span class="lbl">Hôm nay có gì</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay chưa có lịch."></ul></div>
-      <div class="glass panel"><span class="lbl">Đang diễn ra</span><span class="pg"></span><ul id="p-now" data-empty="Chưa có hoạt động nào đang diễn ra."></ul></div>
+      <div class="glass panel dept"><span class="lbl">Tin các phòng</span><span class="pg"></span><div class="dn" id="p-dept"></div></div>
+      <div class="glass panel"><span class="lbl">Hôm nay</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay chưa có lịch."></ul></div>
       <div class="glass panel"><span class="lbl">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
     </div>
   </section>
 
-  <footer class="ticker"><div class="tag">Bản tin</div><div class="run"><div id="tv-run"></div></div></footer>
+  <footer class="ticker"><div class="tag">Đừng bỏ lỡ</div><div class="run"><div id="tv-run"></div></div></footer>
 </div>
 
 <div id="err" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:99;background:#B30026;color:#fff;font:14px/1.4 Roboto,Arial,sans-serif;padding:10px 16px;word-break:break-word"></div>
@@ -164,28 +178,50 @@ function bootTV(PREVIEW) {
   const AGENDA = (C.AGENDA || []).slice().sort((a, b) => a.from.localeCompare(b.from));
   const status = (it) => { const t = todayKey(); const end = it.to || it.from; return end < t ? 'done' : it.from <= t ? 'now' : 'next'; };
 
-  // ---------- 3 khung bên phải ----------
-  const PER_PAGE = 2; let dashLists = {}, dashPage = 0;
+  // ---------- khung lịch bên phải: chia trang theo chiều cao thật của khung, mỗi trang 7 giây ----------
+  let dashLists = {}, dashPage = 0;
   function paintPanels() {
     Object.keys(dashLists).forEach((id) => {
-      const items = dashLists[id], el = $(id), pages = Math.max(1, Math.ceil(items.length / PER_PAGE)), pg = dashPage % pages;
-      el.innerHTML = items.length ? items.slice(pg * PER_PAGE, pg * PER_PAGE + PER_PAGE).join('') : '<div class="none">' + esc(el.getAttribute('data-empty')) + '</div>';
-      el.parentNode.querySelector('.pg').textContent = pages > 1 ? (pg + 1) + '/' + pages : '';
+      const items = dashLists[id], el = $(id), pgEl = el.parentNode.querySelector('.pg');
+      if (!items.length) { el.innerHTML = '<div class="none">' + esc(el.getAttribute('data-empty')) + '</div>'; pgEl.textContent = ''; return; }
+      el.innerHTML = items.join('');
+      const lis = Array.from(el.children), H = el.clientHeight, pages = [[]];
+      let top = lis[0].offsetTop;
+      lis.forEach((x) => { const cur = pages[pages.length - 1]; if (cur.length && x.offsetTop + x.offsetHeight - top > H) { pages.push([x]); top = x.offsetTop; } else cur.push(x); });
+      const show = pages[dashPage % pages.length];
+      lis.forEach((x) => { x.style.display = show.indexOf(x) > -1 ? '' : 'none'; x.classList.toggle('end', x === show[show.length - 1]); });
+      pgEl.textContent = pages.length > 1 ? (dashPage % pages.length + 1) + '/' + pages.length : '';
     });
   }
   function li(t, sub, cls) { return `<li${cls ? ' class="' + cls + '"' : ''}><b>${esc(t)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</li>`; }
   const meta = (x, extra) => [x.time, extra, x.place].filter(Boolean).join(' · ');
   function renderDash() {
     const t = todayKey();
-    // Hôm nay có gì: mục thêm tay + sự kiện một ngày hôm nay + giai đoạn bắt đầu/kết thúc hôm nay
+    // Hôm nay: mục thêm tay + sự kiện một ngày hôm nay + các giai đoạn (có to) đang diễn ra
     dashLists['p-today'] = (C.TODAY || []).filter(inRange).map((x) => li(x.t || x.title, x.s || x.sub))
-      .concat(AGENDA.filter((x) => status(x) === 'now' && (!x.to || x.from === t || x.to === t))
-        .map((x) => li(x.title, meta(x, x.to ? (x.to === t ? 'kết thúc hôm nay' : 'bắt đầu hôm nay') : dayName(x.from) + ' ' + fmtD(x.from)))));
-    // Đang diễn ra: các giai đoạn (có to) bao trùm hôm nay
-    dashLists['p-now'] = AGENDA.filter((x) => x.to && status(x) === 'now').map((x) => li(x.title, meta(x, fmtRange(x) + (daysLeft(vnDate(x.to)) ? ' · còn ' + daysLeft(vnDate(x.to)) + ' ngày' : ' · kết thúc hôm nay'))));
+      .concat(AGENDA.filter((x) => status(x) === 'now' && !x.to).map((x) => li(x.title, meta(x, dayName(x.from) + ' ' + fmtD(x.from)))))
+      .concat(AGENDA.filter((x) => x.to && status(x) === 'now').map((x) => li(x.title, meta(x, fmtRange(x) +
+        (x.from === t ? ' · bắt đầu hôm nay' : daysLeft(vnDate(x.to)) ? ' · còn ' + daysLeft(vnDate(x.to)) + ' ngày' : ' · kết thúc hôm nay')))));
     // Sắp diễn ra: 4 mục gần nhất chưa tới
     dashLists['p-next'] = AGENDA.filter((x) => status(x) === 'next').slice(0, 4).map((x) => li(x.title, meta(x, fmtRange(x) + ' · còn ' + daysLeft(vnDate(x.from)) + ' ngày')));
     paintPanels();
+  }
+
+  // ---------- Tin các phòng: tin phòng ban đã duyệt (news/), mỗi tin DEPT_SECONDS giây ----------
+  const DEPT_SECONDS = 10, DEPT = (C.DEPT_NEWS || []).filter(alive);
+  let deptIdx = 0;
+  function renderDept() {
+    const box = $('p-dept'), pgEl = box.parentNode.querySelector('.pg');
+    if (!DEPT.length) {
+      pgEl.textContent = '';
+      box.innerHTML = `<div class="cta"><img src="${R('img/qr-gui-tin.svg')}" alt=""><div><b>Phòng bạn có tin hay?</b>Quét mã để gửi tin và ảnh lên Bản tin TV.</div></div>`;
+      return;
+    }
+    const n = deptIdx % DEPT.length, st = DEPT[n];
+    box.innerHTML = `<div class="ph" style="background-image:url('${esc(R(st.cover || st.image || ''))}')">${st.tag ? `<span class="tag">${esc(st.tag)}</span>` : ''}</div>
+      <b>${esc(st.title)}</b><small><i>●</i> ${esc(st.dept || '')}</small>`;
+    pgEl.textContent = DEPT.length > 1 ? (n + 1) + '/' + DEPT.length : '';
+    fadeIn(box);
   }
 
   // ---------- dòng chạy ----------
@@ -402,8 +438,10 @@ function bootTV(PREVIEW) {
   // ---------- boot ----------
   fit(); clock(); setInterval(clock, 15000);
   setMedia(window.DRIVE_MEDIA || []); refreshMedia(); setInterval(refreshMedia, Math.max(60, MEDIA_REFRESH_SECONDS) * 1000);
-  renderDash(); renderTicker();
+  renderDash(); renderTicker(); renderDept();
   setInterval(() => { dashPage++; paintPanels(); }, 7000);
+  if (DEPT.length > 1) setInterval(() => { deptIdx++; renderDept(); }, DEPT_SECONDS * 1000);
+  DEPT.forEach((st) => { const im = new Image(); im.src = R(st.cover || st.image || ''); preloaded.push(im); });
   setInterval(() => { renderDash(); renderTicker(); }, 10 * 60000);   // sang ngày mới thì đổi trạng thái lịch
   preloadStills();
   const m = /^#(\d+)$/.exec(location.hash);                           // #2 mở thẳng tin số 2

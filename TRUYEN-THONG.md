@@ -52,8 +52,8 @@ liên kết "Xem sơ đồ đầy đủ" của từng môn sẽ dẫn đúng san
 
 ## Bản tin TV (`tv/`)
 
-Mở `https://minhnhat0202-bit.github.io/vt.internal/tv/` trên thiết bị phát. Bố cục một màn hình cố định: thanh tiêu đề có ngày giờ, khung **Tin tiêu điểm** bên trái,
-3 khung bên phải **Hôm nay có gì**, **Đang diễn ra**, **Sắp diễn ra**, dòng chạy phía dưới. Mọi nội dung nằm trong `tv/content.js`, hướng dẫn từng trường ghi ngay đầu file.
+Mở `https://minhnhat0202-bit.github.io/vt.internal/tv/` trên thiết bị phát. Bố cục một màn hình cố định: thanh tiêu đề có ngày giờ, khung lớn **Tin tiêu điểm** bên trái,
+3 khung bên phải **Tin các phòng** (tin phòng ban đã duyệt, mỗi tin 10 giây; chưa có tin thì hiện mã QR tới trang gửi tin), **Hôm nay**, **Sắp diễn ra**, dòng chạy **Đừng bỏ lỡ** phía dưới. Mọi nội dung nằm trong `tv/content.js`, hướng dẫn từng trường ghi ngay đầu file.
 
 - **Tin tiêu điểm:** mảng `STORIES`, thứ tự mảng là thứ tự chiếu. Thanh story tự chia theo số tin. Mỗi tin chọn một kiểu nội dung:
   `source: 'drive'` (ảnh Drive ngẫu nhiên, có thẻ mở đầu pháo hoa), `slides` (nhiều ảnh lần lượt, có bộ đếm, mỗi ảnh có thể có dòng phụ riêng),
@@ -62,8 +62,8 @@ Mở `https://minhnhat0202-bit.github.io/vt.internal/tv/` trên thiết bị ph�
   Môn mới có kết quả: thêm ảnh vào `img/ket-qua-<mon>.jpg` và thêm một dòng vào `slides`, thêm câu vào `ticker` của tin.
 - **Tin thời sự trong ngày (thư mục Daily News):** chép video sang `media/` (H.264 MP4), ảnh sang `img/` (cạnh dài tối đa 1600, JPG),
   thêm một tin vào `STORIES`, commit và push. Nhớ `git add` cả file video/ảnh.
-- **3 khung bên phải:** mảng `AGENDA`. Mục có `to` là một giai đoạn (hiện ở Đang diễn ra), không có `to` là sự kiện một ngày (hiện ở Hôm nay có gì đúng ngày đó).
-  Sắp diễn ra = 4 mục gần nhất. Mục thêm tay cho Hôm nay: `TODAY`. Mục đã qua tự ẩn.
+- **Khung Hôm nay, Sắp diễn ra:** mảng `AGENDA`. Mục có `to` là một giai đoạn, không có `to` là sự kiện một ngày; cả hai hiện ở Hôm nay khi đang diễn ra.
+  Sắp diễn ra = 4 mục gần nhất. Mục thêm tay cho Hôm nay: `TODAY`. Mục đã qua tự ẩn. Khung tự chia trang theo chiều cao, 7 giây mỗi trang.
 - **Dòng chạy:** tự gom 3 lịch sắp tới + `ticker` của các tin + mảng `TICKER` (`{ text, until }` để tự ẩn).
 - Ảnh, video Drive: thư mục Google Drive công khai, danh sách trong `media.js` và `media.json` ở gốc repo.
   GitHub Action `.github/workflows/drive-media.yml` quét Drive mỗi 15 phút; trang đọc lại `media.json` mỗi 5 phút. Thêm ảnh vào Drive là xong.
@@ -81,7 +81,7 @@ Mở `https://minhnhat0202-bit.github.io/vt.internal/tv/` trên thiết bị ph�
 
 - Đơn vị chọn tin hiện ở đâu: **Tin tiêu điểm** (tiêu đề + ảnh), **Lịch sự kiện** (3 khung phải), **Dòng chạy**; một tin có thể chọn nhiều nơi.
 - Ảnh được thu về cạnh dài 1600 px JPG ngay trên máy người gửi, lưu vào thư mục Drive của Apps Script. Video gửi qua link, Ban Truyền thông xử lý tay như tin Daily News.
-- Tin đã duyệt được TV ghép vào sau các tin trong `content.js` (tin ghim lên đầu), tự rời TV sau ngày "Chiếu đến hết ngày". Duyệt, sửa, gỡ xong thì TV tự tải lại trong khoảng 2 phút.
+- Tin đã duyệt vào khung **Tin các phòng** (ảnh đầu tiên + tiêu đề + tên phòng). Tin admin chọn "Đưa lên khung lớn Tiêu điểm" thì chiếu cả bộ ảnh, đứng đầu khung lớn. Tin tự rời TV sau ngày "Chiếu đến hết ngày". Duyệt, sửa, gỡ xong thì TV tự tải lại trong khoảng 2 phút.
 - Duyệt hoặc từ chối: nếu đơn vị để lại email, Apps Script gửi email báo kết quả kèm "Phản hồi cho đơn vị". Có tin mới: email về `ADMIN_EMAIL`, link mở thẳng tin đó (`duyet.html#<mã tin>`).
 - **Cài máy chủ một lần:** làm theo 4 bước ở đầu `apps-script/news.gs`, rồi dán URL `/exec` vào `API_URL` trong `news/config.js`, commit, push.
   Khi `API_URL` còn trống, hai trang chạy ở **chế độ thử**: tin lưu trong trình duyệt đang mở, chỉ để xem thử trên một máy.

@@ -48,10 +48,10 @@ window.TV = {
       ticker: 'Chào mừng 3 thành viên mới gia nhập Trung tâm: Nghiêm Xuân Sơn, Đàm Ngọc Khánh, Tống Trần Minh Đức' }
   ],
 
-  // ---- Lịch cho 3 khung bên phải ----
+  // ---- Lịch cho 2 khung bên phải: Hôm nay, Sắp diễn ra (khung trên cùng là Tin các phòng, lấy từ news/) ----
   //   from, to (tuỳ chọn): 'YYYY-MM-DD' · time, place: tuỳ chọn
-  //   Có to  = một giai đoạn: hiện ở "Đang diễn ra" khi hôm nay nằm trong khoảng.
-  //   Không to = sự kiện một ngày: hiện ở "Hôm nay có gì" đúng ngày đó.
+  //   Có to  = một giai đoạn: hiện ở "Hôm nay" suốt thời gian diễn ra.
+  //   Không to = sự kiện một ngày: hiện ở "Hôm nay" đúng ngày đó.
   //   "Sắp diễn ra" = 4 mục gần nhất chưa tới. Mục đã qua tự ẩn.
   AGENDA: [
     { title: 'Giải thể thao tháng 10', from: '2026-10-06', to: '2026-10-23', place: '5 bộ môn' },
@@ -69,7 +69,7 @@ window.TV = {
     { title: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối', place: 'Toàn Trung tâm' }
   ],
 
-  // Mục thêm tay cho "Hôm nay có gì". Khai from/to để tự hiện, tự ẩn theo ngày; không khai thì hiện mãi.
+  // Mục thêm tay cho khung "Hôm nay". Khai from/to để tự hiện, tự ẩn theo ngày; không khai thì hiện mãi.
   TODAY: [
   ],
 
