@@ -26,9 +26,6 @@ window.TV = {
       image: 'img/daily-2026-10-19.jpg?v=2', until: '2026-10-20',
       ticker: 'Chúc mừng Ngày Phụ nữ Việt Nam 20/10 · Yêu thương & Tôn vinh' },
 
-    { id: 'cloud', tab: 'Sinh nhật Viettel Cloud', title: 'Chúc mừng sinh nhật Viettel Cloud 4 tuổi', sub: '14/10/2022 đến 14/10/2026',
-      seconds: 120, source: 'drive', intro: { image: 'img/sinh-nhat-cloud-4.jpg', seconds: 60 }, photoSeconds: 5, shuffle: true },
-
     // Một tab gộp kết quả mọi giải đã xong. Môn mới có kết quả: thêm một dòng vào slides.
     { id: 'ket-qua', tab: 'Kết quả giải đấu', title: 'Kết quả giải đấu', tag: 'Chung cuộc', slideSeconds: 20,
       slides: [
