@@ -157,7 +157,12 @@
     }
     var cached = CFG.API_URL ? store(KEY.cache) : null;
     if (cached) { apply(cached); return Promise.resolve(); }
-    return withTimeout(published(), 6000).then(apply, function () { apply([]); });
+    var live = published();
+    // Apps Script lâu không gọi thì "thức dậy" chậm: quá 6 giây thì TV chạy trước, tin về muộn thì tải lại ngay
+    return withTimeout(live, 6000).then(apply, function () {
+      apply([]);
+      live.then(function (items) { if (items.filter(function (r) { return onAir(r); }).length && !preview) location.reload(); }, function () {});
+    });
   }
   function watch(seconds) {
     setInterval(function () {

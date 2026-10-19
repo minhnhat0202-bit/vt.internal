@@ -423,7 +423,7 @@ function bootTV(PREVIEW) {
       .then((texts) => texts.map(hashStr).join('|'));
   }
   if (location.protocol !== 'file:' && !PREVIEW) {
-    if (window.VTNews) VTNews.watch(AUTO_RELOAD.checkSeconds);   // tin phòng ban đổi (duyệt, gỡ, sửa) thì tải lại
+    if (window.VTNews) VTNews.watch(60);   // tin phòng ban đổi (duyệt, gỡ, sửa) thì tải lại; kiểm tra mỗi 60 giây
     let baseline = '';
     fetchAll().then((h) => { baseline = h; });
     setInterval(() => { fetchAll().then((h) => { if (baseline && h !== baseline && h.indexOf('5381:0') < 0) location.reload(); }); }, Math.max(30, AUTO_RELOAD.checkSeconds) * 1000);
