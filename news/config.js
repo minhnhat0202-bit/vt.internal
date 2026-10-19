@@ -6,7 +6,7 @@ window.VTNEWS_CONFIG = {
 
   // URL Web app của apps-script/news.gs (dạng https://script.google.com/macros/s/…/exec).
   // Để trống = CHẾ ĐỘ THỬ: tin, ảnh lưu trong trình duyệt đang mở, chỉ dùng để xem thử trên một máy.
-  API_URL: '',
+  API_URL: 'https://script.google.com/macros/s/AKfycbyoUnSKvO4CDjDJ6jQX1QQT3XXjl934oC8BgldLoSXtDQIiOJp95RKup6weK96a8Br43Q/exec',
 
   // Danh sách đơn vị trong ô "Phòng ban", theo hệ thống đăng ký Giải thể thao (config.departments, cùng thứ tự).
   // short = tên ngắn hiện trên TV (dòng phụ, khung lịch).
