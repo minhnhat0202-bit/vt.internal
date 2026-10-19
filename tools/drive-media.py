@@ -2,12 +2,20 @@
 """Sinh media.js và media.json từ một thư mục Google Drive công khai (Anyone with the link).
 
 Cách dùng:  python3 tools/drive-media.py [FOLDER_ID]
-Mặc định dùng FOLDER_ID trong index.html (hằng DRIVE_FOLDER_ID). Chạy xong commit media.js và push.
+Mặc định dùng hằng DRIVE_FOLDER_ID trong tv/index.html (không có thì dùng FOLDER_DEFAULT bên dưới). Chạy xong commit media.js và push.
+Chỉ dọn video do script này sinh ra (media/<id Drive>.mp4). Video thêm tay cho tin Daily News (media/daily-*.mp4) không bị đụng tới.
 """
 import html, json, re, sys, urllib.request, pathlib
 
 root = pathlib.Path(__file__).resolve().parent.parent
-folder = sys.argv[1] if len(sys.argv) > 1 else re.search(r"DRIVE_FOLDER_ID = '([^']+)'", (root / 'index.html').read_text(encoding='utf-8')).group(1)
+FOLDER_DEFAULT = '18QdoAzINpvlfo54nMBTAGTn9avTo214E'
+def folder_from_pages():
+    for f in ('tv/index.html', 'index.html'):
+        p = root / f
+        m = p.exists() and re.search(r"DRIVE_FOLDER_ID = '([^']+)'", p.read_text(encoding='utf-8'))
+        if m: return m.group(1)
+    return FOLDER_DEFAULT
+folder = sys.argv[1] if len(sys.argv) > 1 else folder_from_pages()
 url = f'https://drive.google.com/embeddedfolderview?id={folder}#list'
 def fetch(u):
     req = urllib.request.Request(u, headers={'User-Agent': 'Mozilla/5.0'})
@@ -57,8 +65,8 @@ for r in rows:
                 ok = ff.returncode == 0 and out.exists()
             print(('Đã chuyển mã ' if ok else 'Không chuyển mã được ') + r['name'])
     if out.exists(): r['src'] = 'media/' + out.name
-for f in media_dir.glob('*.mp4'):   # dọn video đã xóa khỏi Drive
-    if f.stem not in want: f.unlink(); print('Đã xóa', f.name)
+for f in media_dir.glob('*.mp4'):   # dọn video đã xóa khỏi Drive; chỉ file tên là id Drive, giữ nguyên video thêm tay (daily-*.mp4)
+    if f.stem not in want and re.fullmatch(r'[A-Za-z0-9_-]{25,}', f.stem) and not f.stem.startswith('daily-'): f.unlink(); print('Đã xóa', f.name)
 
 def js_row(r):
     extra = f", src: {json.dumps(r['src'])}" if r.get('src') else ''

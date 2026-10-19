@@ -135,6 +135,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
   const VIDEO_MAX_SECONDS = C.VIDEO_MAX_SECONDS || 90;
   // Nguồn ảnh Drive: media.js / media.json ở gốc repo, GitHub Action cập nhật mỗi 15 phút.
   // MEDIA_API_URL (tuỳ chọn, xem apps-script/media.gs) cho cập nhật nhanh hơn.
+  const DRIVE_FOLDER_ID = '18QdoAzINpvlfo54nMBTAGTn9avTo214E';   // thư mục Drive công khai; tools/drive-media.py đọc hằng này
   const MEDIA_API_URL = '';
   const MEDIA_REFRESH_SECONDS = 300;
   // Tự cập nhật: thấy index.html hoặc content.js trên máy chủ khác bản đang chạy thì tự F5; mỗi ngày tải lại lúc dailyAt.
