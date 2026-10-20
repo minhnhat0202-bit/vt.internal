@@ -23,7 +23,10 @@ window.TV = {
   //   image: 'img/...'  một poster tĩnh
   STORIES: [
     { id: 'phu-nu-20-10', tab: 'Ngày Phụ nữ Việt Nam', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
-      image: 'img/daily-2026-10-19.jpg?v=2', until: '2026-10-20',
+      until: '2026-10-25', slideSeconds: 8,
+      // Gộp cả tin P. Kiểm soát Chất lượng gửi qua news/ (ảnh 1, 2) và ảnh buổi chúc mừng 20/10 (ảnh 3 đến 10)
+      slides: [{ src: 'img/daily-2026-10-19.jpg?v=2' }].concat([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function (n) {
+        return { src: 'img/daily-2026-10-20-' + n + '.jpg' }; })),
       ticker: 'Chúc mừng Ngày Phụ nữ Việt Nam 20/10 · Yêu thương & Tôn vinh' },
 
     // Một tab gộp kết quả mọi giải đã xong. Môn mới có kết quả: thêm một dòng vào slides.
@@ -83,6 +86,9 @@ window.TV = {
   // Ảnh phủ kín màn hình (backdrop sự kiện), che toàn bộ bản tin trong khoảng from đến until rồi tự ẩn.
   //   from, until: 'YYYY-MM-DDTHH:MM' giờ Việt Nam. Không cần thì để null.
   BACKDROP: { src: 'img/backdrop-2026-10-20.jpg', from: '2026-10-20T08:00', until: '2026-10-20T10:45' },
+
+  // Mã tin phòng ban (news/) không chiếu lên TV, ví dụ tin đã gộp vào một tin trong STORIES.
+  HIDE_NEWS: ['T261019-SBN7'],
 
   // Video dài hơn chừng này giây thì chuyển tiếp
   VIDEO_MAX_SECONDS: 90
