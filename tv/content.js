@@ -80,6 +80,10 @@ window.TV = {
     { text: 'Liên hoan kết thúc thành công tối Thứ Sáu 23/10 · Gắn kết, Bứt phá, Thi đấu hết mình', until: '2026-10-23' }
   ],
 
+  // Ảnh phủ kín màn hình (backdrop sự kiện), che toàn bộ bản tin trong khoảng from đến until rồi tự ẩn.
+  //   from, until: 'YYYY-MM-DDTHH:MM' giờ Việt Nam. Không cần thì để null.
+  BACKDROP: { src: 'img/backdrop-2026-10-20.jpg', from: '2026-10-20T08:00', until: '2026-10-20T10:45' },
+
   // Video dài hơn chừng này giây thì chuyển tiếp
   VIDEO_MAX_SECONDS: 90
 };
