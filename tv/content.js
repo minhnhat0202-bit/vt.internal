@@ -85,7 +85,8 @@ window.TV = {
 
   // Ảnh phủ kín màn hình (backdrop sự kiện), che toàn bộ bản tin trong khoảng from đến until rồi tự ẩn.
   //   from, until: 'YYYY-MM-DDTHH:MM' giờ Việt Nam. Không cần thì để null.
-  BACKDROP: { src: 'img/backdrop-2026-10-21.jpg?v=5', from: '2026-10-21T08:15', until: '2026-10-21T10:20' },
+  //   src: một ảnh hoặc mảng ảnh (chuyển lần lượt, mỗi ảnh seconds giây, mặc định 7).
+  BACKDROP: { src: ['img/backdrop-2026-10-21.jpg?v=5', 'img/backdrop-2026-10-21-2.jpg'], seconds: 7, from: '2026-10-21T08:15', until: '2026-10-21T10:20' },
 
   // Mã tin phòng ban (news/) không chiếu lên TV, ví dụ tin đã gộp vào một tin trong STORIES.
   HIDE_NEWS: ['T261019-SBN7'],

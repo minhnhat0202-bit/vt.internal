@@ -134,7 +134,7 @@
   <footer class="ticker"><div class="tag">Đừng bỏ lỡ</div><div class="run"><div id="tv-run"></div></div></footer>
 </div>
 
-<div id="backdrop" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;z-index:50;background:#000"><img alt="" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+<div id="backdrop" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;z-index:50;background:#000"></div>
 <div id="err" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:99;background:#B30026;color:#fff;font:14px/1.4 Roboto,Arial,sans-serif;padding:10px 16px;word-break:break-word"></div>
 <script>
 window.onerror = function (msg, src, line) { var e = document.getElementById('err'); if (!e) return; e.style.display = 'block'; e.textContent = 'Lỗi trang: ' + msg + (line ? ' (dòng ' + line + ')' : '') + ' · Trình duyệt: ' + navigator.userAgent; };
@@ -449,12 +449,21 @@ function bootTV(PREVIEW) {
   showStory(m ? +m[1] - 1 : 0); storyRaf = requestAnimationFrame(storyLoop);
 }
 // Backdrop sự kiện (content.js BACKDROP): ảnh phủ kín màn hình trong khung giờ from đến until, hết giờ tự ẩn.
+// src là một ảnh hoặc mảng ảnh; nhiều ảnh thì chuyển mờ dần, mỗi ảnh seconds giây (mặc định 7).
 (function () {
   var B = (window.TV || {}).BACKDROP; if (!B || !B.src || /[?&]preview\b/.test(location.search)) return;
-  var box = document.getElementById('backdrop'), img = box.querySelector('img');
+  var box = document.getElementById('backdrop'), list = [].concat(B.src), cur = 0;
   var t = function (s) { return s ? new Date(s.length <= 16 ? s + ':00+07:00' : s).getTime() : NaN; };
   var a = t(B.from), b = t(B.until);
-  img.src = /^(https?:|\/|\.\.?\/)/.test(B.src) ? B.src : '../' + B.src;
+  var imgs = list.map(function (src, i) {
+    var img = document.createElement('img'); img.alt = '';
+    img.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;transition:opacity 1s ease;opacity:' + (i ? 0 : 1);
+    img.src = /^(https?:|\/|\.\.?\/)/.test(src) ? src : '../' + src;
+    box.appendChild(img); return img;
+  });
+  if (imgs.length > 1) setInterval(function () {
+    imgs[cur].style.opacity = 0; cur = (cur + 1) % imgs.length; imgs[cur].style.opacity = 1;
+  }, (+B.seconds || 7) * 1000);
   function tick() { var n = Date.now(); box.style.display = (!(n < a) && !(n > b)) ? 'block' : 'none'; }
   tick(); setInterval(tick, 15000);
 })();
