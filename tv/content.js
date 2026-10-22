@@ -66,8 +66,8 @@ window.TV = {
     { title: 'Bóng bàn · Tứ kết', from: '2026-10-13', to: '2026-10-14' },
     { title: 'Bóng bàn · Bán kết', from: '2026-10-16', to: '2026-10-19' },
     { title: 'Bóng đá · Vòng bảng', from: '2026-10-15', time: '19:15', place: 'Sân bóng Đình Thôn 2' },
-    { title: 'Bóng đá · Tranh hạng Ba', from: '2026-10-22', time: '19:15', place: 'Sân bóng Đình Thôn 2' },
     { title: 'Bóng bàn · Tranh hạng Ba', from: '2026-10-22' },
+    { title: 'Bóng đá · Tranh hạng Ba', from: '2026-10-23', time: '16:15', place: 'Sân bóng Đình Thôn 2' },
     { title: 'Bóng đá · Chung kết', from: '2026-10-23', time: '16:15', place: 'Sân bóng Đình Thôn 2' },
     { title: 'Bóng bàn · Chung kết', from: '2026-10-23' },
     { title: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối', place: 'Toàn Trung tâm' }
@@ -79,7 +79,7 @@ window.TV = {
 
   // Câu thêm vào dòng chạy. Chuỗi, hoặc { text, until: 'YYYY-MM-DD' } để tự ẩn sau ngày đó.
   TICKER: [
-    { text: 'Bóng đá · Bảng A: Phòng Nền tảng Công nghệ; Liên quân P. Giải pháp băng rộng cố định và Cơ điện, P. Hợp tác triển khai và P. Kiểm soát chất lượng · Bảng B: Liên quân P. Giải pháp di động và P. Giải pháp CNTT và Quy trình; Liên quân P. Hạ tầng Cloud và P. Trí tuệ nhân tạo', until: '2026-10-23' },
+    { text: 'Bóng đá · 16:15 Thứ Sáu 23/10, Sân bóng Đình Thôn 2, hai trận song song · Tranh hạng Ba: P.NTCN gặp Liên quân P.HTC & P.TNTT · Chung kết: Liên quân P.GPBRCĐ&CĐ – P.HTTK – P.KSCL gặp Liên quân P.GPDĐ & P.GPCNTT&QT', until: '2026-10-23' },
     { text: 'Liên hoan kết thúc thành công tối Thứ Sáu 23/10 · Gắn kết, Bứt phá, Thi đấu hết mình', until: '2026-10-23' }
   ],
 
