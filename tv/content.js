@@ -24,8 +24,8 @@ window.TV = {
   STORIES: [
     { id: 'phu-nu-20-10', tab: 'Ngày Phụ nữ Việt Nam', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
       until: '2026-10-25', slideSeconds: 8,
-      // Gộp cả tin P. Kiểm soát Chất lượng gửi qua news/ (ảnh 1, 2) và ảnh buổi chúc mừng 20/10 (ảnh 3 đến 10)
-      slides: [{ src: 'img/daily-2026-10-19.jpg?v=2' }].concat([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function (n) {
+      // Gộp cả tin P. Kiểm soát Chất lượng gửi qua news/ (ảnh 1, 2) và ảnh buổi chúc mừng 20/10 (ảnh 3 đến 11)
+      slides: [{ src: 'img/daily-2026-10-19.jpg?v=2' }].concat([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(function (n) {
         return { src: 'img/daily-2026-10-20-' + n + '.jpg' }; })),
       ticker: 'Chúc mừng Ngày Phụ nữ Việt Nam 20/10 · Yêu thương & Tôn vinh' },
 
