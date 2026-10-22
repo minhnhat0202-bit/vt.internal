@@ -48,10 +48,10 @@ window.TV = {
         { type: 'image', src: 'img/daily-2026-10-15-3.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-4.jpg', seconds: 7 }],
       ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' },
 
-    { id: 'new-member', tab: 'Thành viên mới', title: 'Chào mừng thành viên mới gia nhập Trung tâm', tag: 'Gia nhập 16/10/2026',
+    { id: 'new-member', tab: 'Thành viên mới', title: 'Chào mừng thành viên mới gia nhập Trung tâm', tag: 'Gia nhập 21/10/2026',
       slideSeconds: 8,
-      slides: [{ src: 'img/01-nghiem-xuan-son.png' }, { src: 'img/02-dam-ngoc-khanh.png' }, { src: 'img/03-tong-tran-minh-duc.png' }],
-      ticker: 'Chào mừng 3 thành viên mới gia nhập Trung tâm: Nghiêm Xuân Sơn, Đàm Ngọc Khánh, Tống Trần Minh Đức' }
+      slides: [{ src: 'img/daily-2026-10-21-1.jpg' }, { src: 'img/daily-2026-10-21-2.jpg' }],
+      ticker: 'Chào mừng 2 thành viên mới gia nhập Trung tâm: Phạm Tiến Thuận (P.NTCN), Nguyễn Đức An (P.GPCNTT&QT)' }
   ],
 
   // ---- Lịch cho 2 khung bên phải: Hôm nay, Sắp diễn ra (khung trên cùng là Tin các phòng, lấy từ news/) ----
