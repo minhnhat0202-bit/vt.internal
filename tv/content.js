@@ -30,7 +30,7 @@ window.TV = {
       ticker: 'Chúc mừng Ngày Phụ nữ Việt Nam 20/10 · Yêu thương & Tôn vinh' },
 
     // Một tab gộp kết quả mọi giải đã xong. Môn mới có kết quả: thêm một dòng vào slides.
-    { id: 'ket-qua', tab: 'Kết quả giải đấu', title: 'Kết quả giải đấu', tag: 'Chung cuộc', slideSeconds: 20,
+    { id: 'ket-qua', tab: 'Giải Thể thao tháng 10', title: 'Giải Thể thao tháng 10', slideSeconds: 20,
       slides: [
         { src: 'img/daily-2026-10-22.jpg', sub: 'Bóng đá · Chung kết & Tranh hạng Ba 16h15 Thứ Sáu 23/10 · Sân bóng Đình Thôn 2' },
         { src: 'img/ket-qua-cau-long.jpg?v=2', sub: 'Cầu lông · Vô địch: Hiếu – Thảo' },
