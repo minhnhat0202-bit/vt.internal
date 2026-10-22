@@ -413,7 +413,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
       items: [{ label: 'Thi đấu', from: '2026-10-10', time: 'Chiều Thứ Bảy' }] },
     { id: 'bong-da', name: 'Bóng đá', ab: 'BĐ', fmt: '4 đội · 83 cầu thủ', static: { reg: 83, off: 83, wait: 0, slots: 4, unit: 'đội' },
       place: 'Sân bóng Đình Thôn 2',
-      info: 'Bóng đá · Bảng A: Phòng Nền tảng Công nghệ; Liên quân P. Giải pháp băng rộng cố định và Cơ điện, P. Hợp tác triển khai và P. Kiểm soát chất lượng · Bảng B: Liên quân P. Giải pháp di động và P. Giải pháp CNTT và Quy trình; Liên quân P. Hạ tầng Cloud và P. Trí tuệ nhân tạo',
+      info: 'Bóng đá · Bảng A: P.NTCN; Liên quân P.GPBRCĐ&CĐ – P.HTTK – P.KSCL · Bảng B: Liên quân P.GPDĐ & P.GPCNTT&QT; Liên quân P.HTC & P.TNTT',
       items: [{ label: 'Vòng bảng', from: '2026-10-15', time: '19:15' }, { label: 'Tranh hạng Ba', from: '2026-10-23', time: '16:15' }, { label: 'Chung kết', from: '2026-10-23', time: '16:15', final: true }] },
     { id: 'bida', name: 'Bida', ab: 'BI', fmt: 'Đôi · 12 đôi', live: true,
       items: [{ label: 'Vòng 1 và tứ kết', from: '2026-10-09', time: 'Tối' }, { label: 'Bán kết, chung kết', from: '2026-10-14', time: 'Tối' }] },
@@ -499,6 +499,13 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
     }
     return SNAPSHOT.live[id];
   }
+  // Tên phòng viết tắt cho nhãn biểu đồ (khớp DEPARTMENTS trong news/config.js)
+  const DEPT_SHORT = {
+    'phòng giải pháp băng rộng cố định và cơ điện': 'P.GPBRCĐ&CĐ', 'phòng giải pháp công nghệ thông tin và quy trình': 'P.GPCNTT&QT',
+    'phòng giải pháp di động': 'P.GPDĐ', 'phòng hạ tầng cloud': 'P.HTC', 'phòng hợp tác triển khai': 'P.HTTK',
+    'phòng kiểm soát chất lượng': 'P.KSCL', 'phòng nền tảng công nghệ': 'P.NTCN', 'phòng trí tuệ nhân tạo': 'P.TNTT'
+  };
+  const deptShort = (d) => DEPT_SHORT[String(d).trim().toLowerCase()] || String(d).replace(/^Phòng /, '');
   function barRow(name, sub, off, wait, max, unit, cls) {
     const pOff = Math.min(100, off / max * 100), pWait = Math.min(100 - pOff, wait / max * 100);
     return `<div class="bar ${cls || ''}"><div class="n">${esc(name)} <small>${esc(sub)}</small></div><div class="t"><i style="width:${pOff}%"></i>${wait ? `<i class="wait" style="left:${pOff}%;width:${pWait}%"></i>` : ''}</div><div class="v">${off}${wait ? `<small> +${wait}</small>` : ''}<small>${unit ? ' ' + esc(unit) : ''}</small></div></div>`;
@@ -527,7 +534,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
       const list = Object.entries(byDept).sort((a, b) => b[1] - a[1]);
       depts = list.length;
       const mx = list[0] ? list[0][1] : 1;
-      $('bars-dept').innerHTML = list.map(([d, n]) => barRow(d.replace(/^Phòng /, ''), '', n, 0, mx, '')).join('');
+      $('bars-dept').innerHTML = list.map(([d, n]) => barRow(deptShort(d), '', n, 0, mx, '')).join('');
       $('dept-sub').textContent = `suất chính thức 3 môn · ${liveOff} suất`;
       // VĐV: không gộp được người của PES và Bóng đá (không có trong hệ thống) nên giữ số chốt 30/09
       athletes = SNAPSHOT.athletes;

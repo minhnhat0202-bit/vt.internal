@@ -12,14 +12,14 @@ window.VTNEWS_CONFIG = {
   // short = tên ngắn hiện trên TV (dòng phụ, khung lịch).
   DEPARTMENTS: [
     { name: 'Ban Giám đốc', short: 'Ban Giám đốc' },
-    { name: 'Phòng Giải pháp Băng rộng Cố định và Cơ điện', short: 'P. GP Băng rộng CĐ & Cơ điện' },
-    { name: 'Phòng Giải pháp Công nghệ Thông tin và Quy trình', short: 'P. GP CNTT & Quy trình' },
-    { name: 'Phòng Giải pháp Di động', short: 'P. Giải pháp Di động' },
-    { name: 'Phòng Hạ tầng Cloud', short: 'P. Hạ tầng Cloud' },
-    { name: 'Phòng Hợp tác Triển khai', short: 'P. Hợp tác Triển khai' },
-    { name: 'Phòng Kiểm soát Chất lượng', short: 'P. Kiểm soát Chất lượng' },
-    { name: 'Phòng Nền tảng Công nghệ', short: 'P. Nền tảng Công nghệ' },
-    { name: 'Phòng Trí tuệ Nhân tạo', short: 'P. Trí tuệ Nhân tạo' }
+    { name: 'Phòng Giải pháp Băng rộng Cố định và Cơ điện', short: 'P.GPBRCĐ&CĐ' },
+    { name: 'Phòng Giải pháp Công nghệ Thông tin và Quy trình', short: 'P.GPCNTT&QT' },
+    { name: 'Phòng Giải pháp Di động', short: 'P.GPDĐ' },
+    { name: 'Phòng Hạ tầng Cloud', short: 'P.HTC' },
+    { name: 'Phòng Hợp tác Triển khai', short: 'P.HTTK' },
+    { name: 'Phòng Kiểm soát Chất lượng', short: 'P.KSCL' },
+    { name: 'Phòng Nền tảng Công nghệ', short: 'P.NTCN' },
+    { name: 'Phòng Trí tuệ Nhân tạo', short: 'P.TNTT' }
   ],
 
   // Nhãn vàng gợi ý cho Tin tiêu điểm
