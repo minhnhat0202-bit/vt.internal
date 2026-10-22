@@ -32,11 +32,13 @@ window.TV = {
     // Một tab gộp kết quả mọi giải đã xong. Môn mới có kết quả: thêm một dòng vào slides.
     { id: 'ket-qua', tab: 'Kết quả giải đấu', title: 'Kết quả giải đấu', tag: 'Chung cuộc', slideSeconds: 20,
       slides: [
+        { src: 'img/daily-2026-10-22.jpg', sub: 'Bóng đá · Chung kết & Tranh hạng Ba 16h15 Thứ Sáu 23/10 · Sân bóng Đình Thôn 2' },
         { src: 'img/ket-qua-cau-long.jpg?v=2', sub: 'Cầu lông · Vô địch: Hiếu – Thảo' },
         { src: 'img/ket-qua-pes.jpg', sub: 'PES · Vô địch: Hiếu & Trung' },
         { src: 'img/ket-qua-bida.jpg', sub: 'Bida · Vô địch: Lê Văn Thành & Trần Phan Huy Anh' }
       ],
-      ticker: ['Vô địch Cầu lông: Hiếu – Thảo', 'Vô địch PES: Hiếu & Trung',
+      ticker: ['16h15 Thứ Sáu 23/10 · Chung kết Bóng đá: Liên quân P.GPBRCĐ&CĐ – P.HTTK – P.KSCL gặp Liên quân P.GPDĐ & P.GPCNTT&QT · Tranh hạng Ba: P.NTCN gặp Liên quân P.HTC & P.TNTT',
+        '17h30 Lễ trao giải thể thao · 18h00 Tiệc giao lưu tại Quán bia Thu Hằng, 18 Lê Đức Thọ', 'Vô địch Cầu lông: Hiếu – Thảo', 'Vô địch PES: Hiếu & Trung',
         'Kết quả Bida · Nhất: Lê Văn Thành & Trần Phan Huy Anh · Nhì: Lê Ngọc Thái & Phạm Gia Khiêm · Ba: Nguyễn Nhật Minh & Lê Quốc Đạt · Tư: Nguyễn Xuân Huy & Lê Hải Sơn'] },
 
     { id: 'vda-2026', tab: 'Giải thưởng CĐS 2026', title: 'Giải thưởng Chuyển đổi số Việt Nam 2026', tag: 'Vinh danh',
@@ -70,7 +72,8 @@ window.TV = {
     { title: 'Bóng đá · Tranh hạng Ba', from: '2026-10-23', time: '16:15', place: 'Sân bóng Đình Thôn 2' },
     { title: 'Bóng đá · Chung kết', from: '2026-10-23', time: '16:15', place: 'Sân bóng Đình Thôn 2' },
     { title: 'Bóng bàn · Chung kết', from: '2026-10-23' },
-    { title: 'Liên hoan kết thúc thành công', from: '2026-10-23', time: 'Tối', place: 'Toàn Trung tâm' }
+    { title: 'Lễ trao giải thể thao', from: '2026-10-23', time: '17:30', place: 'Sân bóng Đình Thôn 2' },
+    { title: 'Tiệc giao lưu', from: '2026-10-23', time: '18:00', place: 'Quán bia Thu Hằng, 18 Lê Đức Thọ' }
   ],
 
   // Mục thêm tay cho khung "Hôm nay". Khai from/to để tự hiện, tự ẩn theo ngày; không khai thì hiện mãi.
