@@ -40,7 +40,7 @@
   .glass::before { content: ""; position: absolute; left: 28px; right: 28px; top: 0; height: 1.5px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.85), transparent); }
 
   /* bố cục: Tin tiêu điểm bên trái, 3 khung bên phải */
-  .dash { position: absolute; left: 0; right: 0; top: 100px; bottom: 128px; padding: 36px 64px 28px; display: grid; grid-template-columns: minmax(0, 1fr) 470px; grid-gap: 32px; gap: 32px; }
+  .dash { position: absolute; left: 0; right: 0; top: 100px; bottom: 116px; padding: 36px 64px 28px; display: grid; grid-template-columns: minmax(0, 1fr) 470px; grid-gap: 32px; gap: 32px; }
   .panel { position: relative; padding: 44px 26px 14px; min-height: 0; display: flex; flex-direction: column; }
   .panel .pg { position: absolute; right: 22px; top: 12px; font-size: 22px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
   .panel .lbl { position: absolute; left: 26px; top: -24px; padding: 9px 22px; background: var(--red); color: #fff; font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .1em; text-transform: uppercase; border-radius: 8px; box-shadow: 0 0 24px rgba(238,0,51,.55); white-space: nowrap; }
@@ -96,7 +96,7 @@
   .dn .cta div b { display: block; margin: 0 0 6px; font-size: 27px; color: #fff; -webkit-line-clamp: 3; }
 
   /* ticker */
-  .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 128px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
+  .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 116px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
   .ticker .tag { flex: 0 0 auto; display: flex; align-items: center; padding: 0 84px 0 64px; background: var(--red); font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .1em; text-transform: uppercase; -webkit-clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); box-shadow: 0 0 30px rgba(238,0,51,.6); }
   .ticker .run { flex: 1; overflow: hidden; display: flex; align-items: center; font-size: 40px; position: relative; }
   .ticker .run::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 220px; z-index: 1; background: linear-gradient(90deg, #0d0c10 35%, rgba(13,12,16,0)); }
