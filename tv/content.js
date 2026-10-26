@@ -35,14 +35,14 @@ window.TV = {
 
     // Một tab gộp kết quả mọi giải đã xong. Môn mới có kết quả: thêm một dòng vào slides.
     { id: 'ket-qua', tab: 'Giải Thể thao tháng 10', title: 'Giải Thể thao tháng 10', slideSeconds: 20,
-      slides: [
-        { src: 'img/daily-2026-10-22.jpg', sub: 'Bóng đá · Chung kết & Tranh hạng Ba 16h15 Thứ Sáu 23/10 · Sân bóng Đình Thôn 2' },
+      // 6 ảnh lễ bế mạc, trao giải tối 23/10 (thay banner Chung kết & liên hoan), mỗi ảnh 8 giây; poster vô địch giữ 20 giây
+      slides: [1, 2, 3, 4, 5, 6].map(function (n) {
+        return { src: 'img/daily-2026-10-23-' + n + '.jpg', seconds: 8, sub: 'Bế mạc & trao giải · Thứ Sáu 23/10 · Sân bóng Đình Thôn 2' }; }).concat([
         { src: 'img/ket-qua-cau-long.jpg?v=2', sub: 'Cầu lông · Vô địch: Hiếu – Thảo' },
         { src: 'img/ket-qua-pes.jpg', sub: 'PES · Vô địch: Hiếu & Trung' },
         { src: 'img/ket-qua-bida.jpg', sub: 'Bida · Vô địch: Lê Văn Thành & Trần Phan Huy Anh' }
-      ],
-      ticker: ['16h15 Thứ Sáu 23/10 · Chung kết Bóng đá: Liên quân P.GPBRCĐ&CĐ – P.HTTK – P.KSCL gặp Liên quân P.GPDĐ & P.GPCNTT&QT · Tranh hạng Ba: P.NTCN gặp Liên quân P.HTC & P.TNTT',
-        '17h30 Lễ trao giải thể thao · 18h00 Tiệc giao lưu tại Quán bia Thu Hằng, 18 Lê Đức Thọ', 'Vô địch Cầu lông: Hiếu – Thảo', 'Vô địch PES: Hiếu & Trung',
+      ]),
+      ticker: ['Giải Thể thao tháng 10 đã bế mạc tối Thứ Sáu 23/10 · Chúc mừng các đội và vận động viên đạt giải', 'Vô địch Cầu lông: Hiếu – Thảo', 'Vô địch PES: Hiếu & Trung',
         'Kết quả Bida · Nhất: Lê Văn Thành & Trần Phan Huy Anh · Nhì: Lê Ngọc Thái & Phạm Gia Khiêm · Ba: Nguyễn Nhật Minh & Lê Quốc Đạt · Tư: Nguyễn Xuân Huy & Lê Hải Sơn'] },
 
     { id: 'vda-2026', tab: 'Giải thưởng CĐS 2026', title: 'Giải thưởng Chuyển đổi số Việt Nam 2026', tag: 'Vinh danh',
