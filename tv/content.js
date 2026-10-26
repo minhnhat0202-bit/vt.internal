@@ -23,7 +23,7 @@ window.TV = {
   //   image: 'img/...'  một poster tĩnh
   STORIES: [
     { id: 'dam-cuoi-nam-ha', tab: 'Sự kiện hot', title: 'Đám cưới Phương Nam & Việt Hà', until: '2026-10-28',
-      image: 'img/daily-2026-10-26.jpg',
+      image: 'img/daily-2026-10-26.jpg?v=2',
       ticker: 'Đám cưới Phương Nam & Việt Hà · 08:30 Thứ Tư 28/10 tại Xóm Lưu Sơn 1, Xã Đô Lương, Nghệ An · Xe xuất phát 14:30 Thứ Ba 27/10 tại Epic Tower, 19 Duy Tân' },
 
     { id: 'phu-nu-20-10', tab: 'Ngày Phụ nữ Việt Nam', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
