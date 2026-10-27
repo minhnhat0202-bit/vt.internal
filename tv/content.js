@@ -50,15 +50,10 @@ window.TV = {
       items: [{ type: 'video', src: 'media/daily-2026-10-14.mp4' }, { type: 'image', src: 'img/daily-2026-10-14.jpg', seconds: 10 },
         { type: 'image', src: 'img/daily-2026-10-15-1.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-2.jpg', seconds: 7 },
         { type: 'image', src: 'img/daily-2026-10-15-3.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-4.jpg', seconds: 7 }],
-      ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' },
-
-    { id: 'new-member', tab: 'Thành viên mới', title: 'Chào mừng thành viên mới gia nhập Trung tâm', tag: 'Gia nhập 21/10/2026',
-      slideSeconds: 8,
-      slides: [{ src: 'img/daily-2026-10-21-1.jpg' }, { src: 'img/daily-2026-10-21-2.jpg' }],
-      ticker: 'Chào mừng 2 thành viên mới gia nhập Trung tâm: Phạm Tiến Thuận (P.NTCN), Nguyễn Đức An (P.GPCNTT&QT)' }
+      ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' }
   ],
 
-  // ---- Lịch cho 2 khung bên phải: Hôm nay, Sắp diễn ra (khung trên cùng là Tin các phòng, lấy từ news/) ----
+  // ---- Lịch cho 2 khung bên phải: Hôm nay, Sắp diễn ra (góc dưới là mã QR gửi tin) ----
   //   from, to (tuỳ chọn): 'YYYY-MM-DD' · time, place: tuỳ chọn
   //   Có to  = một giai đoạn: hiện ở "Hôm nay" suốt thời gian diễn ra.
   //   Không to = sự kiện một ngày: hiện ở "Hôm nay" đúng ngày đó.
@@ -82,6 +77,18 @@ window.TV = {
 
   // Mục thêm tay cho khung "Hôm nay". Khai from/to để tự hiện, tự ẩn theo ngày; không khai thì hiện mãi.
   TODAY: [
+  ],
+
+  // Châm ngôn: chạy trong khung "Hôm nay" khi hôm nay không có lịch, mỗi câu QUOTE_SECONDS giây.
+  //   QUOTES_SHEET: link CSV của Google Sheet (Tệp → Chia sẻ → Công bố lên web → định dạng CSV), cột: Ngày | Câu | Tác giả.
+  //   Ngày (dd/mm/yyyy) trùng hôm nay thì chỉ chạy các câu của ngày đó; để trống ngày = câu dùng chung.
+  //   Có Sheet thì Sheet thay cho QUOTES; QUOTES là câu dự phòng khi chưa có hoặc không đọc được Sheet.
+  QUOTES_SHEET: '',
+  QUOTE_SECONDS: 20,
+  QUOTES: [
+    { text: 'Một cây làm chẳng nên non, ba cây chụm lại nên hòn núi cao.', by: 'Ca dao Việt Nam' },
+    { text: 'Có công mài sắt, có ngày nên kim.', by: 'Tục ngữ Việt Nam' },
+    { text: 'Đi một ngày đàng, học một sàng khôn.', by: 'Tục ngữ Việt Nam' }
   ],
 
   // Câu thêm vào dòng chạy. Chuỗi, hoặc { text, until: 'YYYY-MM-DD' } để tự ẩn sau ngày đó.

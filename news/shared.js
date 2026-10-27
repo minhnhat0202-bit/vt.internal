@@ -68,7 +68,7 @@
     return out;
   }
   // Ghép tin đã duyệt vào window.TV: tin được ghim (pin) vào khung lớn Tin tiêu điểm, đứng đầu;
-  // tin thường vào DEPT_NEWS = khung "Tin các phòng" bên phải. Mã tin trong TV.HIDE_NEWS bị bỏ qua.
+  // tin thường vào DEPT_NEWS, TV chiếu nối cuối Tin tiêu điểm. Mã tin trong TV.HIDE_NEWS bị bỏ qua.
   function mergeInto(TV, recs) {
     var pinned = [];
     TV.STORIES = TV.STORIES || []; TV.AGENDA = TV.AGENDA || []; TV.TICKER = TV.TICKER || []; TV.DEPT_NEWS = TV.DEPT_NEWS || [];

@@ -71,8 +71,8 @@
   .media .count:empty { display: none; }
   .media .count { position: absolute; right: 20px; bottom: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.6); font-size: 24px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .media .empty-media { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; font-size: 30px; color: var(--ink-3); padding: 0 40px; }
-  /* bên phải: Tin các phòng (cao hơn), Hôm nay, Sắp diễn ra */
-  .side { display: grid; grid-template-rows: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); grid-gap: 30px; gap: 30px; min-height: 0; }
+  /* bên phải: Hôm nay (cao nhất, trống thì chạy châm ngôn), Sắp diễn ra, mã QR gửi tin ở góc dưới */
+  .side { display: grid; grid-template-rows: minmax(0, 1.55fr) minmax(0, 1fr) auto; grid-gap: 30px; gap: 30px; min-height: 0; }
   .panel ul { list-style: none; margin: 0; padding: 0; display: block; overflow: hidden; flex: 1; min-height: 0; }
   .panel li { position: relative; padding: 6px 0 6px 30px; font-size: 26px; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,.08); }
   .panel li:last-child, .panel li.end { border-bottom: 0; }
@@ -82,18 +82,18 @@
   .panel li.muted::before { background: var(--grey); box-shadow: none; }
   .panel .none { font-size: 26px; color: var(--ink-3); padding: 10px 0; }
 
-  /* Tin các phòng: một tin một lượt, ảnh đại diện + tiêu đề + tên phòng */
-  .panel.dept { padding-bottom: 18px; }
-  .dn { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
-  .dn .ph { position: relative; flex: 1; min-height: 0; border-radius: 14px; overflow: hidden; background: #000 center / cover no-repeat; }
-  .dn .ph .tag { position: absolute; left: 12px; top: 12px; font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #1a1204; background: #f2c14e; border-radius: 6px; padding: 6px 10px; line-height: 1; }
-  .dn b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 10px; font-size: 25px; line-height: 1.22; font-weight: 700; }
-  .dn small { display: block; margin-top: 3px; font-size: 20px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .dn small i { font-style: normal; color: var(--red); }
-  .dn .cta { flex: 1; display: flex; align-items: center; }
-  .dn .cta img { flex: none; width: 150px; height: 150px; padding: 8px; background: #fff; border-radius: 12px; }
-  .dn .cta div { margin-left: 22px; font-size: 24px; line-height: 1.3; color: var(--ink-2); }
-  .dn .cta div b { display: block; margin: 0 0 6px; font-size: 27px; color: #fff; -webkit-line-clamp: 3; }
+  /* Châm ngôn: hiện trong khung Hôm nay khi hôm nay không có lịch */
+  .quote { height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0 6px; }
+  .quote .qm { font-family: var(--display); font-weight: 800; font-size: 110px; line-height: .6; color: var(--red); text-shadow: 0 0 24px rgba(238,0,51,.55); height: 50px; }
+  .quote p { margin: 0; font-size: 33px; line-height: 1.38; font-weight: 500; color: #fff; }
+  .quote small { display: block; margin-top: 18px; font-size: 22px; color: var(--ink-3); }
+  .quote small:before { content: "— "; }
+  /* Mã QR gửi tin, góc phải dưới */
+  .qr { display: flex; align-items: center; padding: 16px 22px; }
+  .qr img { flex: none; width: 112px; height: 112px; padding: 6px; background: #fff; border-radius: 10px; }
+  .qr div { margin-left: 20px; font-size: 21px; line-height: 1.3; color: var(--ink-2); }
+  .qr div b { display: block; margin: 0 0 4px; font-size: 24px; color: #fff; }
+
 
   /* ticker */
   .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 116px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
@@ -125,9 +125,9 @@
       <div class="media" id="media"><div class="bg" id="media-bg"></div><img class="pic" id="media-a" alt=""><img class="pic" id="media-b" alt=""><canvas class="fx" id="media-fx" width="1920" height="1080"></canvas><div class="count" id="media-count"></div></div>
     </div>
     <div class="side">
-      <div class="glass panel dept"><span class="lbl">Tin các phòng</span><span class="pg"></span><div class="dn" id="p-dept"></div></div>
       <div class="glass panel"><span class="lbl">Hôm nay</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay chưa có lịch."></ul></div>
       <div class="glass panel"><span class="lbl">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
+      <div class="glass qr"><img src="../img/qr-gui-tin.svg" alt=""><div><b>Phòng bạn có tin hay?</b>Quét mã để gửi tin và ảnh lên Bản tin TV.</div></div>
     </div>
   </section>
 
@@ -175,7 +175,8 @@ function bootTV(PREVIEW) {
   const inRange = (x) => { const t = todayKey(); return (!x.from || x.from <= t) && (!x.to || x.to >= t); };
 
   // Tin còn hạn (until), lọc lúc mở trang; trang tự tải lại mỗi sáng nên tin hết hạn tự rơi ra.
-  const STORIES = (C.STORIES || []).filter(alive);
+  // Tin phòng ban thường (news/, DEPT_NEWS) chiếu nối cuối Tin tiêu điểm vì không còn khung Tin các phòng
+  const STORIES = (C.STORIES || []).concat(C.DEPT_NEWS || []).filter(alive);
   const AGENDA = (C.AGENDA || []).slice().sort((a, b) => a.from.localeCompare(b.from));
   const status = (it) => { const t = todayKey(); const end = it.to || it.from; return end < t ? 'done' : it.from <= t ? 'now' : 'next'; };
 
@@ -184,6 +185,7 @@ function bootTV(PREVIEW) {
   function paintPanels() {
     Object.keys(dashLists).forEach((id) => {
       const items = dashLists[id], el = $(id), pgEl = el.parentNode.querySelector('.pg');
+      if (!items.length && id === 'p-today' && quoteList().length) { pgEl.textContent = ''; showQuote(el); return; }
       if (!items.length) { el.innerHTML = '<div class="none">' + esc(el.getAttribute('data-empty')) + '</div>'; pgEl.textContent = ''; return; }
       el.innerHTML = items.join('');
       const lis = Array.from(el.children), H = el.clientHeight, pages = [[]];
@@ -208,21 +210,45 @@ function bootTV(PREVIEW) {
     paintPanels();
   }
 
-  // ---------- Tin các phòng: tin phòng ban đã duyệt (news/), mỗi tin DEPT_SECONDS giây ----------
-  const DEPT_SECONDS = 10, DEPT = (C.DEPT_NEWS || []).filter(alive);
-  let deptIdx = 0;
-  function renderDept() {
-    const box = $('p-dept'), pgEl = box.parentNode.querySelector('.pg');
-    if (!DEPT.length) {
-      pgEl.textContent = '';
-      box.innerHTML = `<div class="cta"><img src="${R('img/qr-gui-tin.svg')}" alt=""><div><b>Phòng bạn có tin hay?</b>Quét mã để gửi tin và ảnh lên Bản tin TV.</div></div>`;
-      return;
+  // ---------- Châm ngôn: content.js QUOTES, hoặc Google Sheet công khai (QUOTES_SHEET, CSV: Ngày | Câu | Tác giả) ----------
+  //   Có dòng đúng ngày hôm nay thì chỉ chạy các dòng đó; không có thì chạy các dòng để trống ngày; vẫn không có thì chạy tất cả.
+  const QUOTE_SECONDS = C.QUOTE_SECONDS || 20;
+  let quotes = (C.QUOTES || []).map((q) => (typeof q === 'string' ? { text: q } : q));
+  function parseCSV(t) {
+    const rows = []; let row = [], f = '', q = false;
+    for (let i = 0; i < t.length; i++) {
+      const c = t[i];
+      if (q) { if (c === '"') { if (t[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+      else if (c === '"') q = true; else if (c === ',') { row.push(f); f = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && t[i + 1] === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; }
+      else f += c;
     }
-    const n = deptIdx % DEPT.length, st = DEPT[n];
-    box.innerHTML = `<div class="ph" style="background-image:url('${esc(R(st.cover || st.image || ''))}')">${st.tag ? `<span class="tag">${esc(st.tag)}</span>` : ''}</div>
-      <b>${esc(st.title)}</b><small><i>●</i> ${esc(st.dept || '')}</small>`;
-    pgEl.textContent = DEPT.length > 1 ? (n + 1) + '/' + DEPT.length : '';
-    fadeIn(box);
+    if (f || row.length) { row.push(f); rows.push(row); }
+    return rows;
+  }
+  const isoDay = (v) => { v = (v || '').trim(); let m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(v); if (m) return m[3] + '-' + p2(+m[2]) + '-' + p2(+m[1]); m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v); return m ? m[0] : ''; };
+  function loadQuotes() {
+    if (!C.QUOTES_SHEET || location.protocol === 'file:') return;
+    fetch(C.QUOTES_SHEET + (C.QUOTES_SHEET.indexOf('?') < 0 ? '?' : '&') + 't=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.text() : '')).then((t) => {
+      const rows = parseCSV(t || '').filter((r) => r.length > 1 && (r[1] || '').trim());
+      if (rows.length && !isoDay(rows[0][0]) && /câu|cau|quote/i.test(rows[0][1])) rows.shift();   // bỏ dòng tiêu đề
+      if (rows.length) { quotes = rows.map((r) => ({ day: isoDay(r[0]), text: r[1].trim(), by: (r[2] || '').trim() })); quoteShown = ''; paintPanels(); }
+    }).catch(() => {});
+  }
+  function quoteList() {
+    const t = todayKey(), today = quotes.filter((q) => q.day === t);
+    if (today.length) return today;
+    const free = quotes.filter((q) => !q.day);
+    return free.length ? free : quotes;
+  }
+  let quoteShown = '';
+  function showQuote(el) {
+    const list = quoteList(), q = list[Math.floor(Date.now() / (QUOTE_SECONDS * 1000)) % list.length];
+    const key = q.text + '|' + q.by;
+    if (key === quoteShown && el.querySelector('.quote')) return;
+    quoteShown = key;
+    el.innerHTML = `<div class="quote"><span class="qm">“</span><p>${esc(q.text)}</p>${q.by ? `<small>${esc(q.by)}</small>` : ''}</div>`;
+    fadeIn(el);
   }
 
   // ---------- dòng chạy ----------
@@ -439,10 +465,8 @@ function bootTV(PREVIEW) {
   // ---------- boot ----------
   fit(); clock(); setInterval(clock, 15000);
   setMedia(window.DRIVE_MEDIA || []); refreshMedia(); setInterval(refreshMedia, Math.max(60, MEDIA_REFRESH_SECONDS) * 1000);
-  renderDash(); renderTicker(); renderDept();
+  renderDash(); renderTicker(); loadQuotes(); setInterval(loadQuotes, 30 * 60000);
   setInterval(() => { dashPage++; paintPanels(); }, 7000);
-  if (DEPT.length > 1) setInterval(() => { deptIdx++; renderDept(); }, DEPT_SECONDS * 1000);
-  DEPT.forEach((st) => { const im = new Image(); im.src = R(st.cover || st.image || ''); preloaded.push(im); });
   setInterval(() => { renderDash(); renderTicker(); }, 10 * 60000);   // sang ngày mới thì đổi trạng thái lịch
   preloadStills();
   const m = /^#(\d+)$/.exec(location.hash);                           // #2 mở thẳng tin số 2
