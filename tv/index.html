@@ -213,9 +213,8 @@ function bootTV(PREVIEW) {
     paintPanels();
   }
 
-  // ---------- Châm ngôn: content.js QUOTES, hoặc Google Sheet công khai (QUOTES_SHEET, CSV: Ngày | Câu | Tác giả) ----------
-  //   Có dòng đúng ngày hôm nay thì chỉ chạy các dòng đó; không có thì chạy các dòng để trống ngày; vẫn không có thì chạy tất cả.
-  const QUOTE_SECONDS = C.QUOTE_SECONDS || 20;
+  // ---------- Châm ngôn: content.js QUOTES, hoặc Google Sheet công khai (QUOTES_SHEET, CSV 3 cột: Ngày hoặc STT | Câu | Tác giả) ----------
+  //   Mỗi ngày một câu: dòng có ngày đúng hôm nay thì lấy dòng đó; không có thì lấy lần lượt theo thứ tự trong Sheet, mỗi ngày sang câu kế.
   let quotes = (C.QUOTES || []).map((q) => (typeof q === 'string' ? { text: q } : q));
   function parseCSV(t) {
     const rows = []; let row = [], f = '', q = false;
@@ -246,7 +245,8 @@ function bootTV(PREVIEW) {
   }
   let quoteShown = '';
   function showQuote(el) {
-    const list = quoteList(), q = list[Math.floor(Date.now() / (QUOTE_SECONDS * 1000)) % list.length];
+    const list = quoteList(), day = Math.round(vnDate(todayKey()).getTime() / 86400000);
+    const q = list[((day % list.length) + list.length) % list.length];
     const key = q.text + '|' + q.by;
     if (key === quoteShown && el.querySelector('.quote')) return;
     quoteShown = key;

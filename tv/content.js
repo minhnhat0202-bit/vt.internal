@@ -86,12 +86,11 @@ window.TV = {
   TODAY: [
   ],
 
-  // Châm ngôn: chạy trong khung "Hôm nay" khi hôm nay không có lịch, mỗi câu QUOTE_SECONDS giây.
-  //   QUOTES_SHEET: link CSV của Google Sheet (Tệp → Chia sẻ → Công bố lên web → định dạng CSV), cột: Ngày | Câu | Tác giả.
-  //   Ngày (dd/mm/yyyy) trùng hôm nay thì chỉ chạy các câu của ngày đó; để trống ngày = câu dùng chung.
-  //   Có Sheet thì Sheet thay cho QUOTES; QUOTES là câu dự phòng khi chưa có hoặc không đọc được Sheet.
-  QUOTES_SHEET: '',
-  QUOTE_SECONDS: 20,
+  // Châm ngôn: khung "Hôm nay" hiện MỘT câu mỗi ngày khi hôm nay không có lịch.
+  //   QUOTES_SHEET: link CSV của Google Sheet công khai, 3 cột: STT (hoặc Ngày dd/mm/yyyy) | Câu | Tác giả.
+  //   Dòng có ngày trùng hôm nay thì lấy dòng đó; không thì lấy lần lượt theo thứ tự, mỗi ngày sang câu kế.
+  //   Sửa Sheet không cần commit, TV đọc lại mỗi 30 phút. QUOTES là câu dự phòng khi không đọc được Sheet.
+  QUOTES_SHEET: 'https://docs.google.com/spreadsheets/d/1PzfHgcaG-5M64DdpggJS3xcZLNBnRbCPNlFx_7Ck7bU/gviz/tq?tqx=out:csv&gid=0',
   QUOTES: [
     { text: 'Một cây làm chẳng nên non, ba cây chụm lại nên hòn núi cao.', by: 'Ca dao Việt Nam' },
     { text: 'Có công mài sắt, có ngày nên kim.', by: 'Tục ngữ Việt Nam' },
