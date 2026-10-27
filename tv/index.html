@@ -94,9 +94,8 @@
   .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 116px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
   .ticker .tag { flex: 0 0 auto; display: flex; align-items: center; padding: 0 60px 0 40px; background: var(--red); font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .1em; text-transform: uppercase; -webkit-clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); box-shadow: 0 0 30px rgba(238,0,51,.6); }
   .ticker .run { flex: 1; overflow: hidden; display: flex; align-items: center; font-size: 40px; position: relative; }
-  .ticker .run::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 70px; z-index: 1; background: linear-gradient(90deg, #0d0c10 20%, rgba(13,12,16,0)); }
+  .ticker .run { -webkit-mask-image: linear-gradient(90deg, transparent, #000 70px, #000 calc(100% - 50px), transparent); mask-image: linear-gradient(90deg, transparent, #000 70px, #000 calc(100% - 50px), transparent); }
   .ticker .run div { white-space: nowrap; display: flex; padding-left: 16px; animation: run 48s linear infinite; }
-  .ticker .run::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 50px; z-index: 1; background: linear-gradient(270deg, #0d0c10 20%, rgba(13,12,16,0)); }
   /* Mã QR gửi tin: đầu phải dòng chạy, vát cạnh trái đối xứng với nhãn Đừng bỏ lỡ */
   .ticker .qr { flex: 0 0 auto; display: flex; align-items: center; padding: 0 40px 0 58px; background: linear-gradient(90deg, #2a1218, #44494D); -webkit-clip-path: polygon(36px 0, 100% 0, 100% 100%, 0 100%); clip-path: polygon(36px 0, 100% 0, 100% 100%, 0 100%); }
   .ticker .qr div { text-align: right; font-size: 21px; line-height: 1.4; color: var(--ink-2); }
@@ -329,7 +328,9 @@ function bootTV(PREVIEW) {
     fetch(ROOT + 'media.json?v=' + Date.now(), { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.length !== undefined) setMedia(j); }).catch(() => {});
   }
   function stopVideo() { if (curVideo) { try { curVideo.pause(); } catch (e) {} curVideo.remove(); curVideo = null; } }
+  const VBLOB = {};   // src → blob URL của video đã tải xong
   function playVideo(src, maxSeconds, onDone) {
+    src = VBLOB[src] || src;
     const a = $('media-a'), b = $('media-b'); a.classList.remove('on'); b.classList.remove('on'); stopVideo();
     const v = document.createElement('video'); v.muted = true; v.autoplay = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.src = src;
     $('media').insertBefore(v, $('media-count')); curVideo = v;
@@ -367,7 +368,10 @@ function bootTV(PREVIEW) {
     STORIES.forEach((st) => {
       [].concat(st.image || [], (st.slides || []).map((s) => s.src), (st.items || []).filter((it) => it.type === 'image').map((it) => it.src))
         .forEach((u) => { const im = new Image(); im.src = R(u); preloaded.push(im); });
-      (st.items || []).filter((it) => it.type === 'video').forEach((it) => { const v = document.createElement('video'); v.preload = 'auto'; v.muted = true; v.src = R(it.src); preloaded.push(v); });
+      (st.items || []).filter((it) => it.type === 'video').forEach((it) => {
+        const u = R(it.src); if (VBLOB[u] || location.protocol === 'file:') return;
+        fetch(u).then((r) => (r.ok ? r.blob() : null)).then((b) => { if (b) VBLOB[u] = URL.createObjectURL(b); }).catch(() => {});
+      });
     });
   }
   function renderTabs() {

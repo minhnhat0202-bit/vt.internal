@@ -31,7 +31,7 @@ window.TV = {
       ticker: 'VTNet đạt ANL 4.0 TM Forum: Tối ưu năng lượng & chất lượng' },
 
     { id: 'recap-the-thao', tab: 'Recap Giải Thể thao', title: 'Recap Giải Thể thao tháng 10', seconds: 66,
-      items: [{ type: 'video', src: 'media/daily-2026-10-27.mp4' }] },
+      items: [{ type: 'video', src: 'media/daily-2026-10-27.mp4?v=2' }] },
 
     { id: 'phu-nu-20-10', tab: 'Ngày Phụ nữ Việt Nam', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
       until: '2026-10-25', slideSeconds: 8,
