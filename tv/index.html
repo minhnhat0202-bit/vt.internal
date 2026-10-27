@@ -99,9 +99,9 @@
   .ticker .run::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 120px; z-index: 1; background: linear-gradient(270deg, #0d0c10 20%, rgba(13,12,16,0)); }
   /* Mã QR gửi tin: đầu phải dòng chạy, vát cạnh trái đối xứng với nhãn Đừng bỏ lỡ */
   .ticker .qr { flex: 0 0 auto; display: flex; align-items: center; padding: 0 64px 0 76px; background: linear-gradient(90deg, #2a1218, #44494D); -webkit-clip-path: polygon(36px 0, 100% 0, 100% 100%, 0 100%); clip-path: polygon(36px 0, 100% 0, 100% 100%, 0 100%); }
-  .ticker .qr div { text-align: right; font-size: 21px; line-height: 1.25; color: var(--ink-2); }
-  .ticker .qr div b { display: block; font-family: var(--display); font-weight: 700; font-size: 25px; letter-spacing: .04em; text-transform: uppercase; color: #fff; }
-  .ticker .qr img { flex: none; width: 96px; height: 96px; margin-left: 20px; padding: 5px; background: #fff; border-radius: 8px; box-sizing: border-box; }
+  .ticker .qr div { text-align: right; font-size: 21px; line-height: 1.4; color: var(--ink-2); }
+  .ticker .qr div b { display: block; margin-bottom: 8px; font-family: var(--display); font-weight: 700; font-size: 24px; line-height: 1.2; letter-spacing: .06em; text-transform: uppercase; color: #fff; }
+  .ticker .qr img { flex: none; width: 96px; height: 96px; margin-left: 26px; padding: 5px; background: #fff; border-radius: 8px; box-sizing: border-box; }
   .ticker .run i { font-style: normal; color: var(--red); margin-right: 28px; }
   @keyframes run { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
