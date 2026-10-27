@@ -17,14 +17,21 @@ window.TV = {
   //   source: 'drive'   ảnh, video từ Google Drive (media.js) có bộ đếm; intro = thẻ mở đầu kèm pháo hoa;
   //                     photoSeconds = giây mỗi ảnh; shuffle = chiếu ngẫu nhiên không lặp
   //   slides: [{ src, sub? }], slideSeconds   chiếu lần lượt nhiều ảnh, có bộ đếm n / tổng.
-  //                     sub của từng ảnh thay dòng phụ khi ảnh đó hiện. Không khai seconds thì thời lượng
+  //                     sub của từng ảnh thay dòng phụ khi ảnh đó hiện. until của từng ảnh: ảnh tự ẩn sau ngày đó. Không khai seconds thì thời lượng
   //                     tin = số ảnh × slideSeconds.
   //   items: [{ type: 'video', src }, { type: 'image', src, seconds? }]   video phát hết thì sang mục kế
   //   image: 'img/...'  một poster tĩnh
   STORIES: [
-    { id: 'dam-cuoi-nam-ha', tab: 'Sự kiện hot', title: 'Đám cưới Phương Nam & Việt Hà', until: '2026-10-28',
-      image: 'img/daily-2026-10-26.jpg?v=3',
-      ticker: 'Đám cưới Phương Nam & Việt Hà · 08:30 Thứ Tư 28/10 tại Xóm Lưu Sơn 1, Xã Đô Lương, Nghệ An · Xe xuất phát 04:00 sáng Thứ Tư 28/10 tại Epic Tower, 19 Duy Tân (có mặt 03:30)' },
+    { id: 'dam-cuoi-nam-ha', tab: 'Sự kiện hot', title: 'Sự kiện hot', until: '2026-11-02',
+      slideSeconds: 15,
+      slides: [
+        { src: 'img/daily-2026-10-26.jpg?v=3', sub: 'Đám cưới Phương Nam & Việt Hà · 08:30 Thứ Tư 28/10', until: '2026-10-28' },
+        { src: 'img/daily-2026-10-27-1.jpg', sub: 'VTNet đạt ANL 4.0 TM Forum: Tối ưu năng lượng & chất lượng', until: '2026-11-02' }
+      ],
+      ticker: 'VTNet đạt ANL 4.0 TM Forum: Tối ưu năng lượng & chất lượng' },
+
+    { id: 'recap-the-thao', tab: 'Recap Giải Thể thao', title: 'Recap Giải Thể thao tháng 10', seconds: 66,
+      items: [{ type: 'video', src: 'media/daily-2026-10-27.mp4' }] },
 
     { id: 'phu-nu-20-10', tab: 'Ngày Phụ nữ Việt Nam', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
       until: '2026-10-25', slideSeconds: 8,
@@ -94,7 +101,8 @@ window.TV = {
   // Câu thêm vào dòng chạy. Chuỗi, hoặc { text, until: 'YYYY-MM-DD' } để tự ẩn sau ngày đó.
   TICKER: [
     { text: 'Bóng đá · 16:15 Thứ Sáu 23/10, Sân bóng Đình Thôn 2, hai trận song song · Tranh hạng Ba: P.NTCN gặp Liên quân P.HTC & P.TNTT · Chung kết: Liên quân P.GPBRCĐ&CĐ – P.HTTK – P.KSCL gặp Liên quân P.GPDĐ & P.GPCNTT&QT', until: '2026-10-23' },
-    { text: 'Liên hoan kết thúc thành công tối Thứ Sáu 23/10 · Gắn kết, Bứt phá, Thi đấu hết mình', until: '2026-10-23' }
+    { text: 'Liên hoan kết thúc thành công tối Thứ Sáu 23/10 · Gắn kết, Bứt phá, Thi đấu hết mình', until: '2026-10-23' },
+    { text: 'Đám cưới Phương Nam & Việt Hà · 08:30 Thứ Tư 28/10 tại Xóm Lưu Sơn 1, Xã Đô Lương, Nghệ An · Xe xuất phát 04:00 sáng Thứ Tư 28/10 tại Epic Tower, 19 Duy Tân (có mặt 03:30)', until: '2026-10-28' }
   ],
 
   // Ảnh phủ kín màn hình (backdrop sự kiện), che toàn bộ bản tin trong khoảng from đến until rồi tự ẩn.
@@ -103,7 +111,7 @@ window.TV = {
   BACKDROP: { src: ['img/backdrop-2026-10-21.jpg?v=5', 'img/backdrop-2026-10-21-2.jpg'], seconds: 7, from: '2026-10-21T08:15', until: '2026-10-21T10:20' },
 
   // Mã tin phòng ban (news/) không chiếu lên TV, ví dụ tin đã gộp vào một tin trong STORIES.
-  HIDE_NEWS: ['T261019-SBN7'],
+  HIDE_NEWS: ['T261019-SBN7', 'T261027-WSVU'],
 
   // Video dài hơn chừng này giây thì chuyển tiếp
   VIDEO_MAX_SECONDS: 90

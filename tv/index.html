@@ -176,7 +176,10 @@ function bootTV(PREVIEW) {
 
   // Tin còn hạn (until), lọc lúc mở trang; trang tự tải lại mỗi sáng nên tin hết hạn tự rơi ra.
   // Tin phòng ban thường (news/, DEPT_NEWS) chiếu nối cuối Tin tiêu điểm vì không còn khung Tin các phòng
-  const STORIES = (C.STORIES || []).concat(C.DEPT_NEWS || []).filter(alive);
+  // Ảnh trong slides cũng có thể khai until riêng: hết hạn thì ảnh đó tự ẩn, tin vẫn chạy các ảnh còn lại
+  const STORIES = (C.STORIES || []).concat(C.DEPT_NEWS || []).filter(alive)
+    .map((st) => (st.slides ? Object.assign({}, st, { slides: st.slides.filter(alive) }) : st))
+    .filter((st) => !st.slides || st.slides.length);
   const AGENDA = (C.AGENDA || []).slice().sort((a, b) => a.from.localeCompare(b.from));
   const status = (it) => { const t = todayKey(); const end = it.to || it.from; return end < t ? 'done' : it.from <= t ? 'now' : 'next'; };
 
