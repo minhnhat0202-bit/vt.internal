@@ -53,7 +53,7 @@ window.TV = {
       ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' }
   ],
 
-  // ---- Lịch cho 2 khung bên phải: Hôm nay, Sắp diễn ra (góc dưới là mã QR gửi tin) ----
+  // ---- Lịch cho 2 khung bên phải: Hôm nay, Sắp diễn ra (mã QR gửi tin nằm cuối dòng chạy) ----
   //   from, to (tuỳ chọn): 'YYYY-MM-DD' · time, place: tuỳ chọn
   //   Có to  = một giai đoạn: hiện ở "Hôm nay" suốt thời gian diễn ra.
   //   Không to = sự kiện một ngày: hiện ở "Hôm nay" đúng ngày đó.

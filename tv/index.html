@@ -71,8 +71,8 @@
   .media .count:empty { display: none; }
   .media .count { position: absolute; right: 20px; bottom: 16px; padding: 8px 16px; border-radius: 999px; background: rgba(0,0,0,.6); font-size: 24px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
   .media .empty-media { position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%); text-align: center; font-size: 30px; color: var(--ink-3); padding: 0 40px; }
-  /* bên phải: Hôm nay (cao nhất, trống thì chạy châm ngôn), Sắp diễn ra, mã QR gửi tin ở góc dưới */
-  .side { display: grid; grid-template-rows: minmax(0, 1.55fr) minmax(0, 1fr) auto; grid-gap: 30px; gap: 30px; min-height: 0; }
+  /* bên phải: Hôm nay (cao hơn, trống thì chạy châm ngôn), Sắp diễn ra */
+  .side { display: grid; grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr); grid-gap: 30px; gap: 30px; min-height: 0; }
   .panel ul { list-style: none; margin: 0; padding: 0; display: block; overflow: hidden; flex: 1; min-height: 0; }
   .panel li { position: relative; padding: 6px 0 6px 30px; font-size: 26px; line-height: 1.3; border-bottom: 1px solid rgba(255,255,255,.08); }
   .panel li:last-child, .panel li.end { border-bottom: 0; }
@@ -88,11 +88,6 @@
   .quote p { margin: 0; font-size: 33px; line-height: 1.38; font-weight: 500; color: #fff; }
   .quote small { display: block; margin-top: 18px; font-size: 22px; color: var(--ink-3); }
   .quote small:before { content: "— "; }
-  /* Mã QR gửi tin, góc phải dưới */
-  .qr { display: flex; align-items: center; padding: 16px 22px; }
-  .qr img { flex: none; width: 112px; height: 112px; padding: 6px; background: #fff; border-radius: 10px; }
-  .qr div { margin-left: 20px; font-size: 21px; line-height: 1.3; color: var(--ink-2); }
-  .qr div b { display: block; margin: 0 0 4px; font-size: 24px; color: #fff; }
 
 
   /* ticker */
@@ -101,6 +96,12 @@
   .ticker .run { flex: 1; overflow: hidden; display: flex; align-items: center; font-size: 40px; position: relative; }
   .ticker .run::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 220px; z-index: 1; background: linear-gradient(90deg, #0d0c10 35%, rgba(13,12,16,0)); }
   .ticker .run div { white-space: nowrap; display: flex; padding-left: 40px; animation: run 48s linear infinite; }
+  .ticker .run::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 120px; z-index: 1; background: linear-gradient(270deg, #0d0c10 20%, rgba(13,12,16,0)); }
+  /* Mã QR gửi tin: đầu phải dòng chạy, vát cạnh trái đối xứng với nhãn Đừng bỏ lỡ */
+  .ticker .qr { flex: 0 0 auto; display: flex; align-items: center; padding: 0 64px 0 76px; background: linear-gradient(90deg, #2a1218, #44494D); -webkit-clip-path: polygon(36px 0, 100% 0, 100% 100%, 0 100%); clip-path: polygon(36px 0, 100% 0, 100% 100%, 0 100%); }
+  .ticker .qr div { text-align: right; font-size: 21px; line-height: 1.25; color: var(--ink-2); }
+  .ticker .qr div b { display: block; font-family: var(--display); font-weight: 700; font-size: 25px; letter-spacing: .04em; text-transform: uppercase; color: #fff; }
+  .ticker .qr img { flex: none; width: 96px; height: 96px; margin-left: 20px; padding: 5px; background: #fff; border-radius: 8px; box-sizing: border-box; }
   .ticker .run i { font-style: normal; color: var(--red); margin-right: 28px; }
   @keyframes run { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
@@ -127,11 +128,10 @@
     <div class="side">
       <div class="glass panel"><span class="lbl">Hôm nay</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay chưa có lịch."></ul></div>
       <div class="glass panel"><span class="lbl">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
-      <div class="glass qr"><img src="../img/qr-gui-tin.svg" alt=""><div><b>Phòng bạn có tin hay?</b>Quét mã để gửi tin và ảnh lên Bản tin TV.</div></div>
     </div>
   </section>
 
-  <footer class="ticker"><div class="tag">Đừng bỏ lỡ</div><div class="run"><div id="tv-run"></div></div></footer>
+  <footer class="ticker"><div class="tag">Đừng bỏ lỡ</div><div class="run"><div id="tv-run"></div></div><div class="qr"><div><b>Phòng bạn có tin hay?</b>Quét mã gửi tin lên Bản tin TV</div><img src="../img/qr-gui-tin.svg" alt=""></div></footer>
 </div>
 
 <div id="backdrop" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;z-index:50;background:#000"></div>
