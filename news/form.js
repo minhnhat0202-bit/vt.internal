@@ -9,8 +9,7 @@
 
   // Cảnh báo mềm: vẫn gửi được nhưng nhắc người gửi điều sẽ xảy ra trên TV
   const WARN = {
-    title: (v) => (v.length > L.title2 ? `Dài hơn ${L.title2} ký tự: trên TV sẽ xuống 2 dòng.` : ''),
-    sub: (v, r) => (v.length + N.deptShort(r.dept).length > 90 ? 'Dòng phụ kèm tên phòng có thể bị cắt trên TV.' : '')
+    title: (v) => (v.length > L.title2 ? `Dài hơn ${L.title2} ký tự: trên TV sẽ xuống 2 dòng.` : '')
   };
 
   function field(k, label, o = {}) {
@@ -67,7 +66,6 @@
       ${field('title', 'Tiêu đề', { req: true, wide: true, max: L.title, ph: 'VD: Phòng Hạ tầng Cloud hoàn thành chuyển đổi 500 máy chủ', hint: 'Viết như tít báo: ai, làm gì. Trên TV hiện tối đa 2 dòng.' })}
       ${field('tab', 'Nhóm tin', { req: true, options: CFG.GROUPS.map((g) => g.name), ph: 'Chọn nhóm…', hint: 'Tab trên thanh Tin tiêu điểm mà tin sẽ nằm trong.' })}
       ${field('tag', 'Nhãn nổi bật', { max: L.tag, list: 'vt-tags', ph: 'VD: Vinh danh', hint: 'Ô vàng góc ảnh, tuỳ chọn.' })}
-      ${field('sub', 'Dòng phụ', { wide: true, max: L.sub, ph: 'VD: Hoàn thành trước kế hoạch 2 tuần · 15/10/2026', hint: 'Một dòng dưới tiêu đề. Tên phòng ban được tự thêm vào cuối.' })}
       <div class="f wide" data-f="images"><span class="fl">Ảnh <em>*</em><i class="cnt" data-cnt="images"></i></span>
         <div class="drop" tabindex="0"><input type="file" accept="image/*" multiple hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l4.5-4.5 3 3L16 10l4 4M4 5h16v14H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
@@ -149,9 +147,6 @@
       Object.keys(WARN).forEach((k) => { const e = root.querySelector(`[data-warn="${k}"]`); if (e) e.textContent = WARN[k](getK(r, k) || '', r); });
       const g = CFG.GROUPS.filter((x) => x.name === r.tab)[0];
       root.querySelector('[data-k="tab"]').closest('.f').querySelector('.hint').textContent = g ? g.desc : 'Tab trên thanh Tin tiêu điểm mà tin sẽ nằm trong.';
-      const d = CFG.DEPARTMENTS.filter((x) => x.name === r.dept)[0];
-      root.querySelector('[data-k="sub"]').closest('.f').querySelector('.hint').textContent =
-        'Một dòng dưới tiêu đề. ' + (d && d.short ? `Trên TV tự thêm “ · ${d.short}” vào cuối.` : 'Tên phòng ban được tự thêm vào cuối.');
     }
     function drawThumbs() {
       thumbs.innerHTML = imgs.map((i, k) => `<li><img src="${esc(i.url)}" alt="">

@@ -56,7 +56,7 @@ Mở `https://minhnhat0202-bit.github.io/vt.internal/tv/` trên thiết bị ph�
 2 khung bên phải **Hôm nay** (không có lịch thì chạy châm ngôn), **Sắp diễn ra**, dòng chạy **Đừng bỏ lỡ** phía dưới, đầu phải dòng chạy là mã QR tới trang gửi tin. Mọi nội dung nằm trong `tv/content.js`, hướng dẫn từng trường ghi ngay đầu file.
 
 - **Tin tiêu điểm:** mảng `STORIES`. Thanh tab chia theo 5 nhóm tin (Đời sống, Kinh doanh, Công nghệ, Phong trào, Sự kiện; mô tả ở `GROUPS` trong `news/config.js`), `tab` của tin là tên nhóm; tin chiếu theo thứ tự nhóm, trong nhóm theo thứ tự mảng, nhóm không có tin thì ẩn tab. Tin phòng ban chọn nhóm ở ô "Nhóm tin". Mỗi tin chọn một kiểu nội dung:
-  `source: 'drive'` (ảnh Drive ngẫu nhiên, có thẻ mở đầu pháo hoa), `slides` (nhiều ảnh lần lượt, có bộ đếm, mỗi ảnh có thể có dòng phụ riêng),
+  `source: 'drive'` (ảnh Drive ngẫu nhiên, có thẻ mở đầu pháo hoa), `slides` (nhiều ảnh lần lượt, có bộ đếm),
   `items` (video rồi ảnh), `image` (một poster). `until: 'YYYY-MM-DD'` để tin tự ẩn sau ngày đó.
 - **Kết quả giải đấu:** một tab duy nhất `id: 'ket-qua'`, mỗi môn là một dòng trong `slides` (`src` poster, `sub` = "Môn · Vô địch: …"), 20 giây/poster.
   Môn mới có kết quả: thêm ảnh vào `img/ket-qua-<mon>.jpg` và thêm một dòng vào `slides`, thêm câu vào `ticker` của tin.

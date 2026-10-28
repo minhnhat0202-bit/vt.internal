@@ -9,7 +9,7 @@ window.VTNEWS_CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbyoUnSKvO4CDjDJ6jQX1QQT3XXjl934oC8BgldLoSXtDQIiOJp95RKup6weK96a8Br43Q/exec',
 
   // Danh sách đơn vị trong ô "Phòng ban", theo hệ thống đăng ký Giải thể thao (config.departments, cùng thứ tự).
-  // short = tên ngắn hiện trên TV (dòng phụ, khung lịch).
+  // short = tên ngắn hiện trên TV (khung lịch).
   DEPARTMENTS: [
     { name: 'Ban Giám đốc', short: 'Ban Giám đốc' },
     { name: 'Phòng Giải pháp Băng rộng Cố định và Cơ điện', short: 'P.GPBRCĐ&CĐ' },
