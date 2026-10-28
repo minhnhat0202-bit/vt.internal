@@ -38,6 +38,7 @@ window.VTNEWS_CONFIG = {
   // Số ký tự tối đa, đo theo khung TV 1920×1080 (xem docs trong TRUYEN-THONG.md)
   LIMITS: { title: 60, title2: 44, tab: 22, tag: 14, sub: 70, agenda: 48, place: 40, ticker: 160 },
 
+  TV_FRAME: { w: 1232, h: 638 },   // khung ảnh Tin tiêu điểm trên TV 1920×1080 (px); khung cắt ảnh dùng đúng tỷ lệ này
   DEFAULT_DAYS: 7,      // tin mặc định chiếu 7 ngày kể từ ngày bắt đầu
   MAX_IMAGES: 8,
   IMAGE_EDGE: 1600,     // ảnh được thu về cạnh dài 1600 px, JPG, ngay trên máy người gửi

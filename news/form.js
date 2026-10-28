@@ -108,17 +108,75 @@
         const c = document.createElement('canvas'); c.width = Math.round(W0 * k); c.height = Math.round(H0 * k);
         const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
         URL.revokeObjectURL(u);
-        res({ url: c.toDataURL('image/jpeg', 0.85), w: W0, h: H0, name: (file.name || 'anh').replace(/\.[^.]+$/, '') + '.jpg', isNew: true });
+        const url = c.toDataURL('image/jpeg', 0.85);
+        res({ url, src: url, w: W0, h: H0, name: (file.name || 'anh').replace(/\.[^.]+$/, '') + '.jpg', isNew: true });
       };
       im.onerror = () => { URL.revokeObjectURL(u); rej(new Error(`${file.name}: không đọc được ảnh. Ảnh HEIC từ iPhone hãy chuyển sang JPG trước.`)); };
       im.src = u;
     });
   }
   function imgWarn(i) {
+    if (i.crop) return 'Đã cắt theo khung TV';
     if (!i.w) return '';
-    if (i.w / i.h < 1.2) return 'Ảnh dọc hoặc vuông: TV hiện kèm nền mờ hai bên';
+    if (i.w / i.h < 1.25) return 'Ảnh dọc hoặc vuông: TV hiện kèm nền mờ hai bên. Bấm ✂ để cắt cho kín khung';
     if (Math.max(i.w, i.h) < 1200) return 'Ảnh nhỏ, có thể mờ trên TV';
     return '';
+  }
+
+  // Khung cắt ảnh theo đúng tỷ lệ khung Tin tiêu điểm (CFG.TV_FRAME): kéo để chọn vùng, thanh trượt (hoặc lăn chuột) để phóng to.
+  // Cắt ngay trên máy từ ảnh gốc i.src (chỉ ảnh mới chọn; ảnh đã lên Drive không đọc lại được để vẽ).
+  // Xong: i.url = ảnh đã cắt (JPG, rộng tối đa CFG.IMAGE_EDGE), i.crop = { cx, cy, z } để mở lại đúng vùng cũ.
+  function cropImage(i) {
+    return new Promise((done) => {
+      const FR = CFG.TV_FRAME.w / CFG.TV_FRAME.h;
+      const box = document.createElement('div'); box.className = 'cropper';
+      box.innerHTML = `<div class="cr-card" role="dialog" aria-modal="true" aria-label="Cắt ảnh theo khung TV">
+        <h3>Cắt ảnh theo khung TV</h3><p>Kéo ảnh để chọn vùng hiện trên TV, kéo thanh trượt để phóng to.</p>
+        <div class="cr-stage"><img alt="" draggable="false"></div>
+        <label class="cr-zoom"><span>Thu nhỏ</span><input type="range" min="1" max="4" step="0.01" value="1"><span>Phóng to</span></label>
+        <div class="cr-act"><button type="button" class="btn ghost" data-a="reset">Đặt lại</button><span></span>
+          <button type="button" class="btn" data-a="cancel">Huỷ</button><button type="button" class="btn primary" data-a="ok">Xong</button></div></div>`;
+      document.body.appendChild(box);
+      const stage = box.querySelector('.cr-stage'), img = stage.querySelector('img'), zoom = box.querySelector('input');
+      let IW = 0, IH = 0, z = 1, cx = 0.5, cy = 0.35, drag = null;
+      const dims = () => { const SW = stage.clientWidth, SH = SW / FR, s0 = Math.max(SW / IW, SH / IH); return { SW, SH, s: s0 * z }; };
+      function paint() {
+        const { SW, SH, s } = dims();
+        const hw = SW / s / IW / 2, hh = SH / s / IH / 2;                       // nửa vùng nhìn, tính theo phần ảnh
+        cx = Math.min(1 - hw, Math.max(hw, cx)); cy = Math.min(1 - hh, Math.max(hh, cy));
+        img.style.width = IW * s + 'px'; img.style.height = IH * s + 'px';
+        img.style.transform = `translate(${SW / 2 - cx * IW * s}px, ${SH / 2 - cy * IH * s}px)`;
+      }
+      function close(ok) { removeEventListener('resize', paint); document.removeEventListener('keydown', onKey); box.remove(); done(ok); }
+      function save() {
+        const { SW, SH, s } = dims();
+        const sw = SW / s, sh = SH / s, sx = cx * IW - sw / 2, sy = cy * IH - sh / 2;
+        const ow = Math.min(CFG.IMAGE_EDGE, Math.round(sw)), oh = Math.round(ow / FR);
+        const c = document.createElement('canvas'); c.width = ow; c.height = oh;
+        c.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, ow, oh);
+        i.url = c.toDataURL('image/jpeg', 0.85); i.w = ow; i.h = oh; i.crop = { cx, cy, z };
+        close(true);
+      }
+      const onKey = (e) => { if (e.key === 'Escape') close(false); };
+      document.addEventListener('keydown', onKey);
+      stage.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, cx, cy }; stage.setPointerCapture(e.pointerId); stage.classList.add('drag'); });
+      stage.addEventListener('pointermove', (e) => {
+        if (!drag) return; const { s } = dims();
+        cx = drag.cx - (e.clientX - drag.x) / (IW * s); cy = drag.cy - (e.clientY - drag.y) / (IH * s); paint();
+      });
+      ['pointerup', 'pointercancel'].forEach((t) => stage.addEventListener(t, () => { drag = null; stage.classList.remove('drag'); }));
+      stage.addEventListener('wheel', (e) => { e.preventDefault(); z = Math.min(4, Math.max(1, z * (e.deltaY < 0 ? 1.08 : 1 / 1.08))); zoom.value = z; paint(); }, { passive: false });
+      zoom.addEventListener('input', () => { z = +zoom.value; paint(); });
+      box.addEventListener('click', (e) => {
+        const a = e.target.dataset && e.target.dataset.a;
+        if (e.target === box || a === 'cancel') close(false);
+        else if (a === 'reset') { z = 1; cx = 0.5; cy = 0.35; zoom.value = 1; paint(); }
+        else if (a === 'ok') save();
+      });
+      addEventListener('resize', paint);
+      img.onload = () => { IW = img.naturalWidth; IH = img.naturalHeight; if (i.crop) ({ cx, cy, z } = i.crop); zoom.value = z; paint(); };
+      img.src = i.src || i.url;
+    });
   }
 
   function mount(root, rec, opts = {}) {
@@ -149,9 +207,9 @@
       root.querySelector('[data-k="tab"]').closest('.f').querySelector('.hint').textContent = g ? g.desc : 'Tab trên thanh Tin tiêu điểm mà tin sẽ nằm trong.';
     }
     function drawThumbs() {
-      thumbs.innerHTML = imgs.map((i, k) => `<li><img src="${esc(i.url)}" alt="">
+      thumbs.innerHTML = imgs.map((i, k) => `<li><img src="${esc(i.url)}" alt=""${i.w && i.w / i.h >= 1.25 && i.w / i.h <= 2.6 ? ' class="fill"' : ''}>
         <span class="n">${k + 1}</span>
-        <div class="tb"><button type="button" data-mv="-1" title="Lên trước" ${k ? '' : 'disabled'}>‹</button><button type="button" data-mv="1" title="Ra sau" ${k < imgs.length - 1 ? '' : 'disabled'}>›</button><button type="button" data-rm title="Bỏ ảnh">×</button></div>
+        <div class="tb"><button type="button" data-mv="-1" title="Lên trước" ${k ? '' : 'disabled'}>‹</button><button type="button" data-mv="1" title="Ra sau" ${k < imgs.length - 1 ? '' : 'disabled'}>›</button>${i.isNew ? '<button type="button" data-crop title="Cắt ảnh theo khung TV">✂</button>' : ''}<button type="button" data-rm title="Bỏ ảnh">×</button></div>
         ${imgWarn(i) ? `<small>${imgWarn(i)}</small>` : ''}</li>`).join('');
       drop.classList.toggle('full', imgs.length >= CFG.MAX_IMAGES);
       sync();
@@ -181,6 +239,7 @@
     thumbs.addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
       const k = Array.from(thumbs.children).indexOf(b.closest('li'));
+      if (b.hasAttribute('data-crop')) { cropImage(imgs[k]).then((ok) => { if (ok) { drawThumbs(); changed(); } }); return; }
       if (b.hasAttribute('data-rm')) imgs.splice(k, 1);
       else { const j = k + +b.dataset.mv; [imgs[k], imgs[j]] = [imgs[j], imgs[k]]; }
       drawThumbs(); changed();
@@ -191,7 +250,7 @@
     function get() {
       const r = JSON.parse(JSON.stringify(base));
       $$('[data-k]').forEach((e) => putK(r, e.dataset.k, e.type === 'checkbox' ? e.checked : e.type === 'number' ? (e.value ? +e.value : '') : e.value.trim()));
-      r.images = imgs.map((i) => (i.isNew ? { url: i.url, w: i.w, h: i.h, isNew: true, name: i.name } : i));
+      r.images = imgs.map((i) => (i.isNew ? { url: i.url, w: i.w, h: i.h, isNew: true, name: i.name } : i));   // src, crop chỉ ở trên máy
       return r;
     }
     // Dạng gửi lên máy chủ: ảnh mới tách ra files, chỗ của nó trong images ghi { new: k }
