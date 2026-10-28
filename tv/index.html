@@ -92,7 +92,9 @@
 
   /* ticker */
   .ticker { position: absolute; left: 0; right: 0; bottom: 0; height: 116px; display: flex; background: rgba(10,9,12,.88); border-top: 1.5px solid rgba(255,255,255,.16); backdrop-filter: blur(20px); z-index: 2; }
-  .ticker .tag { flex: 0 0 auto; display: flex; align-items: center; padding: 0 60px 0 40px; background: var(--red); font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .1em; text-transform: uppercase; -webkit-clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); clip-path: polygon(0 0, 100% 0, calc(100% - 36px) 100%, 0 100%); box-shadow: 0 0 30px rgba(238,0,51,.6); }
+  .ticker .tag { flex: 0 0 auto; display: flex; align-items: center; padding: 0 60px 0 40px; position: relative; z-index: 0; font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: .1em; text-transform: uppercase; }
+  /* Vát cạnh phải bằng nền nghiêng thay cho clip-path có calc(): trình duyệt TV đời cũ bỏ qua cả clip-path nên nhãn thành hình chữ nhật. 17.24deg = atan(36/116) */
+  .ticker .tag::before { content: ""; position: absolute; top: 0; bottom: 0; left: -60px; right: 0; z-index: -1; background: var(--red); -webkit-transform-origin: 100% 0; transform-origin: 100% 0; -webkit-transform: skewX(-17.24deg); transform: skewX(-17.24deg); }
   .ticker .run { flex: 1; overflow: hidden; display: flex; align-items: center; font-size: 40px; position: relative; }
   .ticker .run { -webkit-mask-image: linear-gradient(90deg, transparent, #000 70px, #000 calc(100% - 50px), transparent); mask-image: linear-gradient(90deg, transparent, #000 70px, #000 calc(100% - 50px), transparent); }
   .ticker .run div { white-space: nowrap; display: flex; padding-left: 16px; animation: run 48s linear infinite; }
