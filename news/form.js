@@ -9,7 +9,7 @@
 
   // Cảnh báo mềm: vẫn gửi được nhưng nhắc người gửi điều sẽ xảy ra trên TV
   const WARN = {
-    title: (v) => (v.length > L.title2 ? `Dài hơn ${L.title2} ký tự: nếu được đưa lên khung lớn sẽ xuống 2 dòng.` : ''),
+    title: (v) => (v.length > L.title2 ? `Dài hơn ${L.title2} ký tự: trên TV sẽ xuống 2 dòng.` : ''),
     sub: (v, r) => (v.length + N.deptShort(r.dept).length > 90 ? 'Dòng phụ kèm tên phòng có thể bị cắt trên TV.' : '')
   };
 
@@ -27,20 +27,21 @@
   const MAP = `<svg class="tvmap" viewBox="0 0 192 108" role="img" aria-label="Sơ đồ màn hình Bản tin TV">
     <rect x="0" y="0" width="192" height="108" rx="4" class="z-bg"/>
     <rect x="6" y="3" width="110" height="5" rx="1" class="z-dim"/>
-    <rect x="6" y="13" width="124" height="78" rx="4" class="z z-big"/>
-    <text x="68" y="55" class="z-t">Tiêu điểm</text>
-    <rect x="135" y="13" width="51" height="30" rx="3" class="z" data-z="story"/>
-    <text x="160.5" y="30.5" class="z-t" data-z-t="story">Tin các phòng</text>
-    <rect x="135" y="46" width="51" height="21" rx="3" class="z" data-z="agenda"/>
-    <rect x="135" y="70" width="51" height="21" rx="3" class="z" data-z="agenda"/>
-    <text x="160.5" y="70.5" class="z-t" data-z-t="agenda">Lịch</text>
-    <rect x="0" y="96" width="192" height="12" class="z" data-z="ticker"/>
-    <text x="96" y="104.5" class="z-t" data-z-t="ticker">Dòng chạy</text>
+    <rect x="6" y="13" width="124" height="78" rx="4" class="z z-big" data-z="story"/>
+    <text x="68" y="55" class="z-t" data-z-t="story" style="font-size:7px">Tin tiêu điểm</text>
+    <rect x="135" y="13" width="51" height="45" rx="3" class="z" data-z="agenda"/>
+    <text x="160.5" y="37.5" class="z-t" data-z-t="agenda">Hôm nay</text>
+    <rect x="135" y="61" width="51" height="30" rx="3" class="z" data-z="agenda"/>
+    <text x="160.5" y="78" class="z-t" data-z-t="agenda">Sắp diễn ra</text>
+    <rect x="0" y="96" width="140" height="12" class="z" data-z="ticker"/>
+    <text x="70" y="104.5" class="z-t" data-z-t="ticker">Dòng chạy</text>
+    <rect x="140" y="96" width="52" height="12" class="z-dim"/>
+    <text x="166" y="104" class="z-t" style="font-size:4.6px">Mã QR gửi tin</text>
   </svg>`;
 
   const WHERE = [
-    ['story', 'Tin kèm ảnh', 'Khung Tin các phòng bên phải: ảnh + tiêu đề + tên phòng. Tin nổi bật được Ban Truyền thông đưa lên khung lớn Tiêu điểm.'],
-    ['agenda', 'Lịch sự kiện', 'Hai khung Hôm nay và Sắp diễn ra. Dùng cho buổi họp, hội thảo, giải đấu có ngày giờ.'],
+    ['story', 'Tin kèm ảnh', 'Khung lớn Tin tiêu điểm: chiếu lần lượt các ảnh kèm tiêu đề và tên phòng, nối sau các tin chính của Trung tâm.'],
+    ['agenda', 'Lịch sự kiện', 'Hai khung Hôm nay và Sắp diễn ra bên phải. Dùng cho buổi họp, hội thảo, giải đấu có ngày giờ.'],
     ['ticker', 'Dòng chạy', 'Một câu chạy ngang cuối màn hình. Dùng cho thông báo ngắn, chúc mừng.']
   ];
 
@@ -64,14 +65,14 @@
 
     <section class="card" data-sec="story" hidden><h2>Tin kèm ảnh</h2><div class="grid">
       ${field('title', 'Tiêu đề', { req: true, wide: true, max: L.title, ph: 'VD: Phòng Hạ tầng Cloud hoàn thành chuyển đổi 500 máy chủ', hint: 'Viết như tít báo: ai, làm gì. Trên TV hiện tối đa 2 dòng.' })}
-      ${field('tab', 'Tên ngắn trên thanh tin', { max: L.tab, ph: 'Để trống = lấy theo tiêu đề', hint: 'Dùng khi tin được đưa lên khung lớn, khoảng 3 đến 4 chữ.' })}
+      ${field('tab', 'Tên ngắn trên thanh tin', { max: L.tab, ph: 'Để trống = lấy theo tiêu đề', hint: 'Hiện trên thanh tab của khung Tin tiêu điểm, khoảng 3 đến 4 chữ.' })}
       ${field('tag', 'Nhãn nổi bật', { max: L.tag, list: 'vt-tags', ph: 'VD: Vinh danh', hint: 'Ô vàng góc ảnh, tuỳ chọn.' })}
       ${field('sub', 'Dòng phụ', { wide: true, max: L.sub, ph: 'VD: Hoàn thành trước kế hoạch 2 tuần · 15/10/2026', hint: 'Một dòng dưới tiêu đề. Tên phòng ban được tự thêm vào cuối.' })}
       <div class="f wide" data-f="images"><span class="fl">Ảnh <em>*</em><i class="cnt" data-cnt="images"></i></span>
         <div class="drop" tabindex="0"><input type="file" accept="image/*" multiple hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l4.5-4.5 3 3L16 10l4 4M4 5h16v14H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
           <span><b>Kéo ảnh vào đây</b>, dán (Ctrl+V) hoặc <u>chọn từ máy</u></span>
-          <small>Tối đa ${CFG.MAX_IMAGES} ảnh · ảnh ngang 16:9 đẹp nhất · ảnh đầu tiên là ảnh đại diện trên TV</small></div>
+          <small>Tối đa ${CFG.MAX_IMAGES} ảnh · ảnh ngang 16:9 đẹp nhất · TV chiếu lần lượt, ảnh đầu tiên lên trước</small></div>
         <ol class="thumbs"></ol><small class="warn" data-warn="images"></small></div>
       ${field('videoLink', 'Link video (nếu có)', { wide: true, type: 'url', ph: 'Link Google Drive, OneDrive…', hint: 'Video gửi qua link; Ban Truyền thông sẽ chuyển định dạng và đưa lên.' })}
     </div></section>
@@ -95,8 +96,8 @@
     </div></section>
     ${admin ? `
     <section class="card admin" data-sec="admin"><h2>Biên tập</h2><div class="grid">
-      <label class="f check"><input type="checkbox" data-k="pin"><span><b>Đưa lên khung lớn Tiêu điểm</b><small>Mặc định tin nằm ở khung Tin các phòng (1 ảnh, 10 giây). Chọn cho tin nổi bật: chiếu cả bộ ảnh, đứng đầu khung lớn.</small></span></label>
-      ${field('slideSeconds', 'Giây mỗi ảnh', { type: 'number', min: 4, maxNum: 30, ph: String(CFG.SLIDE_SECONDS), hint: 'Khi tin ở khung lớn và có nhiều ảnh.' })}
+      <label class="f check"><input type="checkbox" data-k="pin"><span><b>Ghim lên đầu Tin tiêu điểm</b><small>Mặc định tin chiếu nối sau các tin chính của Trung tâm. Chọn cho tin nổi bật để tin đứng đầu khung.</small></span></label>
+      ${field('slideSeconds', 'Giây mỗi ảnh', { type: 'number', min: 4, maxNum: 30, ph: String(CFG.SLIDE_SECONDS), hint: 'Khi tin có nhiều ảnh.' })}
       ${field('note', 'Phản hồi cho đơn vị', { wide: true, rows: 2, max: 500, ph: 'Bắt buộc khi từ chối. Gửi kèm email thông báo nếu đơn vị để lại email.' })}
     </div></section>` : ''}`;
   }

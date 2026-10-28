@@ -53,7 +53,7 @@ liên kết "Xem sơ đồ đầy đủ" của từng môn sẽ dẫn đúng san
 ## Bản tin TV (`tv/`)
 
 Mở `https://minhnhat0202-bit.github.io/vt.internal/tv/` trên thiết bị phát. Bố cục một màn hình cố định: thanh tiêu đề có ngày giờ, khung lớn **Tin tiêu điểm** bên trái,
-3 khung bên phải **Tin các phòng** (tin phòng ban đã duyệt, mỗi tin 10 giây; chưa có tin thì hiện mã QR tới trang gửi tin), **Hôm nay**, **Sắp diễn ra**, dòng chạy **Đừng bỏ lỡ** phía dưới. Mọi nội dung nằm trong `tv/content.js`, hướng dẫn từng trường ghi ngay đầu file.
+2 khung bên phải **Hôm nay** (không có lịch thì chạy châm ngôn), **Sắp diễn ra**, dòng chạy **Đừng bỏ lỡ** phía dưới, đầu phải dòng chạy là mã QR tới trang gửi tin. Mọi nội dung nằm trong `tv/content.js`, hướng dẫn từng trường ghi ngay đầu file.
 
 - **Tin tiêu điểm:** mảng `STORIES`, thứ tự mảng là thứ tự chiếu. Thanh story tự chia theo số tin. Mỗi tin chọn một kiểu nội dung:
   `source: 'drive'` (ảnh Drive ngẫu nhiên, có thẻ mở đầu pháo hoa), `slides` (nhiều ảnh lần lượt, có bộ đếm, mỗi ảnh có thể có dòng phụ riêng),
@@ -79,9 +79,9 @@ Mở `https://minhnhat0202-bit.github.io/vt.internal/tv/` trên thiết bị ph�
 | Gửi tin | `…/vt.internal/news/` | Các phòng ban: điền mẫu, đính kèm ảnh, có khung xem trước đúng giao diện TV |
 | Duyệt tin | `…/vt.internal/news/duyet.html` | Ban Truyền thông: sửa câu chữ, xếp, bỏ ảnh, ghim, đặt ngày chiếu, duyệt, từ chối, gỡ |
 
-- Đơn vị chọn tin hiện ở đâu: **Tin tiêu điểm** (tiêu đề + ảnh), **Lịch sự kiện** (3 khung phải), **Dòng chạy**; một tin có thể chọn nhiều nơi.
+- Đơn vị chọn tin hiện ở đâu: **Tin tiêu điểm** (tiêu đề + ảnh), **Lịch sự kiện** (2 khung phải), **Dòng chạy**; một tin có thể chọn nhiều nơi.
 - Ảnh được thu về cạnh dài 1600 px JPG ngay trên máy người gửi, lưu vào thư mục Drive của Apps Script. Video gửi qua link, Ban Truyền thông xử lý tay như tin Daily News.
-- Tin đã duyệt vào khung **Tin các phòng** (ảnh đầu tiên + tiêu đề + tên phòng). Tin admin chọn "Đưa lên khung lớn Tiêu điểm" thì chiếu cả bộ ảnh, đứng đầu khung lớn. Tin tự rời TV sau ngày "Chiếu đến hết ngày". Duyệt, sửa, gỡ xong thì TV tự tải lại trong khoảng 2 phút.
+- Tin đã duyệt chiếu trong khung lớn **Tin tiêu điểm** (cả bộ ảnh + tiêu đề + tên phòng), nối sau các tin chính trong `content.js`. Tin admin chọn "Ghim lên đầu Tin tiêu điểm" thì đứng đầu khung. Tin tự rời TV sau ngày "Chiếu đến hết ngày". Duyệt, sửa, gỡ xong thì TV tự tải lại trong khoảng 2 phút.
 - Duyệt hoặc từ chối: nếu đơn vị để lại email, Apps Script gửi email báo kết quả kèm "Phản hồi cho đơn vị". Có tin mới: email về `ADMIN_EMAIL`, link mở thẳng tin đó (`duyet.html#<mã tin>`).
 - **Cài máy chủ một lần:** làm theo 4 bước ở đầu `apps-script/news.gs`, rồi dán URL `/exec` vào `API_URL` trong `news/config.js`, commit, push.
   Khi `API_URL` còn trống, hai trang chạy ở **chế độ thử**: tin lưu trong trình duyệt đang mở, chỉ để xem thử trên một máy.
