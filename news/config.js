@@ -22,6 +22,16 @@ window.VTNEWS_CONFIG = {
     { name: 'Phòng Trí tuệ Nhân tạo', short: 'P.TNTT' }
   ],
 
+  // Nhóm tin = các tab trên thanh Tin tiêu điểm, theo đúng thứ tự này. Tin lưu tên nhóm vào trường tab.
+  // Nhóm không có tin thì TV tự ẩn tab. Tin có tab không thuộc danh sách thì vào nhóm cuối (Sự kiện).
+  GROUPS: [
+    { name: 'Đời sống', desc: 'Sinh nhật, cưới hỏi, hiếu hỉ, chào đón thành viên mới, lời chúc ngày lễ (20/10, 8/3…) và chuyện vui của các phòng.' },
+    { name: 'Kinh doanh', desc: 'Hợp đồng và khách hàng mới, doanh thu, hoàn thành chỉ tiêu, dự án nghiệm thu, bàn giao.' },
+    { name: 'Công nghệ', desc: 'Sản phẩm, giải pháp mới, sáng kiến cải tiến, nghiên cứu, chuyển đổi số, chia sẻ chuyên môn.' },
+    { name: 'Phong trào', desc: 'Thể thao, văn nghệ, dã ngoại, thi đua, hoạt động Công đoàn, Đoàn Thanh niên, thiện nguyện.' },
+    { name: 'Sự kiện', desc: 'Hội nghị, lễ ký kết, đón đoàn, lễ kỷ niệm; vinh danh chính thống: giải thưởng, chứng nhận quốc tế, thành tựu công nghệ được công nhận.' }
+  ],
+
   // Nhãn vàng gợi ý cho Tin tiêu điểm
   TAGS: ['Vinh danh', 'Sự kiện', 'Thông báo', 'Chúc mừng', 'Hoạt động', 'Kết quả', 'Tuyển dụng'],
 

@@ -65,7 +65,7 @@
 
     <section class="card" data-sec="story" hidden><h2>Tin kèm ảnh</h2><div class="grid">
       ${field('title', 'Tiêu đề', { req: true, wide: true, max: L.title, ph: 'VD: Phòng Hạ tầng Cloud hoàn thành chuyển đổi 500 máy chủ', hint: 'Viết như tít báo: ai, làm gì. Trên TV hiện tối đa 2 dòng.' })}
-      ${field('tab', 'Tên ngắn trên thanh tin', { max: L.tab, ph: 'Để trống = lấy theo tiêu đề', hint: 'Hiện trên thanh tab của khung Tin tiêu điểm, khoảng 3 đến 4 chữ.' })}
+      ${field('tab', 'Nhóm tin', { req: true, options: CFG.GROUPS.map((g) => g.name), ph: 'Chọn nhóm…', hint: 'Tab trên thanh Tin tiêu điểm mà tin sẽ nằm trong.' })}
       ${field('tag', 'Nhãn nổi bật', { max: L.tag, list: 'vt-tags', ph: 'VD: Vinh danh', hint: 'Ô vàng góc ảnh, tuỳ chọn.' })}
       ${field('sub', 'Dòng phụ', { wide: true, max: L.sub, ph: 'VD: Hoàn thành trước kế hoạch 2 tuần · 15/10/2026', hint: 'Một dòng dưới tiêu đề. Tên phòng ban được tự thêm vào cuối.' })}
       <div class="f wide" data-f="images"><span class="fl">Ảnh <em>*</em><i class="cnt" data-cnt="images"></i></span>
@@ -147,7 +147,8 @@
         e.textContent = n ? n + ' / ' + m : ''; e.classList.toggle('hi', n >= m * 0.9);
       });
       Object.keys(WARN).forEach((k) => { const e = root.querySelector(`[data-warn="${k}"]`); if (e) e.textContent = WARN[k](getK(r, k) || '', r); });
-      const tab = root.querySelector('[data-k="tab"]'); tab.placeholder = r.title ? r.title.slice(0, L.tab) : 'Để trống = lấy theo tiêu đề';
+      const g = CFG.GROUPS.filter((x) => x.name === r.tab)[0];
+      root.querySelector('[data-k="tab"]').closest('.f').querySelector('.hint').textContent = g ? g.desc : 'Tab trên thanh Tin tiêu điểm mà tin sẽ nằm trong.';
       const d = CFG.DEPARTMENTS.filter((x) => x.name === r.dept)[0];
       root.querySelector('[data-k="sub"]').closest('.f').querySelector('.hint').textContent =
         'Một dòng dưới tiêu đề. ' + (d && d.short ? `Trên TV tự thêm “ · ${d.short}” vào cuối.` : 'Tên phòng ban được tự thêm vào cuối.');
@@ -226,7 +227,7 @@
       if (!r.sender) bad('sender', 'Điền tên người gửi');
       const w = r.where || {};
       if (!w.story && !w.agenda && !w.ticker) { errs.push('Chọn ít nhất một vị trí trên TV'); $$('.opt').forEach((e) => e.classList.add('err')); }
-      if (w.story) { if (!r.title) bad('title', 'Điền tiêu đề tin'); if (!imgs.length) bad('images', 'Tin kèm ảnh cần ít nhất 1 ảnh'); }
+      if (w.story) { if (!r.title) bad('title', 'Điền tiêu đề tin'); if (!CFG.GROUPS.some((x) => x.name === r.tab)) bad('tab', 'Chọn nhóm tin'); if (!imgs.length) bad('images', 'Tin kèm ảnh cần ít nhất 1 ảnh'); }
       if (w.agenda) {
         if (!r.event.title) bad('event.title', 'Điền tên sự kiện');
         if (!r.event.from) bad('event.from', 'Chọn ngày bắt đầu sự kiện');

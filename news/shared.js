@@ -5,7 +5,7 @@
 //   id, status ('pending' | 'approved' | 'rejected' | 'archived'), createdAt, updatedAt
 //   dept, sender, contact, message (lời nhắn cho Ban Truyền thông)
 //   where: { story, agenda, ticker }       vị trí trên TV đơn vị chọn
-//   title, tab, tag, sub, images: [{ url, id?, w, h }], videoLink
+//   title, tab (tên nhóm tin trong CFG.GROUPS = tab trên TV), tag, sub, images: [{ url, id?, w, h }], videoLink
 //   event: { title, from, to, time, place }
 //   ticker, showFrom, showUntil ('YYYY-MM-DD')
 //   pin, slideSeconds, note (admin)

@@ -9,8 +9,9 @@ window.TV = {
   // Thời lượng mặc định mỗi tin (giây), khi tin không khai seconds.
   STORY_SECONDS: 60,
 
-  // ---- Tin tiêu điểm: thứ tự mảng = thứ tự chiếu. Mỗi tin là một ô trên thanh story. ----
-  //   id, tab (tên ngắn trên thanh story), title (tiêu đề), tag (nhãn vàng, tuỳ chọn), sub (dòng phụ, tuỳ chọn)
+  // ---- Tin tiêu điểm: tin xếp theo nhóm, trong nhóm theo thứ tự mảng. ----
+  //   tab = nhóm tin, một trong: 'Đời sống', 'Kinh doanh', 'Công nghệ', 'Phong trào', 'Sự kiện' (mô tả nhóm: GROUPS trong news/config.js)
+  //   id, title (tiêu đề), tag (nhãn vàng, tuỳ chọn), sub (dòng phụ, tuỳ chọn)
   //   seconds: thời lượng riêng · ticker: câu (hoặc mảng câu) thêm vào dòng chạy
   //   until: 'YYYY-MM-DD' = tự ẩn tin sau ngày này (tuỳ chọn)
   // Chọn MỘT kiểu nội dung:
@@ -22,18 +23,17 @@ window.TV = {
   //   items: [{ type: 'video', src }, { type: 'image', src, seconds? }]   video phát hết thì sang mục kế
   //   image: 'img/...'  một poster tĩnh
   STORIES: [
-    { id: 'dam-cuoi-nam-ha', tab: 'Sự kiện hot', title: 'Sự kiện hot', until: '2026-11-02',
-      slideSeconds: 15,
-      slides: [
-        { src: 'img/daily-2026-10-26.jpg?v=3', sub: 'Đám cưới Phương Nam & Việt Hà · 08:30 Thứ Tư 28/10', until: '2026-10-28' },
-        { src: 'img/daily-2026-10-27-1.jpg', sub: 'VTNet đạt ANL 4.0 TM Forum: Tối ưu năng lượng & chất lượng', until: '2026-11-02' }
-      ],
+    { id: 'dam-cuoi-nam-ha', tab: 'Đời sống', title: 'Đám cưới Phương Nam & Việt Hà', sub: '08:30 Thứ Tư 28/10', until: '2026-10-28', seconds: 15,
+      image: 'img/daily-2026-10-26.jpg?v=3' },
+
+    { id: 'anl-4', tab: 'Sự kiện', title: 'VTNet đạt ANL 4.0 TM Forum', tag: 'Vinh danh', sub: 'Tối ưu năng lượng & chất lượng', until: '2026-11-02', seconds: 15,
+      image: 'img/daily-2026-10-27-1.jpg',
       ticker: 'VTNet đạt ANL 4.0 TM Forum: Tối ưu năng lượng & chất lượng' },
 
-    { id: 'recap-the-thao', tab: 'Recap Giải Thể thao', title: 'Recap Giải Thể thao tháng 10', seconds: 66,
+    { id: 'recap-the-thao', tab: 'Phong trào', title: 'Recap Giải Thể thao tháng 10', seconds: 66,
       items: [{ type: 'video', src: 'media/daily-2026-10-27.mp4?v=2' }] },
 
-    { id: 'phu-nu-20-10', tab: 'Ngày Phụ nữ Việt Nam', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
+    { id: 'phu-nu-20-10', tab: 'Đời sống', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
       until: '2026-10-25', slideSeconds: 8,
       // Gộp cả tin P. Kiểm soát Chất lượng gửi qua news/ (ảnh 1, 2) và ảnh buổi chúc mừng 20/10 (ảnh 3 đến 10)
       slides: [{ src: 'img/daily-2026-10-19.jpg?v=2' }].concat([1, 2, 3, 4, 11, 6, 7, 8, 9, 10].map(function (n) {
@@ -41,7 +41,7 @@ window.TV = {
       ticker: 'Chúc mừng Ngày Phụ nữ Việt Nam 20/10 · Yêu thương & Tôn vinh' },
 
     // Một tab gộp kết quả mọi giải đã xong. Môn mới có kết quả: thêm một dòng vào slides.
-    { id: 'ket-qua', tab: 'Giải Thể thao tháng 10', title: 'Giải Thể thao tháng 10', slideSeconds: 20,
+    { id: 'ket-qua', tab: 'Phong trào', title: 'Giải Thể thao tháng 10', slideSeconds: 20,
       // 6 ảnh lễ bế mạc, trao giải tối 23/10 (thay banner Chung kết & liên hoan), mỗi ảnh 8 giây; poster vô địch giữ 20 giây
       slides: [1, 2, 3, 4, 5, 6].map(function (n) {
         return { src: 'img/daily-2026-10-23-' + n + '.jpg', seconds: 8, sub: 'Bế mạc & trao giải · Thứ Sáu 23/10 · Sân bóng Đình Thôn 2' }; }).concat([
@@ -52,7 +52,7 @@ window.TV = {
       ticker: ['Giải Thể thao tháng 10 đã bế mạc tối Thứ Sáu 23/10 · Chúc mừng các đội và vận động viên đạt giải', 'Vô địch Cầu lông: Hiếu – Thảo', 'Vô địch PES: Hiếu & Trung',
         'Kết quả Bida · Nhất: Lê Văn Thành & Trần Phan Huy Anh · Nhì: Lê Ngọc Thái & Phạm Gia Khiêm · Ba: Nguyễn Nhật Minh & Lê Quốc Đạt · Tư: Nguyễn Xuân Huy & Lê Hải Sơn'] },
 
-    { id: 'vda-2026', tab: 'Giải thưởng CĐS 2026', title: 'Giải thưởng Chuyển đổi số Việt Nam 2026', tag: 'Vinh danh',
+    { id: 'vda-2026', tab: 'Sự kiện', title: 'Giải thưởng Chuyển đổi số Việt Nam 2026', tag: 'Vinh danh',
       sub: 'Hệ thống Quản lý vùng phủ mạng vô tuyến · Viettel Networks',
       items: [{ type: 'video', src: 'media/daily-2026-10-14.mp4' }, { type: 'image', src: 'img/daily-2026-10-14.jpg', seconds: 10 },
         { type: 'image', src: 'img/daily-2026-10-15-1.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-2.jpg', seconds: 7 },

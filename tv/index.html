@@ -46,15 +46,16 @@
   .panel .lbl { position: absolute; left: 26px; top: -24px; padding: 9px 22px; background: var(--red); color: #fff; font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .1em; text-transform: uppercase; border-radius: 8px; box-shadow: 0 0 24px rgba(238,0,51,.55); white-space: nowrap; }
   .feature { padding: 78px 28px 22px; margin-top: -16px; }
   .feature > .lbl { top: -8px; }
-  /* thanh story: 1 ô / tin, cùng hàng với nhãn Tin tiêu điểm; tối đa 4 ô hiển thị, còn lại cuộn ngang */
-  .feature .tabs { position: absolute; left: 330px; right: 28px; top: 26px; overflow: hidden; z-index: 2; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
+  /* thanh tab: 1 ô / nhóm tin (news/config.js GROUPS), cùng hàng với nhãn Tin tiêu điểm, các ô chia đều bề ngang */
+  .feature .tabs { position: absolute; left: 330px; right: 28px; top: 26px; overflow: hidden; z-index: 2; }
   .feature .tabs .track { display: flex; gap: 14px; transition: transform .6s ease; will-change: transform; align-items: stretch; }
-  .feature .tab { flex: 0 0 calc((100% - 14px * 3) / 4); min-width: 0; font-size: 19px; font-weight: 500; color: var(--grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
-  .feature .tab i { display: block; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; margin-top: 9px; }
-  .feature .tab i b { display: block; height: 100%; width: 0; background: #e3122b; }
+  .feature .tab { flex: 1 1 0; min-width: 0; font-size: 21px; font-weight: 500; color: var(--grey); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+  /* mỗi tab là một nhóm tin; vạch dưới tab chia đoạn, mỗi đoạn một tin */
+  .feature .tab i { display: flex; gap: 4px; height: 5px; margin-top: 9px; }
+  .feature .tab s { flex: 1 1 0; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; }
+  .feature .tab s b { display: block; height: 100%; width: 0; background: #e3122b; }
   .feature .tab.on { color: #fff; }
-  .feature .tab.done i b { width: 100%; background: rgba(255,255,255,.55); }
-  .feature .tabs .tab-count { flex: 0 0 auto; padding: 0 14px; display: flex; align-items: center; font-size: 18px; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+  .feature .tab s.done b { width: 100%; background: rgba(255,255,255,.55); }
   /* dòng tiêu đề: tiêu đề in hoa, nhãn (tuỳ chọn), dòng phụ */
   .feature .headline { margin: 0 0 14px; display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; column-gap: 20px; row-gap: 4px; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.15; text-transform: uppercase; letter-spacing: .01em; text-shadow: 0 0 24px rgba(238,0,51,.45); }
   .feature .headline .tag { font-size: 18px; font-weight: 700; letter-spacing: .12em; color: #1a1204; background: #f2c14e; border-radius: 6px; padding: 8px 12px; align-self: center; text-shadow: none; line-height: 1; }
@@ -178,9 +179,13 @@ function bootTV(PREVIEW) {
   // Tin còn hạn (until), lọc lúc mở trang; trang tự tải lại mỗi sáng nên tin hết hạn tự rơi ra.
   // Tin phòng ban thường (news/, DEPT_NEWS) chiếu nối cuối Tin tiêu điểm vì không còn khung Tin các phòng
   // Ảnh trong slides cũng có thể khai until riêng: hết hạn thì ảnh đó tự ẩn, tin vẫn chạy các ảnh còn lại
+  // Tab = nhóm tin (news/config.js GROUPS, theo trường tab của tin); tin xếp theo thứ tự nhóm, trong nhóm giữ thứ tự gốc
+  const GROUPS = ((window.VTNEWS_CONFIG || {}).GROUPS || []).map((g) => g.name);
+  const groupOf = (st) => { const k = GROUPS.indexOf(st.tab); return k < 0 ? GROUPS.length - 1 : k; };
   const STORIES = (C.STORIES || []).concat(C.DEPT_NEWS || []).filter(alive)
     .map((st) => (st.slides ? Object.assign({}, st, { slides: st.slides.filter(alive) }) : st))
-    .filter((st) => !st.slides || st.slides.length);
+    .filter((st) => !st.slides || st.slides.length)
+    .map((st, k) => ({ st, k, g: groupOf(st) })).sort((a, b) => a.g - b.g || a.k - b.k).map((x) => Object.assign({}, x.st, { group: x.g }));
   const AGENDA = (C.AGENDA || []).slice().sort((a, b) => a.from.localeCompare(b.from));
   const status = (it) => { const t = todayKey(); const end = it.to || it.from; return end < t ? 'done' : it.from <= t ? 'now' : 'next'; };
 
@@ -386,9 +391,13 @@ function bootTV(PREVIEW) {
     const box = $('tabs');
     let track = box.querySelector('.track');
     if (!track) { track = document.createElement('div'); track.className = 'track'; box.appendChild(track); }
-    track.innerHTML = STORIES.map((st, j) => `<div class="tab ${j === sIdx ? 'on' : j < sIdx ? 'done' : ''}">${esc(st.tab)}<i><b${j === sIdx ? ' id="pb"' : ''}></b></i></div>`).join('') + `<div class="tab-count">${sIdx + 1} / ${STORIES.length}</div>`;
-    // kéo tab đang chiếu vào vùng nhìn: tối đa 4 ô, ưu tiên giữ tab đang chiếu ở vị trí 2–3
-    const on = track.children[sIdx]; if (!on) return;
+    const gs = [];
+    STORIES.forEach((st, j) => { const last = gs[gs.length - 1]; if (last && last.g === st.group) last.js.push(j); else gs.push({ g: st.group, js: [j] }); });
+    const cur = STORIES[sIdx].group;
+    track.innerHTML = gs.map((x) => `<div class="tab${x.g === cur ? ' on' : ''}">${esc(GROUPS[x.g] || '')}<i>${x.js.map((j) =>
+      `<s class="${j < sIdx ? 'done' : ''}"><b${j === sIdx ? ' id="pb"' : ''}></b></s>`).join('')}</i></div>`).join('');
+    // kéo tab đang chiếu vào vùng nhìn khi tab tràn
+    const on = track.querySelector('.tab.on'); if (!on) return;
     const W = box.clientWidth, over = track.scrollWidth - W;
     const dx = over > 0 ? Math.max(0, Math.min(on.offsetLeft - W * 0.4, over)) : 0;
     track.style.transform = 'translateX(' + (-dx) + 'px)';
