@@ -57,9 +57,8 @@
   .feature .tab.on { color: #fff; }
   .feature .tab s.done b { width: 100%; background: rgba(255,255,255,.55); }
   /* dòng tiêu đề: tiêu đề in hoa, nhãn (tuỳ chọn), dòng phụ */
-  .feature .headline { margin: 0 0 14px; display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; column-gap: 20px; row-gap: 4px; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.15; text-transform: uppercase; letter-spacing: .01em; text-shadow: 0 0 24px rgba(238,0,51,.45); }
+  .feature .headline { margin: 0 0 14px; display: flex; align-items: baseline; justify-content: flex-start; flex-wrap: wrap; column-gap: 20px; row-gap: 4px; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.15; text-transform: uppercase; letter-spacing: .01em; text-shadow: 0 0 24px rgba(238,0,51,.45); }
   .feature .headline .tag { font-size: 18px; font-weight: 700; letter-spacing: .12em; color: #1a1204; background: #f2c14e; border-radius: 6px; padding: 8px 12px; align-self: center; text-shadow: none; line-height: 1; }
-  .feature .headline small { font-family: var(--body); font-weight: 400; font-size: 24px; text-transform: none; color: var(--ink-2); letter-spacing: 0; white-space: nowrap; text-shadow: none; }
   .fade { animation: fd .7s ease both; }
   @keyframes fd { from { opacity: 0; transform: translateY(10px); } }
   .media { position: relative; flex: 1; min-height: 0; border-radius: 20px; overflow: hidden; background: #000; }
@@ -402,8 +401,9 @@ function bootTV(PREVIEW) {
     const dx = over > 0 ? Math.max(0, Math.min(on.offsetLeft - W * 0.4, over)) : 0;
     track.style.transform = 'translateX(' + (-dx) + 'px)';
   }
-  function renderHead(st, sub) {
-    $('dash-headline').innerHTML = `<span>${esc(st.title)}</span>${st.tag ? `<span class="tag">${esc(st.tag)}</span>` : ''}${sub ? `<small>${esc(sub)}</small>` : ''}`;
+  // Tiêu đề căn trái, thẳng mép ảnh; dòng phụ (sub) không còn hiện trên TV
+  function renderHead(st) {
+    $('dash-headline').innerHTML = `<span>${esc(st.title)}</span>${st.tag ? `<span class="tag">${esc(st.tag)}</span>` : ''}`;
   }
   function fadeIn(el) { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); }
   function showStill(src) {
@@ -411,13 +411,12 @@ function bootTV(PREVIEW) {
     const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + src + '")'; bg.classList.add('on');
     swapTo(src);
   }
-  // Nhiều ảnh lần lượt, có bộ đếm; sub riêng của ảnh thay dòng phụ
+  // Nhiều ảnh lần lượt, có bộ đếm
   function showSlides(st, k, r) {
     if (r !== run) return;
     const list = st.slides, s = list[k % list.length];
     showStill(R(s.src));
     $('media-count').textContent = (k % list.length + 1) + ' / ' + list.length;
-    if (k > 0 && s.sub !== list[(k - 1) % list.length].sub) { renderHead(st, s.sub || st.sub); fadeIn($('dash-headline')); }
     mTimer = setTimeout(() => showSlides(st, k + 1, r), (s.seconds || st.slideSeconds || 8) * 1000);
   }
   // Danh sách: video phát hết thì sang mục kế, ảnh giữ theo seconds hoặc tới hết tin
@@ -439,7 +438,7 @@ function bootTV(PREVIEW) {
     sIdx = ((i % STORIES.length) + STORIES.length) % STORIES.length; storyT0 = performance.now();
     const st = STORIES[sIdx], r = ++run;
     pauseMedia(); clearTimeout(mTimer);
-    renderTabs(); renderHead(st, st.slides && st.slides[0] && st.slides[0].sub || st.sub); fadeIn($('dash-headline')); fadeIn($('media'));
+    renderTabs(); renderHead(st); fadeIn($('dash-headline')); fadeIn($('media'));
     if (st.source === 'drive') { mediaOn = true; if (hasIntro()) showIntro(); else nextMedia(); }   // mở đầu rồi chiếu tiếp từ ảnh kế
     else if (st.items && st.items.length) showItems(st, 0, r);
     else if (st.slides && st.slides.length) showSlides(st, 0, r);

@@ -11,14 +11,14 @@ window.TV = {
 
   // ---- Tin tiêu điểm: tin xếp theo nhóm, trong nhóm theo thứ tự mảng. ----
   //   tab = nhóm tin, một trong: 'Đời sống', 'Kinh doanh', 'Công nghệ', 'Phong trào', 'Sự kiện' (mô tả nhóm: GROUPS trong news/config.js)
-  //   id, title (tiêu đề), tag (nhãn vàng, tuỳ chọn), sub (dòng phụ, tuỳ chọn)
+  //   id, title (tiêu đề), tag (nhãn vàng, tuỳ chọn), sub (dòng phụ, chỉ để ghi chú: TV không còn hiện)
   //   seconds: thời lượng riêng · ticker: câu (hoặc mảng câu) thêm vào dòng chạy
   //   until: 'YYYY-MM-DD' = tự ẩn tin sau ngày này (tuỳ chọn)
   // Chọn MỘT kiểu nội dung:
   //   source: 'drive'   ảnh, video từ Google Drive (media.js) có bộ đếm; intro = thẻ mở đầu kèm pháo hoa;
   //                     photoSeconds = giây mỗi ảnh; shuffle = chiếu ngẫu nhiên không lặp
   //   slides: [{ src, sub? }], slideSeconds   chiếu lần lượt nhiều ảnh, có bộ đếm n / tổng.
-  //                     sub của từng ảnh thay dòng phụ khi ảnh đó hiện. until của từng ảnh: ảnh tự ẩn sau ngày đó. Không khai seconds thì thời lượng
+  //                     until của từng ảnh: ảnh tự ẩn sau ngày đó. Không khai seconds thì thời lượng
   //                     tin = số ảnh × slideSeconds.
   //   items: [{ type: 'video', src }, { type: 'image', src, seconds? }]   video phát hết thì sang mục kế
   //   image: 'img/...'  một poster tĩnh
