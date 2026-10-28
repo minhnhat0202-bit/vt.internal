@@ -250,8 +250,17 @@ function bootTV(PREVIEW) {
     return free.length ? free : quotes;
   }
   let quoteShown = '', quoteSlot = -1, quoteBag = [];
-  function showQuote(el) {
-    const list = quoteList(), slot = Math.floor(Date.now() / (QUOTE_SECONDS * 1000));
+  const quoteSkip = {};                                               // câu quá dài, cỡ chữ nhỏ nhất vẫn không vừa khung: bỏ qua
+  // Thu nhỏ chữ (33 → 26 px) tới khi câu, dấu ngoặc và tác giả vừa khung; không vừa thì trả về false
+  function fitQuote(el) {
+    const box = el.querySelector('.quote'), p = box.querySelector('p');
+    const need = () => Array.from(box.children).reduce((a, c) => a + c.offsetHeight + (parseFloat(getComputedStyle(c).marginTop) || 0), 0);
+    for (const f of [33, 30, 28, 26]) { p.style.fontSize = f + 'px'; if (need() <= box.clientHeight) return true; }
+    return false;
+  }
+  function showQuote(el, tries) {
+    const list = quoteList().filter((x) => !quoteSkip[x.text + '|' + x.by] || tries > 8), slot = Math.floor(Date.now() / (QUOTE_SECONDS * 1000));
+    if (!list.length) return;
     if (slot === quoteSlot && quoteShown && el.querySelector('.quote')) return;
     if (slot !== quoteSlot || !quoteShown) {                          // sang lượt mới: rút ngẫu nhiên một câu chưa chiếu
       quoteSlot = slot;
@@ -262,6 +271,7 @@ function bootTV(PREVIEW) {
     }
     const q = list[list.map((x) => x.text + '|' + x.by).indexOf(quoteShown)] || list[0];
     el.innerHTML = `<div class="quote"><span class="qm">“</span><p>${esc(q.text)}</p>${q.by ? `<small>${esc(q.by)}</small>` : ''}</div>`;
+    if (!fitQuote(el) && (tries || 0) <= 8) { quoteSkip[quoteShown] = 1; quoteShown = ''; return showQuote(el, (tries || 0) + 1); }
     fadeIn(el);
   }
 
