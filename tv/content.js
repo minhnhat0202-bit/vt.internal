@@ -22,11 +22,12 @@ window.TV = {
   //                     tin = số ảnh × slideSeconds.
   //   items: [{ type: 'video', src }, { type: 'image', src, seconds? }]   video phát hết thì sang mục kế
   //   image: 'img/...'  một poster tĩnh
+  // Ảnh ngang tự phủ kín khung (cắt bớt trên dưới). Poster không dựng đúng 1920×994 thì khai fit: 'contain' (cả tin hoặc từng ảnh) để hiện trọn.
   STORIES: [
     { id: 'dam-cuoi-nam-ha', tab: 'Đời sống', title: 'Đám cưới Phương Nam & Việt Hà', sub: '08:30 Thứ Tư 28/10', until: '2026-10-28', seconds: 15,
       image: 'img/daily-2026-10-26.jpg?v=3' },
 
-    { id: 'anl-4', tab: 'Sự kiện', title: 'VTNet đạt ANL 4.0 TM Forum', tag: 'Vinh danh', sub: 'Tối ưu năng lượng & chất lượng', until: '2026-11-02', seconds: 15,
+    { id: 'anl-4', tab: 'Sự kiện', title: 'VTNet đạt ANL 4.0 TM Forum', tag: 'Vinh danh', sub: 'Tối ưu năng lượng & chất lượng', until: '2026-11-02', seconds: 15, fit: 'contain',
       image: 'img/daily-2026-10-27-1.jpg',
       ticker: 'VTNet đạt ANL 4.0 TM Forum: Tối ưu năng lượng & chất lượng' },
 
@@ -45,9 +46,9 @@ window.TV = {
       // 6 ảnh lễ bế mạc, trao giải tối 23/10 (thay banner Chung kết & liên hoan), mỗi ảnh 8 giây; poster vô địch giữ 20 giây
       slides: [1, 2, 3, 4, 5, 6].map(function (n) {
         return { src: 'img/daily-2026-10-23-' + n + '.jpg', seconds: 8, sub: 'Bế mạc & trao giải · Thứ Sáu 23/10 · Sân bóng Đình Thôn 2' }; }).concat([
-        { src: 'img/ket-qua-cau-long.jpg?v=2', sub: 'Cầu lông · Vô địch: Hiếu – Thảo' },
-        { src: 'img/ket-qua-pes.jpg', sub: 'PES · Vô địch: Hiếu & Trung' },
-        { src: 'img/ket-qua-bida.jpg', sub: 'Bida · Vô địch: Lê Văn Thành & Trần Phan Huy Anh' }
+        { src: 'img/ket-qua-cau-long.jpg?v=2', fit: 'contain', sub: 'Cầu lông · Vô địch: Hiếu – Thảo' },
+        { src: 'img/ket-qua-pes.jpg', fit: 'contain', sub: 'PES · Vô địch: Hiếu & Trung' },
+        { src: 'img/ket-qua-bida.jpg', fit: 'contain', sub: 'Bida · Vô địch: Lê Văn Thành & Trần Phan Huy Anh' }
       ]),
       ticker: ['Giải Thể thao tháng 10 đã bế mạc tối Thứ Sáu 23/10 · Chúc mừng các đội và vận động viên đạt giải', 'Vô địch Cầu lông: Hiếu – Thảo', 'Vô địch PES: Hiếu & Trung',
         'Kết quả Bida · Nhất: Lê Văn Thành & Trần Phan Huy Anh · Nhì: Lê Ngọc Thái & Phạm Gia Khiêm · Ba: Nguyễn Nhật Minh & Lê Quốc Đạt · Tư: Nguyễn Xuân Huy & Lê Hải Sơn'] },

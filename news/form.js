@@ -70,7 +70,7 @@
         <div class="drop" tabindex="0"><input type="file" accept="image/*" multiple hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l4.5-4.5 3 3L16 10l4 4M4 5h16v14H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
           <span><b>Kéo ảnh vào đây</b>, dán (Ctrl+V) hoặc <u>chọn từ máy</u></span>
-          <small>Tối đa ${CFG.MAX_IMAGES} ảnh · ảnh ngang 16:9 đẹp nhất · TV chiếu lần lượt, ảnh đầu tiên lên trước</small></div>
+          <small>Tối đa ${CFG.MAX_IMAGES} ảnh · ảnh chụp ngang TV tự cắt cho kín khung · ảnh thiết kế dựng 1920 × 994 px · TV chiếu lần lượt, ảnh đầu tiên lên trước</small></div>
         <ol class="thumbs"></ol><small class="warn" data-warn="images"></small></div>
       ${field('videoLink', 'Link video (nếu có)', { wide: true, type: 'url', ph: 'Link Google Drive, OneDrive…', hint: 'Video gửi qua link; Ban Truyền thông sẽ chuyển định dạng và đưa lên.' })}
     </div></section>

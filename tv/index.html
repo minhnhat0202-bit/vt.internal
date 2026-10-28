@@ -64,7 +64,7 @@
   .media { position: relative; flex: 1; min-height: 0; border-radius: 20px; overflow: hidden; background: #000; }
   .media .bg { position: absolute; top: -30px; right: -30px; bottom: -30px; left: -30px; background-position: center; background-size: cover; filter: blur(18px) brightness(.5); opacity: 0; transition: opacity .8s; }
   .media .bg.on { opacity: 1; }
-  .media img.pic, .media video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity .8s; }
+  .media img.pic, .media video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: center 35%; opacity: 0; transition: opacity .8s; }
   .media img.pic.on, .media video.on { opacity: 1; }
   .media canvas.fx { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity .6s; }
   .media canvas.fx.on { opacity: 1; }
@@ -310,9 +310,17 @@ function bootTV(PREVIEW) {
   }
   function fxStart() { if (fxOn) return; fxOn = true; fxParts = []; fxLast = performance.now(); fxNext = 0; $('media-fx').classList.add('on'); fxRaf = requestAnimationFrame(fxFrame); }
   function fxStop() { fxOn = false; if (fxRaf) cancelAnimationFrame(fxRaf); $('media-fx').classList.remove('on'); fxCtx.clearRect(0, 0, 1920, 1080); }
-  function swapTo(src) {
+  // Ảnh ngang (4:3 đến 2,6:1, gồm ảnh chụp và ảnh dựng đúng 1920×994) phủ kín khung, cắt bớt trên dưới;
+  // ảnh dọc hoặc tin/ảnh khai fit: 'contain' (poster sai tỷ lệ) thì hiện trọn, nền mờ hai bên.
+  function fitPic(img, fit) {
+    const a = img.naturalWidth / img.naturalHeight;
+    img.style.objectFit = fit === 'contain' || !(a >= 1.25 && a <= 2.6) ? 'contain' : 'cover';
+  }
+  function swapTo(src, fit) {
     const show = mFront === 'a' ? $('media-b') : $('media-a'), hide = mFront === 'a' ? $('media-a') : $('media-b');
-    show.src = src; show.classList.add('on'); hide.classList.remove('on'); mFront = mFront === 'a' ? 'b' : 'a';
+    show.style.objectFit = 'contain'; show.onload = () => fitPic(show, fit);
+    show.src = src; if (show.complete && show.naturalWidth) fitPic(show, fit);
+    show.classList.add('on'); hide.classList.remove('on'); mFront = mFront === 'a' ? 'b' : 'a';
   }
   function showIntro() {
     stopVideo(); $('media-count').textContent = '';
@@ -406,16 +414,16 @@ function bootTV(PREVIEW) {
     $('dash-headline').innerHTML = `<span>${esc(st.title)}</span>${st.tag ? `<span class="tag">${esc(st.tag)}</span>` : ''}`;
   }
   function fadeIn(el) { el.classList.remove('fade'); void el.offsetWidth; el.classList.add('fade'); }
-  function showStill(src) {
+  function showStill(src, fit) {
     pauseMedia(); $('media-count').textContent = '';
     const bg = $('media-bg'); bg.style.backgroundImage = 'url("' + src + '")'; bg.classList.add('on');
-    swapTo(src);
+    swapTo(src, fit);
   }
   // Nhiều ảnh lần lượt, có bộ đếm
   function showSlides(st, k, r) {
     if (r !== run) return;
     const list = st.slides, s = list[k % list.length];
-    showStill(R(s.src));
+    showStill(R(s.src), s.fit || st.fit);
     $('media-count').textContent = (k % list.length + 1) + ' / ' + list.length;
     mTimer = setTimeout(() => showSlides(st, k + 1, r), (s.seconds || st.slideSeconds || 8) * 1000);
   }
@@ -425,7 +433,7 @@ function bootTV(PREVIEW) {
     const items = st.items; if (k >= items.length) return;           // hết danh sách: giữ mục cuối tới hết tin
     const it = items[k];
     if (it.type === 'video') { pauseMedia(); $('media-count').textContent = ''; $('media-bg').classList.remove('on'); playVideo(R(it.src), it.seconds || VIDEO_MAX_SECONDS, () => showItems(st, k + 1, r)); return; }
-    showStill(R(it.src));
+    showStill(R(it.src), it.fit || st.fit);
     if (it.seconds) mTimer = setTimeout(() => showItems(st, k + 1, r), it.seconds * 1000);
   }
   function storyMs(st) {
@@ -442,7 +450,7 @@ function bootTV(PREVIEW) {
     if (st.source === 'drive') { mediaOn = true; if (hasIntro()) showIntro(); else nextMedia(); }   // mở đầu rồi chiếu tiếp từ ảnh kế
     else if (st.items && st.items.length) showItems(st, 0, r);
     else if (st.slides && st.slides.length) showSlides(st, 0, r);
-    else showStill(R(st.image || ''));
+    else showStill(R(st.image || ''), st.fit);
   }
   function storyLoop(now) {
     const p = Math.min(1, (now - storyT0) / storyMs(STORIES[sIdx]));
