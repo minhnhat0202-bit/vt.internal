@@ -213,7 +213,8 @@ function bootTV(PREVIEW) {
   }
 
   // ---------- Châm ngôn: content.js QUOTES, hoặc Google Sheet công khai (QUOTES_SHEET, CSV 3 cột: Ngày hoặc STT | Câu | Tác giả) ----------
-  //   Mỗi ngày một câu: dòng có ngày đúng hôm nay thì lấy dòng đó; không có thì lấy lần lượt theo thứ tự trong Sheet, mỗi ngày sang câu kế.
+  //   Chọn ngẫu nhiên, mỗi QUOTE_SECONDS giây đổi câu, không lặp tới khi chạy hết lượt. Dòng có ngày đúng hôm nay thì chỉ chạy các dòng đó.
+  const QUOTE_SECONDS = C.QUOTE_SECONDS || 60;
   let quotes = (C.QUOTES || []).map((q) => (typeof q === 'string' ? { text: q } : q));
   function parseCSV(t) {
     const rows = []; let row = [], f = '', q = false;
@@ -242,13 +243,18 @@ function bootTV(PREVIEW) {
     const free = quotes.filter((q) => !q.day);
     return free.length ? free : quotes;
   }
-  let quoteShown = '';
+  let quoteShown = '', quoteSlot = -1, quoteBag = [];
   function showQuote(el) {
-    const list = quoteList(), day = Math.round(vnDate(todayKey()).getTime() / 86400000);
-    const q = list[((day % list.length) + list.length) % list.length];
-    const key = q.text + '|' + q.by;
-    if (key === quoteShown && el.querySelector('.quote')) return;
-    quoteShown = key;
+    const list = quoteList(), slot = Math.floor(Date.now() / (QUOTE_SECONDS * 1000));
+    if (slot === quoteSlot && quoteShown && el.querySelector('.quote')) return;
+    if (slot !== quoteSlot || !quoteShown) {                          // sang lượt mới: rút ngẫu nhiên một câu chưa chiếu
+      quoteSlot = slot;
+      const keys = list.map((x) => x.text + '|' + x.by);
+      quoteBag = quoteBag.filter((k) => keys.indexOf(k) > -1);
+      if (!quoteBag.length) quoteBag = keys.filter((k) => k !== quoteShown || keys.length === 1);
+      quoteShown = quoteBag.splice(Math.floor(Math.random() * quoteBag.length), 1)[0];
+    }
+    const q = list[list.map((x) => x.text + '|' + x.by).indexOf(quoteShown)] || list[0];
     el.innerHTML = `<div class="quote"><span class="qm">“</span><p>${esc(q.text)}</p>${q.by ? `<small>${esc(q.by)}</small>` : ''}</div>`;
     fadeIn(el);
   }
