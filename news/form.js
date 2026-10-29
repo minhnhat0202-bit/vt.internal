@@ -70,7 +70,7 @@
         <div class="drop" tabindex="0"><input type="file" accept="image/*" multiple hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l4.5-4.5 3 3L16 10l4 4M4 5h16v14H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
           <span><b>Kéo ảnh vào đây</b>, dán (Ctrl+V) hoặc <u>chọn từ máy</u></span>
-          <small>Tối đa ${CFG.MAX_IMAGES} ảnh · ảnh chụp ngang TV tự cắt cho kín khung · ảnh thiết kế dựng 1920 × 994 px · TV chiếu lần lượt, ảnh đầu tiên lên trước</small></div>
+          <small>Tối đa ${CFG.MAX_IMAGES} ảnh · bấm ✂ để cắt ảnh chụp cho kín khung TV · ảnh thiết kế dựng 1920 × 994 px · TV chiếu lần lượt, ảnh đầu tiên lên trước</small></div>
         <ol class="thumbs"></ol><small class="warn" data-warn="images"></small></div>
       ${field('videoLink', 'Link video (nếu có)', { wide: true, type: 'url', ph: 'Link Google Drive, OneDrive…', hint: 'Video gửi qua link; Ban Truyền thông sẽ chuyển định dạng và đưa lên.' })}
     </div></section>
@@ -118,7 +118,7 @@
   function imgWarn(i) {
     if (i.crop) return 'Đã cắt theo khung TV';
     if (!i.w) return '';
-    if (i.w / i.h < 1.25) return 'Ảnh dọc hoặc vuông: TV hiện kèm nền mờ hai bên. Bấm ✂ để cắt cho kín khung';
+    if (Math.abs(i.w / i.h - CFG.TV_FRAME.w / CFG.TV_FRAME.h) > 0.05) return 'Chưa vừa khung TV: sẽ có nền mờ phần trống. Bấm ✂ để cắt cho kín khung';
     if (Math.max(i.w, i.h) < 1200) return 'Ảnh nhỏ, có thể mờ trên TV';
     return '';
   }
@@ -207,7 +207,7 @@
       root.querySelector('[data-k="tab"]').closest('.f').querySelector('.hint').textContent = g ? g.desc : 'Tab trên thanh Tin tiêu điểm mà tin sẽ nằm trong.';
     }
     function drawThumbs() {
-      thumbs.innerHTML = imgs.map((i, k) => `<li><img src="${esc(i.url)}" alt=""${i.w && i.w / i.h >= 1.25 && i.w / i.h <= 2.6 ? ' class="fill"' : ''}>
+      thumbs.innerHTML = imgs.map((i, k) => `<li><img src="${esc(i.url)}" alt="">
         <span class="n">${k + 1}</span>
         <div class="tb"><button type="button" data-mv="-1" title="Lên trước" ${k ? '' : 'disabled'}>‹</button><button type="button" data-mv="1" title="Ra sau" ${k < imgs.length - 1 ? '' : 'disabled'}>›</button>${i.isNew ? '<button type="button" data-crop title="Cắt ảnh theo khung TV">✂</button>' : ''}<button type="button" data-rm title="Bỏ ảnh">×</button></div>
         ${imgWarn(i) ? `<small>${imgWarn(i)}</small>` : ''}</li>`).join('');
