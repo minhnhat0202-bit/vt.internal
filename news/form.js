@@ -40,7 +40,7 @@
 
   const WHERE = [
     ['story', 'Tin kèm ảnh', 'Khung lớn Tin tiêu điểm: chiếu lần lượt các ảnh kèm tiêu đề và tên phòng, nối sau các tin chính của Trung tâm.'],
-    ['agenda', 'Lịch sự kiện', 'Hai khung Hôm nay và Sắp diễn ra bên phải. Dùng cho buổi họp, hội thảo, giải đấu có ngày giờ.'],
+    ['agenda', 'Lịch: Hôm nay & Sắp diễn ra', 'Hai khung Hôm nay và Sắp diễn ra bên phải. Dùng cho buổi họp, hội thảo, giải đấu có ngày giờ.'],
     ['ticker', 'Dòng chạy', 'Một câu chạy ngang cuối màn hình. Dùng cho thông báo ngắn, chúc mừng.']
   ];
 
@@ -75,7 +75,7 @@
       ${field('videoLink', 'Link video (nếu có)', { wide: true, type: 'url', ph: 'Link Google Drive, OneDrive…', hint: 'Video gửi qua link; Ban Truyền thông sẽ chuyển định dạng và đưa lên.' })}
     </div></section>
 
-    <section class="card" data-sec="agenda" hidden><h2>Lịch sự kiện</h2><div class="grid">
+    <section class="card" data-sec="agenda" hidden><h2>Lịch: Hôm nay & Sắp diễn ra</h2><div class="grid">
       ${field('event.title', 'Tên sự kiện', { req: true, wide: true, max: L.agenda, ph: 'VD: Hội thảo An toàn thông tin quý IV' })}
       ${field('event.from', 'Ngày bắt đầu', { req: true, type: 'date' })}
       ${field('event.to', 'Ngày kết thúc', { type: 'date', hint: 'Chỉ điền khi kéo dài nhiều ngày.' })}
