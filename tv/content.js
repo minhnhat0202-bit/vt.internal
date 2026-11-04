@@ -31,34 +31,12 @@ window.TV = {
       image: 'img/daily-2026-10-27-1.jpg',
       ticker: 'VTNet đạt ANL 4.0 TM Forum: Tối ưu năng lượng & chất lượng' },
 
-    { id: 'recap-the-thao', tab: 'Phong trào', title: 'Recap Giải Thể thao tháng 10', seconds: 66,
-      items: [{ type: 'video', src: 'media/daily-2026-10-27.mp4?v=2' }] },
-
     { id: 'phu-nu-20-10', tab: 'Đời sống', title: 'CHÚC MỪNG NGÀY PHỤ NỮ VIỆT NAM 20/10',
       until: '2026-10-25', slideSeconds: 8,
       // Gộp cả tin P. Kiểm soát Chất lượng gửi qua news/ (ảnh 1, 2) và ảnh buổi chúc mừng 20/10 (ảnh 3 đến 10)
       slides: [{ src: 'img/daily-2026-10-19.jpg?v=2' }].concat([1, 2, 3, 4, 11, 6, 7, 8, 9, 10].map(function (n) {
         return { src: 'img/daily-2026-10-20-' + n + '.jpg' }; })),
-      ticker: 'Chúc mừng Ngày Phụ nữ Việt Nam 20/10 · Yêu thương & Tôn vinh' },
-
-    // Một tab gộp kết quả mọi giải đã xong. Môn mới có kết quả: thêm một dòng vào slides.
-    { id: 'ket-qua', tab: 'Phong trào', title: 'Giải Thể thao tháng 10', slideSeconds: 20,
-      // 6 ảnh lễ bế mạc, trao giải tối 23/10 (thay banner Chung kết & liên hoan), mỗi ảnh 8 giây; poster vô địch giữ 20 giây
-      slides: [1, 2, 3, 4, 5, 6].map(function (n) {
-        return { src: 'img/daily-2026-10-23-' + n + '.jpg', seconds: 8, sub: 'Bế mạc & trao giải · Thứ Sáu 23/10 · Sân bóng Đình Thôn 2' }; }).concat([
-        { src: 'img/ket-qua-cau-long.jpg?v=2', sub: 'Cầu lông · Vô địch: Hiếu – Thảo' },
-        { src: 'img/ket-qua-pes.jpg', sub: 'PES · Vô địch: Hiếu & Trung' },
-        { src: 'img/ket-qua-bida.jpg', sub: 'Bida · Vô địch: Lê Văn Thành & Trần Phan Huy Anh' }
-      ]),
-      ticker: ['Giải Thể thao tháng 10 đã bế mạc tối Thứ Sáu 23/10 · Chúc mừng các đội và vận động viên đạt giải', 'Vô địch Cầu lông: Hiếu – Thảo', 'Vô địch PES: Hiếu & Trung',
-        'Kết quả Bida · Nhất: Lê Văn Thành & Trần Phan Huy Anh · Nhì: Lê Ngọc Thái & Phạm Gia Khiêm · Ba: Nguyễn Nhật Minh & Lê Quốc Đạt · Tư: Nguyễn Xuân Huy & Lê Hải Sơn'] },
-
-    { id: 'vda-2026', tab: 'Sự kiện', title: 'Giải thưởng Chuyển đổi số Việt Nam 2026', tag: 'Vinh danh',
-      sub: 'Hệ thống Quản lý vùng phủ mạng vô tuyến · Viettel Networks',
-      items: [{ type: 'video', src: 'media/daily-2026-10-14.mp4' }, { type: 'image', src: 'img/daily-2026-10-14.jpg', seconds: 10 },
-        { type: 'image', src: 'img/daily-2026-10-15-1.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-2.jpg', seconds: 7 },
-        { type: 'image', src: 'img/daily-2026-10-15-3.jpg', seconds: 7 }, { type: 'image', src: 'img/daily-2026-10-15-4.jpg', seconds: 7 }],
-      ticker: 'Vietnam Digital Awards 2026: Hệ thống Quản lý vùng phủ mạng vô tuyến của Viettel Networks được vinh danh' }
+      ticker: 'Chúc mừng Ngày Phụ nữ Việt Nam 20/10 · Yêu thương & Tôn vinh' }
   ],
 
   // ---- Lịch cho 2 khung bên phải: Hôm nay, Sắp diễn ra (mã QR gửi tin nằm cuối dòng chạy) ----
