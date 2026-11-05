@@ -89,6 +89,10 @@ window.TV = {
   //   src: một ảnh hoặc mảng ảnh (chuyển lần lượt, mỗi ảnh seconds giây, mặc định 7).
   BACKDROP: { src: ['img/backdrop-2026-10-21.jpg?v=5', 'img/backdrop-2026-10-21-2.jpg'], seconds: 7, from: '2026-10-21T08:15', until: '2026-10-21T10:20' },
 
+  // Robot chào: thi thoảng chạy ngang màn hình, dừng giữa chừng vẫy tay kèm một câu chào ngẫu nhiên
+  // (luôn có thêm câu chào theo buổi: sáng, trưa, chiều, tối). everyMinutes: bao lâu ra một lần. Tắt: ROBOT: null.
+  ROBOT: { everyMinutes: 5, greetings: ['Xin chào!', 'Chúc một ngày vui!', 'Làm việc hiệu quả nhé!', 'Nhớ uống nước nha!'] },
+
   // Mã tin phòng ban (news/) không chiếu lên TV, ví dụ tin đã gộp vào một tin trong STORIES.
   HIDE_NEWS: ['T261019-SBN7', 'T261027-WSVU'],
 

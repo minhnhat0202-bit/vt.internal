@@ -109,6 +109,39 @@
   /* tương thích trình duyệt TV cũ: khoảng cách flex bằng margin thay cho gap */
   .hdr .c > * + * { margin-left: 28px; }
   .ticker .run div > * + * { margin-left: 120px; }
+  /* Robot chào (content.js ROBOT): đứng trên dòng chạy, thi thoảng chạy ngang màn hình và vẫy tay. */
+  .robot { position: absolute; left: 0; top: 786px; width: 146px; height: 190px; z-index: 3; display: none; pointer-events: none; will-change: transform; }
+  .robot .rb-flip { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: transform .25s ease; }
+  .robot.left .rb-flip { transform: scaleX(-1); }
+  .robot svg { display: block; width: 100%; height: 100%; overflow: visible; -webkit-filter: drop-shadow(0 6px 12px rgba(0,0,0,.55)); filter: drop-shadow(0 6px 12px rgba(0,0,0,.55)); }
+  .robot .rb-lean { transition: transform .25s ease; transform-origin: 80px 196px; }
+  .robot.running .rb-lean { transform: rotate(7deg); }
+  .robot .lg-l { transform-origin: 66px 152px; } .robot .lg-r { transform-origin: 94px 152px; }
+  .robot .ar-l { transform-origin: 46px 108px; transform: rotate(8deg); } .robot .ar-r { transform-origin: 114px 108px; transform: rotate(-8deg); }
+  .robot .ant { transform-origin: 80px 24px; animation: rb-ant 1.6s ease-in-out infinite alternate; }
+  .robot .core { animation: rb-glow 1.2s ease-in-out infinite alternate; }
+  .robot.running .lg-l { animation: rb-leg .34s ease-in-out infinite alternate; }
+  .robot.running .lg-r { animation: rb-leg .34s ease-in-out -.34s infinite alternate; }
+  .robot.running .ar-l { animation: rb-arm .34s ease-in-out -.34s infinite alternate; }
+  .robot.running .ar-r { animation: rb-arm .34s ease-in-out infinite alternate; }
+  .robot.running .rb-bob { animation: rb-bob .17s ease-in-out infinite alternate; }
+  .robot.hop .rb-bob { animation: rb-hop .55s cubic-bezier(.3,.7,.4,1) 2; }
+  .robot.waving .ar-r { animation: rb-raise .3s ease-out forwards, rb-wave .42s ease-in-out .3s infinite alternate; }
+  .robot.waving .ar-l { transform: rotate(18deg); }
+  .robot .bubble { position: absolute; left: 50%; bottom: 100%; margin-bottom: 18px; padding: 12px 22px; white-space: nowrap; border-radius: 22px; background: #F2F2F2; color: #000; font-family: var(--display); font-weight: 700; font-size: 28px; line-height: 1.15; box-shadow: 0 10px 30px rgba(0,0,0,.45); border-bottom: 4px solid var(--red);
+    opacity: 0; transform: translate(-50%, 14px) scale(.6); transform-origin: 50% 100%; transition: opacity .25s ease, transform .3s cubic-bezier(.3,1.6,.5,1); }
+  .robot .bubble::after { content: ""; position: absolute; left: 50%; top: 100%; margin-left: -12px; border: 12px solid transparent; border-top-color: var(--red); }
+  .robot.waving .bubble { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  @keyframes rb-leg { from { transform: rotate(-26deg); } to { transform: rotate(26deg); } }
+  @keyframes rb-arm { from { transform: rotate(-34deg); } to { transform: rotate(34deg); } }
+  @keyframes rb-bob { from { transform: translateY(0); } to { transform: translateY(-7px); } }
+  @keyframes rb-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-46px); } 70% { transform: translateY(0); } 82% { transform: translateY(-8px); } }
+  @keyframes rb-raise { from { transform: rotate(-8deg); } to { transform: rotate(-150deg); } }
+  @keyframes rb-wave { from { transform: rotate(-150deg); } to { transform: rotate(-112deg); } }
+  @keyframes rb-ant { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+  @keyframes rb-glow { from { opacity: .55; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .robot { display: none !important; } }
+
   @media (prefers-reduced-motion: reduce) { .fade { animation: none; } .ticker .run div { animation: none; } .feature .tabs .track { transition: none; } }
 </style>
 </head>
@@ -131,6 +164,27 @@
       <div class="glass panel"><span class="lbl">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
     </div>
   </section>
+
+  <div class="robot" id="robot"><div class="rb-flip"><svg viewBox="0 0 160 208" aria-hidden="true">
+    <ellipse cx="80" cy="200" rx="46" ry="7" fill="#000" opacity=".45"/>
+    <g class="rb-lean"><g class="rb-bob">
+      <g class="lg-l"><rect x="58" y="146" width="16" height="38" rx="8" fill="#B5B4B4"/><rect x="50" y="180" width="28" height="14" rx="7" fill="#44494D"/></g>
+      <g class="lg-r"><rect x="86" y="146" width="16" height="38" rx="8" fill="#B5B4B4"/><rect x="82" y="180" width="28" height="14" rx="7" fill="#44494D"/></g>
+      <rect x="44" y="98" width="72" height="56" rx="22" fill="#F2F2F2"/>
+      <rect x="44" y="140" width="72" height="14" rx="7" fill="#B5B4B4" opacity=".55"/>
+      <circle cx="80" cy="122" r="13" fill="#44494D"/><circle class="core" cx="80" cy="122" r="8" fill="#EE0033"/>
+      <g class="ar-l"><rect x="38" y="102" width="15" height="42" rx="7.5" fill="#B5B4B4"/><circle cx="45.5" cy="148" r="9" fill="#F2F2F2"/></g>
+      <g class="ar-r"><rect x="107" y="102" width="15" height="42" rx="7.5" fill="#B5B4B4"/><circle cx="114.5" cy="148" r="9" fill="#F2F2F2"/></g>
+      <rect x="70" y="90" width="20" height="12" rx="4" fill="#44494D"/>
+      <g class="ant"><rect x="77.5" y="8" width="5" height="18" rx="2.5" fill="#B5B4B4"/><circle cx="80" cy="8" r="7" fill="#EE0033"/></g>
+      <rect x="23" y="46" width="10" height="26" rx="5" fill="#B5B4B4"/><rect x="127" y="46" width="10" height="26" rx="5" fill="#B5B4B4"/>
+      <rect x="30" y="22" width="100" height="72" rx="28" fill="#F2F2F2"/>
+      <rect x="40" y="34" width="80" height="48" rx="20" fill="#17161b"/>
+      <path d="M55 62 q8 -11 16 0 M89 62 q8 -11 16 0" fill="none" stroke="#F2F2F2" stroke-width="5" stroke-linecap="round"/>
+      <path d="M72 69 q8 7 16 0" fill="none" stroke="#EE0033" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="51" cy="71" r="5" fill="#EE0033" opacity=".5"/><circle cx="109" cy="71" r="5" fill="#EE0033" opacity=".5"/>
+    </g></g>
+  </svg></div><div class="bubble" id="robot-say"></div></div>
 
   <footer class="ticker"><div class="tag">Đừng bỏ lỡ</div><div class="run"><div id="tv-run"></div></div><div class="qr"><div><b>Phòng bạn có tin hay?</b>Quét mã gửi tin lên Bản tin TV</div><img src="../img/qr-gui-tin.svg" alt=""></div></footer>
 </div>
@@ -524,6 +578,55 @@ function bootTV(PREVIEW) {
   }, (+B.seconds || 7) * 1000);
   function tick() { var n = Date.now(); box.style.display = (!(n < a) && !(n > b)) ? 'block' : 'none'; }
   tick(); setInterval(tick, 15000);
+})();
+// Robot chào (content.js ROBOT): mỗi everyMinutes phút (lệch ngẫu nhiên ±30%) chạy vào, dừng, nhảy, vẫy tay kèm lời chào rồi chạy ra.
+// Xem thử: tv/?robot (ra sau 2 giây, lặp 15 giây/lần). Gọi tay trong console: robotGo().
+(function () {
+  var R = (window.TV || {}).ROBOT, el = document.getElementById('robot'), say = document.getElementById('robot-say');
+  var TEST = /[?&]robot\b/.test(location.search);
+  if (!el || (!R && !TEST) || /[?&]preview\b/.test(location.search)) return;
+  R = R || {}; var busy = false, SPEED = 430;   // px/giây trên khung 1920
+  function greet() {
+    var h = new Date().getHours();
+    var t = h < 11 ? 'Chào buổi sáng!' : h < 14 ? 'Chào buổi trưa!' : h < 18 ? 'Chào buổi chiều!' : 'Chào buổi tối!';
+    var list = [t].concat(R.greetings || ['Xin chào!']); return list[Math.floor(Math.random() * list.length)];
+  }
+  function place(x) { el.style.webkitTransform = el.style.transform = 'translateX(' + x + 'px)'; }
+  function move(a, b, done) {
+    var t0 = 0, ms = Math.abs(b - a) / SPEED * 1000;
+    function f(now) { if (!t0) t0 = now; var p = Math.min(1, (now - t0) / ms); place(a + (b - a) * p); if (p < 1) requestAnimationFrame(f); else done(); }
+    requestAnimationFrame(f);
+  }
+  function go() {
+    var bd = document.getElementById('backdrop');
+    if (busy || document.hidden || (bd && bd.style.display === 'block')) return;
+    busy = true;
+    var dir = Math.random() < .5 ? 1 : -1, W = 146;
+    var x0 = dir > 0 ? -W - 40 : 1920 + 40, x2 = dir > 0 ? 1920 + 40 : -W - 40;
+    var x1 = 420 + Math.random() * 940;
+    say.textContent = greet();
+    el.className = 'robot running' + (dir < 0 ? ' left' : ''); place(x0); el.style.display = 'block';
+    move(x0, x1, function () {
+      el.className = 'robot hop';                                            // dừng, quay mặt ra, nhảy 2 cái
+      setTimeout(function () {
+        el.className = 'robot waving';                                       // vẫy tay + bong bóng lời chào
+        setTimeout(function () {
+          el.className = 'robot' + (dir < 0 ? ' left' : '');
+          setTimeout(function () {
+            el.className = 'robot running' + (dir < 0 ? ' left' : '');
+            move(x1, x2, function () { el.style.display = 'none'; el.className = 'robot'; busy = false; });
+          }, 400);
+        }, 3600);
+      }, 1100);
+    });
+  }
+  window.robotGo = go;
+  function next(first) {
+    var ms = TEST ? (first ? 2000 : 15000) : first ? (30 + Math.random() * 60) * 1000
+      : Math.max(1, +R.everyMinutes || 5) * 60000 * (0.7 + Math.random() * 0.6);
+    setTimeout(function () { go(); next(false); }, ms);
+  }
+  next(true);
 })();
 (function () {
   const PREVIEW = /[?&]preview\b/.test(location.search);
