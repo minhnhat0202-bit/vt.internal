@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Mèo robot</title>
+<!-- Mèo robot chạy trên màn hình Mac: app desktop/MeoRobot.app bọc trang này trong một cửa sổ trong suốt phủ màn hình (trừ thanh menu, Dock).
+     Cùng hình và chuyển động với mèo trên Bản tin TV (tv/index.html) nhưng chỉ có mặt đất (mép trên Dock) và hai cạnh màn hình để leo, dụi đầu.
+     Câu thiền, câu theo giờ lấy từ tv/content.js (ROBOT.zen, ROBOT.moods). Cấu hình (cỡ mèo, phút ngủ, phút thức, giây nói) app đưa vào window.MEO_CFG.
+     Thử bằng trình duyệt (nền xám, nhịp nhanh): python3 -m http.server 8765 rồi mở http://localhost:8765/desktop/meo.html?test -->
+<style>
+  @font-face { font-family: "FS PF BeauSans Pro"; font-weight: 700; src: url("../fonts/FSPFBeauSansPro-Bold.otf") format("opentype"); }
+  @font-face { font-family: "FS PF BeauSans Pro"; font-weight: 800; src: url("../fonts/FSPFBeauSansPro-Black.ttf") format("truetype"); }
+  :root { --red: #EE0033; --display: "FS PF BeauSans Pro", "Roboto", "Segoe UI", Helvetica, Arial, sans-serif; }
+  html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; -webkit-user-select: none; user-select: none; cursor: default; }
+  body.test { background: #333; }
+  /* Sân khấu neo đáy cửa sổ, cao cố định 480: app chỉ mở cửa sổ cao 210 (đủ mèo + bong bóng), lúc leo tường mới nới lên 480 rồi hạ lại để đỡ tốn CPU. */
+  #stage { position: absolute; left: 0; bottom: 0; width: 100%; height: 480px; }
+  /* Mèo: hộp 200×140 (toạ độ trước khi thu S), gốc xoay tại bàn chân (100,118). Bấm được vào mèo (app mở menu), bong bóng/z/tim thì không. */
+  .cat { position: absolute; left: 0; top: 0; width: 200px; height: 140px; display: none; pointer-events: auto; cursor: pointer; will-change: transform; -webkit-transform-origin: 100px 118px; transform-origin: 100px 118px; }
+  .cat .bubble, .cat .zzz, .cat .hearts, .cat .q { pointer-events: none; }
+  .cat.sleep { cursor: grab; }              /* đang ngủ thì kéo thả được */
+  .cat, .cat * { -webkit-user-drag: none; }
+  .cat .c-flip { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .cat.left .c-flip { transform: scaleX(-1); }
+  /* Mỗi khớp (thân, đầu, đuôi, 4 đùi, 4 cẳng, 2 đèn, mắt) là một div 200×140 chồng lên nhau chứa SVG riêng, will-change để trình duyệt
+     ghép bằng GPU: chân đạp, đuôi vẫy không bắt CPU vẽ lại cả con mèo mỗi khung hình. Gốc xoay vẫn tính theo lưới 200×140 chung. */
+  .cat .c-flip div, .cat .part { position: absolute; left: 0; top: 0; width: 200px; height: 140px; }
+  .cat .c-flip div { transition: transform .6s ease; will-change: transform; }
+  .cat .part { display: block; overflow: visible; }
+  .cat .c-light, .cat .e-open { will-change: opacity, transform; }
+  .cat .c-bob { transform-origin: 100px 118px; }
+  .cat .c-lean { transform-origin: 62px 90px; }
+  .cat .c-tail { transform-origin: 42px 66px; animation: c-tail 2.4s ease-in-out infinite alternate; }
+  .cat .c-head { transform-origin: 140px 64px; }
+  .cat .c-torso { transform-origin: 90px 94px; }
+  .cat .c-bl { transform-origin: 60px 84px; } .cat .c-br { transform-origin: 70px 84px; }
+  .cat .c-fl { transform-origin: 126px 84px; } .cat .c-fr { transform-origin: 116px 84px; }
+  /* chân hai khúc: hông (c-bl…) và gối (.shin), gối gập khi vung chân */
+  .cat .c-bl .shin { transform-origin: 60.5px 99px; } .cat .c-br .shin { transform-origin: 70.5px 99px; }
+  .cat .c-fl .shin { transform-origin: 126.5px 99px; } .cat .c-fr .shin { transform-origin: 116.5px 99px; }
+  .cat .c-torso { animation: c-breathe2 3.2s ease-in-out infinite alternate; }   /* đứng im vẫn thở nhẹ */
+  .cat .c-light { animation: c-glow 1.2s ease-in-out infinite alternate; }
+  .cat .e-open, .cat .e-happy, .cat .e-sleep { transition: opacity .2s; }
+  .cat .e-happy, .cat .e-sleep { opacity: 0; }
+  .cat .e-open { animation: c-blink 4s infinite; transform-origin: 150px 41px; }
+  .cat.rub .e-open, .cat.talk .e-open, .cat.sleep .e-open, .cat.stretch .e-open { opacity: 0; }
+  .cat.rub .e-happy, .cat.talk .e-happy { opacity: 1; }
+  .cat.sleep .e-sleep, .cat.stretch .e-sleep { opacity: 1; }
+  /* đi: nhịp bước 0,9 s khớp tốc độ đi SPEED trong mã (lững thững) */
+  .cat.walk .c-bob { animation: c-bob .45s ease-in-out infinite alternate; }
+  .cat.walk .c-bl, .cat.walk .c-fr { animation: c-hip .9s linear infinite; }                    /* chân chéo cùng nhịp */
+  .cat.walk .c-br, .cat.walk .c-fl { animation: c-hip .9s linear -.45s infinite; }
+  .cat.walk .c-bl .shin, .cat.walk .c-fr .shin { animation: c-knee .9s linear infinite; }
+  .cat.walk .c-br .shin, .cat.walk .c-fl .shin { animation: c-knee .9s linear -.45s infinite; }
+  .cat.walk .c-head { animation: c-headbob .9s ease-in-out infinite alternate; }
+  .cat.walk .c-tail { animation: c-tail .8s ease-in-out infinite alternate; }
+  /* chạy: chân đảo nhanh gấp đôi, người hơi chúi */
+  .cat.run .c-bob { animation-duration: .2s; }
+  .cat.run .c-bl, .cat.run .c-fr, .cat.run .c-bl .shin, .cat.run .c-fr .shin { animation-duration: .36s; }
+  .cat.run .c-br, .cat.run .c-fl, .cat.run .c-br .shin, .cat.run .c-fl .shin { animation-duration: .36s; animation-delay: -.18s; }
+  .cat.run .c-lean { transform: rotate(6deg); }
+  /* leo tường: vươn chân xa, gối gập sâu */
+  .cat.climb .c-bob { animation: c-bob .45s ease-in-out infinite alternate; }
+  .cat.climb .c-bl, .cat.climb .c-fr { animation: c-hip-climb .9s ease-in-out infinite; }
+  .cat.climb .c-br, .cat.climb .c-fl { animation: c-hip-climb .9s ease-in-out -.45s infinite; }
+  .cat.climb .c-bl .shin, .cat.climb .c-fr .shin { animation: c-knee-climb .9s ease-in-out infinite; }
+  .cat.climb .c-br .shin, .cat.climb .c-fl .shin { animation: c-knee-climb .9s ease-in-out -.45s infinite; }
+  .cat.climb .c-tail { animation: c-tail 1s ease-in-out infinite alternate; }
+  /* dụi đầu vào cạnh màn hình */
+  .cat.rub .c-head { animation: c-rub .7s ease-in-out infinite alternate; }
+  .cat.rub .c-lean { transform: rotate(4deg); }
+  .cat.rub .c-tail { animation: c-quiver .12s linear infinite alternate; transform: rotate(14deg); }
+  /* vươn vai: chúi đầu, chổng mông, duỗi chân trước */
+  .cat.stretch .c-lean { transform: rotate(10deg); }
+  .cat.stretch .c-fl, .cat.stretch .c-fr { transform: rotate(-70deg); }
+  .cat.stretch .c-fl .shin, .cat.stretch .c-fr .shin { transform: rotate(12deg); }
+  .cat.stretch .c-bl, .cat.stretch .c-br { transform: rotate(10deg); }
+  .cat.stretch .c-bl .shin, .cat.stretch .c-br .shin { transform: rotate(-14deg); }
+  .cat.stretch .c-head { transform: rotate(-22deg); }
+  .cat.stretch .c-tail { animation: none; transform: rotate(18deg); }
+  /* ngủ: nằm bẹp, cuộn đuôi, thở đều */
+  .cat.sleep .c-bob { transform: translateY(22px); }
+  .cat.sleep .c-bl, .cat.sleep .c-br, .cat.sleep .c-fl, .cat.sleep .c-fr { transform: scaleY(.28); }
+  .cat.sleep .c-head { transform: translate(-4px, 8px) rotate(14deg); }
+  .cat.sleep .c-tail { animation: none; transform: rotate(-64deg); }
+  /* ngồi xổm liếm chân: hạ người, chân sau gập, chân trước phải giơ lên trước mặt, đầu cúi xuống liếm qua lại */
+  .cat.groom .c-bob { transform: translateY(12px); }
+  .cat.groom .c-lean { transform: rotate(-8deg); }
+  .cat.groom .c-bl, .cat.groom .c-br { transform: rotate(42deg); }
+  .cat.groom .c-bl .shin, .cat.groom .c-br .shin { transform: rotate(-100deg); }
+  .cat.groom .c-fr { transform: rotate(-6deg); }
+  .cat.groom .c-fl { transform: rotate(-120deg); }
+  .cat.groom .c-fl .shin { transform: rotate(40deg); }
+  .cat.groom .c-head { animation: c-lick .36s ease-in-out infinite alternate; }
+  .cat.groom .c-tail { animation: c-tail 1.4s ease-in-out infinite alternate; }
+  .cat.groom .e-open { opacity: 0; } .cat.groom .e-happy { opacity: 1; }
+  @keyframes c-lick { from { transform: translate(-2px, 12px) rotate(26deg); } to { transform: translate(-6px, 18px) rotate(34deg); } }
+  /* nhảy từ trên tường xuống */
+  .cat.jump .c-fl, .cat.jump .c-fr { transform: rotate(-42deg); }
+  .cat.jump .c-fl .shin, .cat.jump .c-fr .shin { transform: rotate(38deg); }
+  .cat.jump .c-bl, .cat.jump .c-br { transform: rotate(38deg); }
+  .cat.jump .c-bl .shin, .cat.jump .c-br .shin { transform: rotate(-28deg); }
+  .cat.jump .c-tail { animation: none; transform: rotate(28deg); }
+  .cat.sleep .c-torso { animation: c-breathe 2.6s ease-in-out infinite alternate; }
+  /* trỏ chuột vào mèo: ngồi lại (chân sau gập, chân trước thẳng), đầu ngắc ngư hai bên, dấu hỏi nhỏ trên đầu */
+  .cat.sit .c-bob { transform: translateY(12px); }
+  .cat.sit .c-lean { transform: rotate(-8deg); }
+  .cat.sit .c-bl, .cat.sit .c-br { transform: rotate(42deg); }
+  .cat.sit .c-bl .shin, .cat.sit .c-br .shin { transform: rotate(-100deg); }
+  .cat.sit .c-fl, .cat.sit .c-fr { transform: rotate(-6deg); }
+  .cat.sit .c-tail { animation: c-tail 1.4s ease-in-out infinite alternate; }
+  .cat.curious .c-head { animation: c-tilt 1.6s ease-in-out infinite alternate; }
+  .cat .q { position: absolute; left: 141px; bottom: calc(100% + 8px); width: 20px; text-align: center; font-family: var(--display); font-weight: 800; font-size: calc(17px * var(--is, 1)); line-height: 1; color: var(--red); text-shadow: 0 0 3px #F2F2F2, 0 1px 2px rgba(0,0,0,.4); opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; pointer-events: none; }
+  .cat.left .q { left: 39px; }
+  .cat.curious .q { opacity: 1; animation: c-q 1.6s ease-in-out infinite alternate; }
+  .cat.say .q { opacity: 0; animation: none; }                 /* đang nói thì bong bóng che chỗ dấu hỏi, ẩn đi */
+  @keyframes c-tilt { from { transform: translateY(2px) rotate(-14deg); } to { transform: translateY(2px) rotate(14deg); } }
+  @keyframes c-q { from { transform: translateY(0) rotate(-12deg); } to { transform: translateY(-4px) rotate(12deg); } }
+  /* ngủ thì tiết kiệm CPU: thở theo nấc thưa, chữ z nhảy nấc, tắt đèn nhấp nháy và chớp mắt (không có khung hình nào vẽ lại 60 lần/giây) */
+  .cat.sleep .c-torso { animation: c-breathe 2.6s steps(4) infinite alternate; }
+  .cat.sleep .c-light { animation: none; opacity: .5; }
+  .cat.sleep .e-open { animation: none; }
+  .cat.sleep .zzz span { animation: c-zzz 3s steps(8) infinite; }
+  /* bong bóng: kích thước tính bằng điểm màn hình (nhân --is = 1/S để bù phép thu mèo), chữ 13 pt dù mèo to hay nhỏ */
+  .cat .bubble { position: absolute; bottom: 100%; margin-bottom: calc(6px * var(--is, 1)); padding: calc(5px * var(--is, 1)) calc(10px * var(--is, 1)); max-width: calc(300px * var(--is, 1)); width: max-content; border-radius: calc(10px * var(--is, 1)); background: #F2F2F2; color: #000; font-family: var(--display); font-weight: 700; font-size: calc(13px * var(--is, 1)); line-height: 1.3; text-align: center; box-shadow: 0 calc(4px * var(--is, 1)) calc(12px * var(--is, 1)) rgba(0,0,0,.35); border-bottom: calc(2px * var(--is, 1)) solid var(--red); opacity: 0; transform: translateY(14px) scale(.7); transition: opacity .3s ease, transform .35s cubic-bezier(.3,1.6,.5,1); }
+  .cat .bubble::after { content: ""; position: absolute; left: var(--tx, 50%); top: 100%; margin-left: calc(-6px * var(--is, 1)); border: calc(6px * var(--is, 1)) solid transparent; border-top-color: var(--red); }
+  .cat.say .bubble { opacity: 1; transform: translateY(0) scale(1); }
+  .cat .zzz, .cat .hearts { position: absolute; top: 0; left: 76%; width: 0; height: 0; }
+  .cat.left .zzz, .cat.left .hearts { left: 24%; }
+  .cat .zzz { left: 60%; } .cat.left .zzz { left: 40%; }
+  .cat .zzz span, .cat .hearts span { position: absolute; left: 0; top: 0; opacity: 0; font-family: var(--display); font-weight: 800; }
+  .cat .zzz span { color: #F2F2F2; font-size: 30px; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+  .cat .hearts span { color: var(--red); font-size: 30px; }
+  .cat.sleep .zzz span:nth-child(2) { animation-delay: 1s; font-size: 24px; } .cat.sleep .zzz span:nth-child(3) { animation-delay: 2s; font-size: 20px; }
+  .cat.rub .hearts span { animation: c-heart 1.8s ease-out infinite; }
+  .cat.rub .hearts span:nth-child(2) { animation-delay: .6s; font-size: 22px; } .cat.rub .hearts span:nth-child(3) { animation-delay: 1.2s; font-size: 26px; }
+  @keyframes c-bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+  @keyframes c-tail { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+  @keyframes c-quiver { from { transform: rotate(10deg); } to { transform: rotate(16deg); } }
+  @keyframes c-rub { from { transform: translateX(-3px) rotate(-16deg); } to { transform: translateX(4px) rotate(8deg); } }
+  @keyframes c-breathe { from { transform: scaleY(1); } to { transform: scaleY(1.06); } }
+  @keyframes c-breathe2 { from { transform: scaleY(1); } to { transform: scaleY(1.025); } }
+  @keyframes c-glow { from { opacity: .55; } to { opacity: 1; } }
+  @keyframes c-hip { 0% { transform: rotate(22deg); } 25% { transform: rotate(2deg); } 50% { transform: rotate(-22deg); } 75% { transform: rotate(-8deg); } 100% { transform: rotate(22deg); } }
+  @keyframes c-knee { 0% { transform: rotate(4deg); } 25% { transform: rotate(48deg); } 50% { transform: rotate(14deg); } 75% { transform: rotate(0deg); } 100% { transform: rotate(4deg); } }
+  @keyframes c-hip-climb { 0% { transform: rotate(30deg); } 50% { transform: rotate(-34deg); } 100% { transform: rotate(30deg); } }
+  @keyframes c-knee-climb { 0% { transform: rotate(10deg); } 30% { transform: rotate(60deg); } 60% { transform: rotate(20deg); } 100% { transform: rotate(10deg); } }
+  @keyframes c-headbob { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(2px) rotate(2deg); } }
+  @keyframes c-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  @keyframes c-zzz { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(34px, -90px) scale(1.2); } }
+  @keyframes c-heart { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-16px, -80px) scale(1.1); } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="cat" id="cat"><div class="c-flip">
+    <svg class="part" viewBox="0 0 200 140" aria-hidden="true"><ellipse cx="96" cy="120" rx="70" ry="7" fill="#000" opacity=".45"/></svg>
+    <div class="c-bob">
+      <div class="c-br"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="64" y="78" width="13" height="24" rx="6.5" fill="#44494D"/></svg><div class="shin"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="64.5" y="97" width="12" height="17" rx="6" fill="#44494D"/><rect x="62" y="108" width="20" height="10" rx="5" fill="#17161b"/><circle cx="70.5" cy="99" r="2.5" fill="#17161b"/></svg></div></div>
+      <div class="c-lean">
+        <div class="c-fr"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="110" y="78" width="13" height="24" rx="6.5" fill="#44494D"/></svg><div class="shin"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="110.5" y="97" width="12" height="17" rx="6" fill="#44494D"/><rect x="108" y="108" width="20" height="10" rx="5" fill="#17161b"/><circle cx="116.5" cy="99" r="2.5" fill="#17161b"/></svg></div></div>
+        <div class="c-tail"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><path d="M44 68 C 22 64, 12 44, 22 26" fill="none" stroke="#B5B4B4" stroke-width="10" stroke-linecap="round"/><path d="M44 68 C 22 64, 12 44, 22 26" fill="none" stroke="#44494D" stroke-width="10" stroke-dasharray="2 9" opacity=".5"/></svg><div class="c-light"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><circle cx="22" cy="24" r="7" fill="#EE0033"/></svg></div></div>
+        <div class="c-torso"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="36" y="50" width="108" height="44" rx="22" fill="#F2F2F2"/><path d="M94 52 V92" stroke="#B5B4B4" stroke-width="2"/><rect x="40" y="82" width="100" height="12" rx="6" fill="#B5B4B4" opacity=".5"/></svg><div class="c-light"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><circle cx="70" cy="66" r="5" fill="#EE0033"/></svg></div></div>
+        <div class="c-bl"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="54" y="78" width="13" height="24" rx="6.5" fill="#B5B4B4"/></svg><div class="shin"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="54.5" y="97" width="12" height="17" rx="6" fill="#B5B4B4"/><rect x="51" y="108" width="21" height="10" rx="5" fill="#44494D"/><circle cx="60.5" cy="99" r="2.5" fill="#44494D"/></svg></div></div>
+        <div class="c-head"><svg class="part" viewBox="0 0 200 140" aria-hidden="true">
+          <path d="M122 22 L127 -2 L146 13 Z M155 13 L174 -2 L180 22 Z" fill="#F2F2F2" stroke="#F2F2F2" stroke-width="6" stroke-linejoin="round"/>
+          <path d="M128 12 L130 3 L138 10 Z M163 10 L171 3 L173 12 Z" fill="#EE0033" opacity=".75"/>
+          <rect x="116" y="10" width="70" height="56" rx="24" fill="#F2F2F2"/>
+          <rect x="125" y="22" width="52" height="34" rx="14" fill="#17161b"/>
+          <path class="e-happy" d="M134 41 q5 -8 10 0 M158 41 q5 -8 10 0" fill="none" stroke="#F2F2F2" stroke-width="3.5" stroke-linecap="round"/>
+          <path class="e-sleep" d="M134 38 q5 5 10 0 M158 38 q5 5 10 0" fill="none" stroke="#F2F2F2" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M146 47 q2.5 3.5 5 0 q2.5 3.5 5 0" fill="none" stroke="#EE0033" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M112 40 h12 M112 47 l12 -3 M178 40 h12 M178 44 l12 3" stroke="#B5B4B4" stroke-width="2" stroke-linecap="round"/>
+          <path d="M128 61 Q151 71 174 61 L174 67 Q151 77 128 67 Z" fill="#EE0033"/><circle cx="151" cy="76" r="4.5" fill="#F2F2F2" stroke="#B5B4B4" stroke-width="1.5"/>
+        </svg><div class="e-open"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><circle cx="139" cy="38" r="4.5" fill="#F2F2F2"/><circle cx="163" cy="38" r="4.5" fill="#F2F2F2"/></svg></div></div>
+        <div class="c-fl"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="120" y="78" width="13" height="24" rx="6.5" fill="#B5B4B4"/></svg><div class="shin"><svg class="part" viewBox="0 0 200 140" aria-hidden="true"><rect x="120.5" y="97" width="12" height="17" rx="6" fill="#B5B4B4"/><rect x="117" y="108" width="21" height="10" rx="5" fill="#44494D"/><circle cx="126.5" cy="99" r="2.5" fill="#44494D"/></svg></div></div>
+      </div>
+    </div>
+  </div><div class="zzz"><span>z</span><span>z</span><span>z</span></div><div class="hearts"><span>♥</span><span>♥</span><span>♥</span></div><div class="bubble" id="cat-say"></div><div class="q">?</div></div>
+</div>
+
+<script src="../tv/content.js"></script>
+<script>
+// Mèo trên màn hình Mac: chỉ có mặt đất (y = GROUND, sát mép dưới cửa sổ = mép trên Dock) và hai cạnh màn hình (x = 0, x = W) làm tường.
+// Toạ độ theo điểm CSS trong #stage (rộng = cửa sổ, cao STAGE_H neo đáy): (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90).
+// Cửa sổ bình thường chỉ cao STRIP; trước khi leo tường mèo nhắn app {t:'size'} nới lên STAGE_H, leo xong hạ lại. Mèo luôn bận: đi dạo, liếm chân, chợp mắt,
+// dụi đầu vào cạnh màn hình, leo cạnh màn hình rồi bò/nhảy xuống; cứ TALK giây vừa đi vừa nói một câu; thức AWAKE giây thì ngủ đúng NAP giây.
+// Bấm vào mèo: mèo nói một câu và nhắn app mở menu. App nhận {t:'rect'} (vùng mèo chiếm) và {t:'menu'} qua webkit.messageHandlers.meo.
+(function () {
+  var R = (window.TV || {}).ROBOT || {}, C = window.MEO_CFG || {}, el = document.getElementById('cat'), say = document.getElementById('cat-say');
+  var qs = location.search, TEST = /[?&]test\b/.test(qs), fakeT = /[?&]gio=(\d{1,2}):(\d{2})/.exec(qs), qS = /[?&]s=([\d.]+)/.exec(qs);
+  if (TEST) document.body.className = 'test';
+  var ZEN = R.zen && R.zen.length ? R.zen : ['Hít vào, thở ra. Deadline rồi cũng qua.', 'Chậm lại một nhịp, việc vẫn chạy.', 'Tâm an thì code ít bug.'];
+  var S = +C.size || (qS && +qS[1]) || .48, K = S / .85;                  // K = cỡ so với mèo trên TV (S = .85): tốc độ, quãng nhảy co theo
+  var NAP = TEST ? 7 : Math.max(.1, +C.napMinutes || 5) * 60;            // giây mỗi giấc ngủ (đúng bằng, không ngẫu nhiên)
+  var AWAKE = TEST ? 40 : Math.max(.5, +C.awakeMinutes || 5) * 60;       // giây thức giữa hai giấc (lệch ±30%)
+  var TALK = TEST ? 12 : Math.max(10, +C.talkSeconds || 30);             // giây giữa hai câu nói (lệch ±30%)
+  var HEAD = 86 * S, SPEED = 100 * K, CLIMB = 130 * K;                   // px/giây: đi lững thững (như TV), leo tường
+  var STAGE_H = 480, STRIP = 210, W, GROUND, XMIN, XMAX;
+  function fit() { W = window.innerWidth; GROUND = STAGE_H - 8; XMIN = 100 * S + 8; XMAX = W - 100 * S - 8; }
+  fit();
+  function nowMin() { if (fakeT) return +fakeT[1] * 60 + +fakeT[2]; var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+  function hm(s) { var m = /^(\d{1,2}):(\d{2})$/.exec(s || ''); return m ? +m[1] * 60 + +m[2] : NaN; }
+  function mood() {          // mục moods đang trong giờ (from ≤ giờ < to), không có thì null
+    var n = nowMin(), out = null;
+    (R.moods || []).forEach(function (m) { if (!out && m.say && m.say.length && n >= hm(m.from) && n < hm(m.to)) out = m; });
+    return out;
+  }
+  var lastLine = '';
+  function line() {          // câu kế tiếp, không lặp lại câu vừa nói
+    var m = mood(), list = m && Math.random() < .85 ? m.say : ZEN, t = pick(list);
+    if (list.length > 1 && t === lastLine) t = pick(list.filter(function (s) { return s !== lastLine; }));
+    lastLine = t; return t;
+  }
+  var fx = 0, fy = GROUND, rot = 0, dir = 1, busy = false;
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  // Cầu nối sang app: báo vùng mèo đang chiếm (app chỉ nhận chuột khi trỏ vào vùng này) và xin mở menu khi bấm vào mèo.
+  var native = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.meo, rectT = 0;
+  function post(m) { if (native) native.postMessage(m); }
+  function report() { var r = el.getBoundingClientRect(); post({ t: 'rect', x: r.left, y: r.top, w: r.width, h: r.height }); }
+  var curPose = '', saying = false, sayW = 0, sayT = 0, hovering = false;
+  function cls(s) {
+    curPose = s || '';
+    var asleep = curPose.indexOf('sleep') >= 0;            // bị gọi lúc đang ngủ thì nói mà không mở mắt
+    var pose = hovering && !asleep && rot === 0 ? 'sit curious' : curPose;   // chuột đang trỏ vào: ngồi ngắc ngư thay cho tư thế đang làm
+    el.className = 'cat' + (dir < 0 ? ' left' : '') + (saying ? (asleep ? ' say' : ' say talk') : '') + (pose ? ' ' + pose : '');
+  }
+  var fxFrom = 0;
+  function place(ms, easing) {        // ms > 0: trượt tới vị trí mới bằng CSS transition (GPU lo, không chạy JS mỗi khung hình)
+    el.style.transition = ms ? 'transform ' + Math.round(ms) + 'ms ' + (easing || 'linear') : 'none';
+    el.style.webkitTransform = el.style.transform = 'translate(' + (fx - 100) + 'px,' + (fy - 118) + 'px) rotate(' + rot + 'deg) scale(' + S + ')';
+    if (saying) placeBubble();
+    var now = Date.now(); if (now - rectT > 100) { rectT = now; report(); }
+  }
+  function run(list, done) { var i = 0; (function step() { if (i >= list.length) done(); else list[i++](step); })(); }
+  // Hẹn giờ của các hành động đi qua later() để lệnh từ menu (Đi ngủ) huỷ được tất cả một lượt.
+  var timers = [], moveGen = 0, hopping = false, loopT = 0, napT = 0;
+  function later(fn, ms) { var id = setTimeout(function () { var i = timers.indexOf(id); if (i >= 0) timers.splice(i, 1); fn(); }, ms); timers.push(id); return id; }
+  function cancelAll() { timers.forEach(clearTimeout); timers = []; clearTimeout(moveT); clearInterval(moveI); moveGen++; hopping = false; cur = null; resume = null; }
+  function scheduleLoop(ms) { clearTimeout(loopT); loopT = setTimeout(loop, ms); }
+  function wait(ms) { return function (done) { later(done, ms); }; }
+  function smooth(p) { return p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
+  // Di chuyển tới (tx, ty, tr) trong ms. Đi thẳng thì giao CSS transition; hop > 0 = nhảy theo đường cong (rơi nhanh dần) thì tính từng khung hình.
+  var moveT = 0, moveI = 0, cur = null, resume = null;   // cur = quãng trượt đang chạy; resume = việc tiếp tục sau khi chuột rời mèo
+  function tween(tx, ty, tr, ms, ease, hop, done) {
+    var x0 = fx, y0 = fy, r0 = rot, t0 = 0;
+    if (!hop) {
+      if (hovering && rot === 0 && tr === 0) { resume = function () { tween(tx, ty, tr, ms, ease, 0, done); }; return; }   // chuột đang trỏ: ngồi chờ
+      cur = { tx: tx, ty: ty, tr: tr, x0: fx, r0: rot, ms: ms, ease: ease, done: done };
+      fxFrom = fx; fx = tx; fy = ty; rot = tr; place(ms, ease ? 'ease-in-out' : 'linear');
+      clearTimeout(moveT); clearInterval(moveI); moveI = setInterval(report, 100);                 // vùng mèo đổi dần theo chuyển động
+      moveT = setTimeout(function () { clearInterval(moveI); cur = null; fxFrom = fx; place(0); report(); done(); }, ms);
+      return;
+    }
+    var g = moveGen; hopping = true;
+    function f(now) {
+      if (g !== moveGen) return;                                      // bị huỷ giữa chừng
+      if (!t0) t0 = now; var p = Math.min(1, (now - t0) / ms), e = ease ? smooth(p) : p;
+      fx = x0 + (tx - x0) * e; rot = r0 + (tr - r0) * e;
+      fy = y0 + (ty - y0) * p * p - hop * 4 * p * (1 - p);
+      place(0); if (p < 1) requestAnimationFrame(f); else { hopping = false; fxFrom = fx; report(); done(); }
+    }
+    requestAnimationFrame(f);
+  }
+  function walkTo(tx, fast) { return function (done) {       // fast = chạy, tới nơi không dừng lại
+    if (Math.abs(tx - fx) < 4) return done();
+    dir = tx > fx ? 1 : -1; cls(fast ? 'walk run' : 'walk');
+    tween(tx, GROUND, 0, Math.abs(tx - fx) / (fast ? SPEED * 2.4 : SPEED) * 1000, false, 0, function () { if (fast) done(); else { cls(''); later(done, 300); } });
+  }; }
+  // Bong bóng lời nói đi theo mèo (không chặn việc đang làm): mỗi khung hình đặt lại vị trí để không lọt ra ngoài mép màn hình.
+  function placeBubble() {              // kẹp theo cả điểm đầu lẫn điểm cuối quãng đang trượt
+    var w = sayW, head = dir > 0 ? 150 : 50, left = head - w / 2, lo = Math.min(fx, fxFrom), hi = Math.max(fx, fxFrom);   // toạ độ trong mèo (trước khi thu S)
+    left = Math.min(left, 100 + (W - 16 - hi) / S - w); left = Math.max(left, 100 + (16 - lo) / S);
+    var pad = 14 / S; say.style.left = left + 'px'; say.style.setProperty('--tx', Math.max(pad, Math.min(w - pad, head - left)) + 'px');
+  }
+  function speak(text, ms) {
+    say.textContent = text; sayW = say.offsetWidth; saying = true; cls(curPose); placeBubble();
+    clearTimeout(sayT); sayT = setTimeout(function () { saying = false; cls(curPose); }, ms);
+  }
+  var wakeFn = null, sleepT = 0;
+  function nap(sec) { return function (done) {              // ngủ sec giây rồi vươn vai; robotWake() đánh thức sớm
+    cls('sleep');
+    function up() { wakeFn = null; clearTimeout(sleepT); cls(''); later(function () { cls('stretch'); later(function () { cls(''); later(done, 800); }, 2600); }, 900); }
+    wakeFn = up; sleepT = later(up, sec * 1000);
+  }; }
+  function buoi() { var h = nowMin() / 60; return h < 11 ? 'sáng' : h < 14 ? 'trưa' : h < 18 ? 'chiều' : 'tối'; }
+  function groom(ms) { return function (done) { cls('groom'); later(function () { cls(''); later(done, 600); }, ms); }; }   // ngồi xổm liếm chân
+  function lie(ms) { return function (done) { cls('sleep'); later(function () { cls(''); later(done, 500); }, ms); }; }     // chợp mắt ngắn
+  function strollOn(far) {                      // far = đi xa hơn (lúc vừa đi vừa nói)
+    var tx; do { tx = rnd(XMIN, XMAX); } while (Math.abs(tx - fx) < Math.min(far ? 600 * K : 220 * K, (XMAX - XMIN) / 2));
+    return [walkTo(tx)];
+  }
+  // Dụi đầu vào cạnh trái hoặc phải màn hình.
+  function rubEdge() {
+    var right = Math.random() < .5;
+    return [walkTo(right ? W - HEAD : HEAD), function (done) {
+      dir = right ? 1 : -1; cls('rub');
+      later(function () { cls(''); later(done, 500); }, 4200);
+    }, function (done) { speak(pick(['Meo~', 'Rừ rừ…', 'Meo, chào buổi ' + buoi() + '!']), 2200); done(); }];
+  }
+  // Leo cạnh màn hình lên một đoạn, bám nhìn quanh, rồi bò xuống hoặc nhảy xuống.
+  function climbEdge() {
+    var side = Math.random() < .5 ? 1 : -1, w = side > 0 ? W : 0, h = rnd(150, 360) * K;
+    var st = [
+      walkTo(w - side * (HEAD + 2)),
+      function (done) { post({ t: 'size', h: STAGE_H }); later(done, 150); },                                            // nới cửa sổ cao lên
+      function (done) { dir = side; cls('climb'); tween(w - side, GROUND - HEAD, -90 * side, 650, true, 0, done); },         // chồm lên tường
+      function (done) { tween(w - side, GROUND - HEAD - h, -90 * side, h / CLIMB * 1000, false, 0, function () { cls(''); done(); }); },
+      wait(TEST ? 800 : rnd(1200, 3500))
+    ];
+    if (Math.random() < .5) st.push(                                                                                           // bò xuống
+      function (done) { cls('climb'); tween(w - side, GROUND - HEAD, -90 * side, h / CLIMB * 1000, false, 0, done); },
+      function (done) { tween(w - side * (HEAD + 2), GROUND, 0, 650, true, 0, function () { cls(''); later(done, 300); }); });
+    else st.push(function (done) {                                                                                             // nhảy xuống
+      dir = -side; cls('jump');
+      tween(w - side * 120 * K, GROUND, 0, 450 + Math.sqrt(h + HEAD) * 26, false, 70 * K, function () { cls(''); later(done, 400); });
+    });
+    st.push(function (done) { post({ t: 'size', h: STRIP }); done(); });                                                      // hạ cửa sổ lại
+    return st;
+  }
+  // Hết việc này nghỉ 1–5 giây rồi sang việc khác (trọng số). Đến giờ ngủ thì ngủ ngay, chỗ ngẫu nhiên; đến lượt nói thì vừa đi vừa nói.
+  var wantTalk = false, napDue = false, testI = 0, TESTSEQ = ['climb', 'rub', 'groom', 'rest', 'stroll', 'climb', 'stroll'];
+  function clampX(x) { return Math.max(XMIN, Math.min(XMAX, x)); }
+  function choose() {
+    if (napDue) return 'nap';
+    if (wantTalk) { wantTalk = false; return 'talk'; }
+    var opts = [['stroll', 30], ['groom', 12], ['rest', 14], ['rub', 10], ['climb', 14]];
+    if (saying) opts = opts.filter(function (o) { return o[0] === 'stroll' || o[0] === 'groom'; });   // đang nói thì chưa leo (bong bóng sẽ xoay theo)
+    if (TEST && !saying) return TESTSEQ[testI++ % TESTSEQ.length];
+    var sum = 0; opts.forEach(function (o) { sum += o[1]; });
+    var r = Math.random() * sum;
+    for (var i = 0; i < opts.length; i++) { r -= opts[i][1]; if (r <= 0) return opts[i][0]; }
+    return 'stroll';
+  }
+  function build(act) {
+    switch (act) {
+      case 'stroll': return strollOn(false);
+      case 'talk': var st = strollOn(true); st.unshift(function (d) { speak(line(), 7000); d(); }); return st;
+      case 'groom': return [groom(TEST ? 3000 : rnd(4000, 8000))];
+      case 'rest': return [lie(TEST ? 2000 : rnd(8000, 20000))];
+      case 'rub': return rubEdge();
+      case 'climb': return climbEdge();
+      case 'nap': napDue = false; napLater(); return [nap(NAP)];                      // ngủ ngay tại chỗ đang đứng
+    }
+    return [];
+  }
+  function talkLater(first) {
+    var ms = first ? (TEST ? 5 : rnd(10, 30)) * 1000 : TALK * 1000 * rnd(.7, 1.3);
+    setTimeout(function () { wantTalk = true; talkLater(false); }, ms);
+  }
+  function napLater() { clearTimeout(napT); napT = setTimeout(function () { napDue = true; }, AWAKE * 1000 * (TEST ? 1 : rnd(.7, 1.3))); }
+  function pause() { return saying ? 300 : TEST ? 1000 : rnd(1500, 5000); }
+  function loop() {
+    if (busy) return scheduleLoop(1000);
+    busy = true;
+    run(build(choose()), function () { busy = false; scheduleLoop(pause()); });
+  }
+  // Đang ngủ thì bấm giữ kéo ngang sang chỗ khác (kẻo nằm chắn chỗ đang làm); bấm nhanh không kéo thì vẫn ra menu.
+  var drag = null, dragged = false;
+  el.addEventListener('mousedown', function (e) {
+    if (e.button !== 0 || curPose.indexOf('sleep') < 0) return;
+    drag = { x: e.clientX, fx0: fx, moved: false }; post({ t: 'drag', on: true }); e.preventDefault();
+  });
+  window.addEventListener('mousemove', function (e) {
+    if (!drag) return;
+    var dx = e.clientX - drag.x; if (Math.abs(dx) > 4) { drag.moved = true; document.body.style.cursor = 'grabbing'; }
+    if (drag.moved) { fx = fxFrom = clampX(drag.fx0 + dx); place(0); report(); }
+  });
+  window.addEventListener('mouseup', function () {
+    if (!drag) return; var moved = drag.moved; drag = null; document.body.style.cursor = ''; post({ t: 'drag', on: false });
+    if (moved) { dragged = true; setTimeout(function () { dragged = false; }, 50); }   // cú click ngay sau khi kéo thì bỏ qua
+  });
+  el.addEventListener('click', function (e) {
+    e.preventDefault();
+    if (dragged) return;
+    if (rot === 0) speak(pick(curPose.indexOf('sleep') >= 0 ? ['Zzz… mở gì đấy?', 'Meo… đang ngủ mà…'] : ['Meo? Mở gì nào?', 'Chọn đi, meo mở cho!', 'Rừ rừ… gọi meo à?']), 3000);
+    post({ t: 'menu' });
+  });
+  // App gọi robotHover(true/false) khi chuột vào/ra vùng mèo: đang đi trên đất thì dừng ngay tại chỗ (đọc vị trí hiện tại từ transition),
+  // ngồi ngắc ngư; chuột rời thì đi tiếp quãng còn lại. Đang leo tường hay đang ngủ thì kệ.
+  window.robotHover = function (on) {
+    on = !!on; if (on === hovering) return; hovering = on;
+    if (on && cur && rot === 0 && cur.tr === 0) {
+      var m = /matrix\(([^)]+)\)/.exec(getComputedStyle(el).transform);
+      if (m) { var v = m[1].split(',').map(Number); fx = v[4] + 100; fy = v[5] + 118; }
+      clearTimeout(moveT); clearInterval(moveI); fxFrom = fx; place(0); report();
+      var p = cur; cur = null;
+      resume = function () { var left = Math.abs(p.tx - fx), full = Math.abs(p.tx - p.x0) || 1; tween(p.tx, p.ty, p.tr, p.ms * left / full, p.ease, 0, p.done); };
+    }
+    cls(curPose);
+    if (!on && resume) { var r = resume; resume = null; r(); }
+  };
+  // Lệnh từ menu. Đi ngủ: bỏ dở việc đang làm, nằm ngay tại chỗ (đang leo tường, đang nhảy thì ngủ ngay khi chạm đất). Nói: nói ngay.
+  function freezeHere() {
+    if (cur && rot === 0 && cur.tr === 0) {                      // đang trượt trên đất: lấy vị trí hiện tại
+      var m = /matrix\(([^)]+)\)/.exec(getComputedStyle(el).transform);
+      if (m) { var v = m[1].split(',').map(Number); fx = v[4] + 100; fy = v[5] + 118; }
+    }
+    cancelAll(); fxFrom = fx; place(0); report();
+  }
+  window.robotGo = function () { if (rot === 0 && !hopping) speak(line(), 7000); else wantTalk = true; };
+  window.robotNap = function () {
+    if (curPose.indexOf('sleep') >= 0) return;
+    if (rot !== 0 || hopping || (cur && cur.r0 !== 0)) { napDue = true; return; }
+    freezeHere(); busy = true; napDue = false; napLater();
+    run([nap(NAP)], function () { busy = false; scheduleLoop(pause()); });
+  };
+  window.robotWake = function () { if (wakeFn) wakeFn(); };
+  window.addEventListener('resize', function () { fit(); if (rot === 0 && !busy) { fx = fxFrom = clampX(fx); place(0); } report(); });
+  // Mở app: đi từ mép vào một lần rồi ở lại luôn.
+  post({ t: 'size', h: STRIP });
+  el.style.setProperty('--is', 1 / S);                   // bong bóng, dấu hỏi giữ cỡ chữ theo điểm màn hình
+  dir = Math.random() < .5 ? 1 : -1; fx = fxFrom = dir > 0 ? -120 : W + 120; fy = GROUND; rot = 0; place(0); cls(''); el.style.display = 'block';
+  busy = true;
+  setTimeout(function () { walkTo(clampX(rnd(W * .25, W * .75)))(function () { busy = false; scheduleLoop(pause()); }); }, TEST ? 500 : 1500);
+  talkLater(true); napLater();
+})();
+</script>
+</body>
+</html>

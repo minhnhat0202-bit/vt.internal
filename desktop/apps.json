@@ -1,0 +1,20 @@
+{
+  "_huongdan": "Menu hiện khi bấm vào mèo. Mỗi mục: {\"name\": \"Tên hiện\", \"app\": \"Tên app trong /Applications (hoặc bundle id, đường dẫn .app)\"} / {\"name\": \"…\", \"url\": \"https://…\"} / {\"name\": \"…\", \"path\": \"~/thư mục hoặc file\"}; chuỗi \"-\" là vạch ngăn. size = cỡ mèo (0.5–1). napMinutes = mỗi giấc ngủ dài bao nhiêu phút. awakeMinutes = thức bao lâu rồi ngủ tiếp (lệch ±30%). talkSeconds = bao lâu nói một câu. Sửa xong không cần mở lại app (trừ size, phút ngủ, phút thức, giây nói).",
+  "size": 0.48,
+  "napMinutes": 5,
+  "awakeMinutes": 5,
+  "talkSeconds": 30,
+  "apps": [
+    { "name": "Google Chrome", "app": "Google Chrome" },
+    { "name": "Outlook", "app": "Microsoft Outlook" },
+    { "name": "Zalo", "app": "Zalo" },
+    { "name": "Telegram", "app": "Telegram" },
+    { "name": "Notion", "app": "Notion" },
+    { "name": "Figma", "app": "Figma" },
+    { "name": "Visual Studio Code", "app": "Visual Studio Code" },
+    "-",
+    { "name": "Bản tin TV", "url": "https://minhnhat0202-bit.github.io/vt.internal/tv/" },
+    { "name": "Duyệt tin phòng ban", "url": "https://minhnhat0202-bit.github.io/vt.internal/news/duyet.html" },
+    { "name": "Thư mục Internal Communication", "path": "~/Documents/1. Viettel/3. VTNET/Internal Communication" }
+  ]
+}
