@@ -165,6 +165,10 @@
   .cat.walk .c-bl, .cat.walk .c-fl { animation: c-leg .52s ease-in-out infinite alternate; }
   .cat.walk .c-br, .cat.walk .c-fr { animation: c-leg .52s ease-in-out -.52s infinite alternate; }
   .cat.walk .c-tail { animation: c-tail .8s ease-in-out infinite alternate; }
+  /* chạy lấy đà: chân đảo nhanh gấp đôi, người hơi chúi */
+  .cat.run .c-bob { animation-duration: .14s; }
+  .cat.run .c-bl, .cat.run .c-fl, .cat.run .c-br, .cat.run .c-fr { animation-duration: .28s; }
+  .cat.run .c-lean { transform: rotate(6deg); }
   /* dụi đầu */
   .cat.rub .c-head { animation: c-rub .7s ease-in-out infinite alternate; }
   .cat.rub .c-lean { transform: rotate(4deg); }
@@ -735,7 +739,8 @@ function bootTV(PREVIEW) {
   next(true);
 })();
 // Mèo robot (ROBOT.kind = 'meo'): luôn ở trên màn hình và luôn hoạt động: đi dạo, dụi đầu vào cạnh khung (khung khẽ rung),
-// leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra ngồi chơi rồi nhảy xuống. Cứ talkSeconds giây nói một câu trong zen;
+// leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra ngồi chơi rồi nhảy xuống; đang trên nóc Tin tiêu điểm thì
+// thỉnh thoảng lấy đà phóng sang nóc Hôm nay hoặc Sắp diễn ra. Cứ talkSeconds giây nói một câu trong zen;
 // cứ napEveryMinutes phút ngủ một giấc ít nhất napSeconds giây (thường trên nóc khung), tỉnh dậy vươn vai.
 // Toạ độ theo khung 1920×1080: (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90).
 // Trong khung giờ của một mục moods (ăn sáng, đói trưa, trà chiều…) mèo lượt nào cũng nói, lấy câu trong mục đó.
@@ -780,10 +785,10 @@ function bootTV(PREVIEW) {
     }
     requestAnimationFrame(f);
   }
-  function walkTo(tx) { return function (done) {
+  function walkTo(tx, fast) { return function (done) {       // fast = chạy lấy đà, tới nơi không dừng lại
     if (Math.abs(tx - fx) < 4) return done();
-    dir = tx > fx ? 1 : -1; cls('walk');
-    tween(tx, fy, rot, Math.abs(tx - fx) / SPEED * 1000, false, 0, function () { cls(''); setTimeout(done, 300); });
+    dir = tx > fx ? 1 : -1; cls(fast ? 'walk run' : 'walk');
+    tween(tx, fy, rot, Math.abs(tx - fx) / (fast ? SPEED * 2.4 : SPEED) * 1000, false, 0, function () { if (fast) done(); else { cls(''); setTimeout(done, 300); } });
   }; }
   function talk(text, ms) { return function (done) {
     say.textContent = text; cls('talk');
@@ -805,12 +810,12 @@ function bootTV(PREVIEW) {
   // Nóc khung mèo leo lên được. wallRight: tường ở bên phải mèo (leo cạnh trái khung); spot: khoảng chỗ nằm, né nhãn khung và chữ đầu trang.
   function surfaces() {
     var f = rect(document.querySelector('.feature')), sp = document.querySelectorAll('.side .panel'), out = [];
-    out.push({ wall: f.R, wallRight: false, top: f.T, spot: [f.R - 170, f.R - 95], high: true });
+    out.push({ wall: f.R, wallRight: false, top: f.T, spot: [f.R - 170, f.R - 95], high: true, feature: true });
     [].forEach.call(sp, function (p) { var r = rect(p); out.push({ wall: r.L, wallRight: true, top: r.T, high: r.T < 300, spot: r.T < 300 ? [r.L + 296, r.L + 306] : [r.L + 350, r.R - 92] }); });
     return out;
   }
-  // Trèo lên nóc khung sf, ở trên làm các bước onTop, rồi nhảy xuống đất.
-  function climbPlan(sf, onTop) {
+  // Trèo từ đất lên nóc khung sf rồi đi tới chỗ ngồi.
+  function climbUp(sf) {
     var w = sf.wall, side = sf.wallRight ? 1 : -1;
     return [
       walkTo(w - side * (HEAD + 2)),
@@ -818,13 +823,40 @@ function bootTV(PREVIEW) {
       function (done) { tween(w - side, sf.top + HEAD, -90 * side, (GROUND - sf.top - 2 * HEAD) / CLIMB * 1000, false, 0, done); },
       function (done) { tween(w + side * 70, sf.top, 0, 650, true, 0, function () { cls(''); setTimeout(done, 300); }); },   // trèo qua mép
       walkTo(rnd(sf.spot[0], sf.spot[1]))
-    ].concat(onTop, [
+    ];
+  }
+  // Từ nóc khung sf đi ra mép rồi nhảy xuống đất.
+  function jumpDown(sf) {
+    var w = sf.wall, side = sf.wallRight ? 1 : -1;
+    return [
       walkTo(w + side * 40),
-      function (done) {                                                                       // nhảy xuống đất
+      function (done) {
         dir = -side; cls('jump');
         tween(w - side * 120, GROUND, 0, 450 + Math.sqrt(GROUND - sf.top) * 26, false, 70, function () { cls(''); setTimeout(done, 400); });
       }
-    ]);
+    ];
+  }
+  // Trên nóc Tin tiêu điểm: lùi lại lấy đà, chạy ra mép phải rồi phóng sang nóc khung to (Hôm nay ngang tầm, Sắp diễn ra thấp hơn).
+  function leapPlan(f, to) {
+    var edge = f.wall - 50, land = rnd(to.spot[0], to.spot[1]), dx = land - edge, dy = to.top - f.top;
+    return [                                   // vồng thấp (34 px) để tai không lọt ra ngoài mép trên màn hình
+      walkTo(edge - rnd(130, 180)),
+      wait(TEST ? 300 : rnd(400, 900)),
+      walkTo(edge, true),
+      function (done) { dir = 1; cls('jump'); tween(land, to.top, 0, 520 + dx * .6 + dy * .5, false, dy > 100 ? 80 : 34, function () { cls(''); setTimeout(done, 400); }); }
+    ];
+  }
+  // Việc làm trên nóc khung: đến giờ ngủ thì ngủ, không thì ngồi chơi một lát (và nói nếu đến lượt, trừ nóc cao sát mép trên).
+  // Trên nóc Hôm nay (dưới đồng hồ) đứng sẽ che số giờ, nên chỉ nằm bẹp chợp mắt.
+  function onTop(sf) {
+    var o = [], ms = TEST ? 2000 : rnd(6000, 16000);
+    if (napDue) { napDue = false; napLater(); o.push(nap(napSec(), sf.high)); }
+    else if (sf.high && !sf.feature) o.push(function (done) { cls('sleep flat'); setTimeout(function () { cls(''); setTimeout(done, 500); }, ms); });
+    else {
+      if (wantTalk && !sf.high) { wantTalk = false; o.push(talk(line(), 7000)); }
+      o.push(wait(ms));
+    }
+    return o;
   }
   var ACTS = {
     rub: function () {
@@ -842,13 +874,12 @@ function bootTV(PREVIEW) {
     },
     stroll: function () { var tx; do { tx = rnd(XMIN, XMAX); } while (Math.abs(tx - fx) < 250); return [walkTo(tx)]; },
     climb: function () {
-      var s = surfaces(), sf = TEST ? s[testSurf++ % s.length] : pick(s), onTop = [];
-      if (napDue) { napDue = false; napLater(); onTop.push(nap(napSec(), sf.high)); }          // đến giờ ngủ thì ngủ luôn trên nóc
-      else {
-        if (wantTalk && !sf.high) { wantTalk = false; onTop.push(talk(line(), 7000)); }
-        onTop.push(wait(TEST ? 2000 : rnd(6000, 16000)));                                      // ngồi chơi trên nóc một lát
+      var s = surfaces(), sf = TEST ? s[testSurf++ % s.length] : pick(s), steps = climbUp(sf);
+      if (sf.feature && s.length > 1 && (TEST || Math.random() < .5)) {      // thỉnh thoảng từ Tin tiêu điểm phóng sang khung bên phải
+        var to = TEST ? s[1 + (visit % (s.length - 1))] : pick(s.slice(1));
+        steps = steps.concat([wait(TEST ? 800 : rnd(1500, 4000))], leapPlan(sf, to)); sf = to;
       }
-      return climbPlan(sf, onTop);
+      return steps.concat(onTop(sf), jumpDown(sf));
     },
     nap: function () { napDue = false; napLater(); return [walkTo(clampX(rnd(300, 1600))), nap(napSec())]; },
     zen: function () { wantTalk = false; return [talk(line(), 7000)]; }
