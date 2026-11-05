@@ -95,7 +95,7 @@ window.TV = {
   //   làm một lượt trò: đi dạo, dụi đầu vào khung, leo lên nóc khung, ngủ quên
   //   ít nhất napSeconds giây (ngủ 1–1,5 lần số này) rồi vươn vai, nói một câu trong zen (≤ 45 ký tự cho gọn bong bóng).
   //   moods: theo khung giờ (from ≤ giờ < to) mèo lượt nào cũng nói, câu lấy trong say của mục đó (thỉnh thoảng vẫn xen câu zen).
-  ROBOT: { kind: 'robot', everyMinutes: 5, napSeconds: 300,
+  ROBOT: { kind: 'meo', everyMinutes: 5, napSeconds: 300,
     greetings: ['Xin chào!', 'Chúc một ngày vui!', 'Làm việc hiệu quả nhé!', 'Nhớ uống nước nha!'],
     zen: ['Hít vào, thở ra. Deadline rồi cũng qua.', 'Chậm lại một nhịp, việc vẫn chạy.', 'Tâm an thì code ít bug.',
       'Mây cứ trôi, mèo cứ ngồi.', 'Ngủ đủ cũng là một cách tu.', 'Làm tốt một việc nhỏ hôm nay là đủ.',
