@@ -113,7 +113,7 @@
   .robot { position: absolute; left: 0; top: 786px; width: 146px; height: 190px; z-index: 3; display: none; pointer-events: none; will-change: transform; }
   .robot .rb-flip { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: transform .25s ease; }
   .robot.left .rb-flip { transform: scaleX(-1); }
-  .robot svg { display: block; width: 100%; height: 100%; overflow: visible; -webkit-filter: drop-shadow(0 6px 12px rgba(0,0,0,.55)); filter: drop-shadow(0 6px 12px rgba(0,0,0,.55)); }
+  .robot svg { display: block; width: 100%; height: 100%; overflow: visible; }
   .robot .rb-lean { transition: transform .25s ease; transform-origin: 80px 196px; }
   .robot.running .rb-lean { transform: rotate(7deg); }
   .robot .lg-l { transform-origin: 66px 152px; } .robot .lg-r { transform-origin: 94px 152px; }
@@ -144,7 +144,7 @@
   .cat { position: absolute; left: 0; top: 0; width: 200px; height: 140px; z-index: 3; display: none; pointer-events: none; will-change: transform; -webkit-transform-origin: 100px 118px; transform-origin: 100px 118px; }
   .cat .c-flip { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
   .cat.left .c-flip { transform: scaleX(-1); }
-  .cat svg { display: block; width: 100%; height: 100%; overflow: visible; -webkit-filter: drop-shadow(0 6px 12px rgba(0,0,0,.55)); filter: drop-shadow(0 6px 12px rgba(0,0,0,.55)); }
+  .cat svg { display: block; width: 100%; height: 100%; overflow: visible; }
   .cat svg g { transition: transform .6s ease; }
   .cat .c-bob { transform-origin: 100px 118px; }
   .cat .c-lean { transform-origin: 62px 90px; }
