@@ -95,15 +95,24 @@ window.TV = {
   // Robot chào: thi thoảng chạy ngang màn hình, dừng giữa chừng vẫy tay kèm một câu chào ngẫu nhiên
   // (luôn có thêm câu chào theo buổi: sáng, trưa, chiều, tối). everyMinutes: bao lâu ra một lần. Tắt: ROBOT: null.
   // kind: 'robot' = robot vẫy tay chào (dùng greetings) · 'meo' = mèo robot luôn ở trên màn hình, liên tục đi dạo,
-  //   dụi đầu vào khung, leo lên nóc khung. Cứ everyMinutes phút nói một câu trong zen (≤ 45 ký tự cho gọn bong bóng);
+  //   dụi đầu vào khung, leo lên nóc khung. Cứ talkSeconds giây nói một câu trong zen (≤ 45 ký tự cho gọn bong bóng, không lặp câu vừa nói);
   //   cứ napEveryMinutes phút ngủ một giấc ít nhất napSeconds giây (ngủ 1–1,5 lần số này) rồi vươn vai.
-  //   moods: trong khung giờ (from ≤ giờ < to) mèo nói dày gấp đôi, câu lấy trong say của mục đó (thỉnh thoảng vẫn xen câu zen).
-  ROBOT: { kind: 'meo', everyMinutes: 5, napEveryMinutes: 20, napSeconds: 300,
+  //   moods: trong khung giờ (from ≤ giờ < to) câu lấy trong say của mục đó (thỉnh thoảng vẫn xen câu zen).
+  ROBOT: { kind: 'meo', everyMinutes: 5, talkSeconds: 30, napEveryMinutes: 20, napSeconds: 300,
     greetings: ['Xin chào!', 'Chúc một ngày vui!', 'Làm việc hiệu quả nhé!', 'Nhớ uống nước nha!'],
     zen: ['Hít vào, thở ra. Deadline rồi cũng qua.', 'Chậm lại một nhịp, việc vẫn chạy.', 'Tâm an thì code ít bug.',
       'Mây cứ trôi, mèo cứ ngồi.', 'Ngủ đủ cũng là một cách tu.', 'Làm tốt một việc nhỏ hôm nay là đủ.',
       'Đừng ôm cả núi, ôm từng viên đá thôi.', 'Uống ngụm nước, nhìn ra cửa sổ một chút.', 'Bug nào rồi cũng có duyên gặp người sửa.',
-      'Hôm nay không vội. Mèo cũng không vội.'],
+      'Hôm nay không vội. Mèo cũng không vội.',
+      'Mỗi bước chân là một lần về với hiện tại.', 'Đi chậm thôi, đất dưới chân đang nâng bạn.', 'Thở vào biết thở vào, thở ra biết thở ra.',
+      'Việc khó bắt đầu bằng một bước nhỏ.', 'Thả vai xuống. Thở. Rồi làm tiếp.', 'Email không chạy đi đâu, bình tĩnh đọc.',
+      'Họp dài, hơi thở vẫn ngắn và đều.', 'Ai cũng từng là người mới, kể cả meo.', 'Làm xong một việc, mỉm cười một cái.',
+      'Không có gì phải vội trong một hơi thở.', 'Đi bộ vài vòng, ý tưởng tự tìm đến.', 'Lỗi hôm nay là bài học ngày mai.',
+      'Nghỉ ngơi không phải lười, là nạp pin.', 'Một việc một lúc, mèo không đa nhiệm.', 'Mặt trời vẫn mọc dù sprint chưa xong.',
+      'Nước chảy mãi rồi đá cũng mòn. Từ từ.', 'Hôm nay bạn đã uống đủ nước chưa?', 'Cà phê nguội vẫn ngon nếu lòng còn ấm.',
+      'Nhìn xa 20 giây cho mắt nghỉ nhé.', 'Mỗi dòng code là một bước thiền hành.', 'Thở sâu ba lần trước khi bấm Gửi.',
+      'Đừng cõng việc hôm qua lên vai hôm nay.', 'Lặng nghe, hiểu nhiều hơn là nói.', 'Duỗi lưng đi, ngồi lâu rồi đấy.',
+      'Bước đi như hôn lên mặt đất.'],
     moods: [
       { from: '08:00', to: '08:30', say: ['Ăn sáng chưa? Đói là không code nổi đâu.', 'Một ly cà phê cho tỉnh táo nào!',
         'Bụng no thì đầu mới sáng. Ăn sáng đi!', 'Sáng nay phở hay bánh mì? Meo chọn cả hai.', 'Nạp năng lượng rồi hẵng mở mail nhé.'] },
