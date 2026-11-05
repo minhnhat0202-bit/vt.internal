@@ -726,9 +726,10 @@ function bootTV(PREVIEW) {
   }
   next(true);
 })();
-// Mèo robot (ROBOT.kind = 'meo'): mỗi lượt vào làm 2–3 việc ngẫu nhiên: dụi đầu vào cạnh khung (khung khẽ rung),
-// leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra rồi ngủ quên ở đó (napSeconds), tỉnh dậy vươn vai, nhảy xuống;
-// nói một câu trong zen; xong đi ra. Toạ độ theo khung 1920×1080: (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90).
+// Mèo robot (ROBOT.kind = 'meo'): luôn ở trên màn hình; cứ everyMinutes phút làm một lượt 1–2 việc ngẫu nhiên: dụi đầu vào cạnh khung
+// (khung khẽ rung), leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra rồi ngủ quên ở đó (napSeconds), tỉnh dậy vươn vai,
+// nhảy xuống; nói một câu trong zen. Giữa các lượt đứng dưới đất, thỉnh thoảng dạo vài bước.
+// Toạ độ theo khung 1920×1080: (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90).
 // Trong khung giờ của một mục moods (ăn sáng, đói trưa, trà chiều…) mèo lượt nào cũng nói, lấy câu trong mục đó.
 // Xem thử: tv/?robot=meo · giả giờ: tv/?robot=meo&gio=11:45
 (function () {
@@ -832,6 +833,10 @@ function bootTV(PREVIEW) {
     nap: function () { return [walkTo(rnd(300, 1500)), nap(napSec())]; },
     zen: function () { return [walkTo(rnd(300, 1500)), talk(line(), 7000)]; }
   };
+  // Mèo luôn ở trên màn hình: lúc mới mở đi vào một lần, sau đó đứng chơi dưới đất, thỉnh thoảng dạo vài bước,
+  // cứ everyMinutes phút (±30%) lại làm một lượt trò (1–2 việc) rồi về chỗ cũ đứng tiếp. Không bao giờ đi ra khỏi màn hình.
+  var XMIN = 140, XMAX = 1780;
+  function clampX(x) { return Math.max(XMIN, Math.min(XMAX, x)); }
   function go() {
     var bd = $('backdrop');
     if (busy || document.hidden || (bd && bd.style.display === 'block')) return;
@@ -846,19 +851,26 @@ function bootTV(PREVIEW) {
       if (!acts.length || mood() || Math.random() < .5) acts.push('zen');   // trong giờ moods thì lượt nào cũng nói
       acts.sort(function () { return Math.random() - .5; });
     }
-    dir = Math.random() < .5 ? 1 : -1; fx = dir > 0 ? -120 : 2040; fy = GROUND; rot = 0; place(); cls(''); el.style.display = 'block';
+    fy = GROUND; rot = 0; place();
     var steps = [];
     acts.forEach(function (a) { steps = steps.concat(ACTS[a]()); });
-    run(steps, function () {
-      walkTo(fx < 960 ? -120 : 2040)(function () { el.style.display = 'none'; busy = false; });
-    });
+    run(steps, function () { busy = false; });
+  }
+  function stroll() {                       // dạo vài bước cho đỡ đứng im, chỉ khi đang rảnh
+    if (busy || Math.random() < .4) return;
+    busy = true; walkTo(clampX(fx + rnd(-520, 520)))(function () { busy = false; });
   }
   window.robotGo = go;
   function next(first) {
-    var ms = TEST ? (first ? 2000 : 6000) : first ? rnd(30, 90) * 1000
+    var ms = TEST ? (first ? 4000 : 6000) : first ? rnd(30, 90) * 1000
       : Math.max(1, +R.everyMinutes || 5) * 60000 * rnd(.7, 1.3);
     setTimeout(function () { go(); next(false); }, ms);
   }
+  // Mở trang: đi từ mép vào một lần rồi ở lại luôn.
+  dir = Math.random() < .5 ? 1 : -1; fx = dir > 0 ? -120 : 2040; fy = GROUND; rot = 0; place(); cls(''); el.style.display = 'block';
+  busy = true;
+  setTimeout(function () { walkTo(clampX(rnd(400, 1500)))(function () { busy = false; }); }, TEST ? 500 : 3000);
+  setInterval(stroll, TEST ? 4000 : 30000);
   next(true);
 })();
 (function () {

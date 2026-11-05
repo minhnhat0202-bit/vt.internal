@@ -91,7 +91,8 @@ window.TV = {
 
   // Robot chào: thi thoảng chạy ngang màn hình, dừng giữa chừng vẫy tay kèm một câu chào ngẫu nhiên
   // (luôn có thêm câu chào theo buổi: sáng, trưa, chiều, tối). everyMinutes: bao lâu ra một lần. Tắt: ROBOT: null.
-  // kind: 'robot' = robot vẫy tay chào (dùng greetings) · 'meo' = mèo robot đi dạo, dụi đầu vào khung, ngủ quên
+  // kind: 'robot' = robot vẫy tay chào (dùng greetings) · 'meo' = mèo robot luôn ở trên màn hình, cứ everyMinutes phút
+  //   làm một lượt trò: đi dạo, dụi đầu vào khung, leo lên nóc khung, ngủ quên
   //   ít nhất napSeconds giây (ngủ 1–1,5 lần số này) rồi vươn vai, nói một câu trong zen (≤ 45 ký tự cho gọn bong bóng).
   //   moods: theo khung giờ (from ≤ giờ < to) mèo lượt nào cũng nói, câu lấy trong say của mục đó (thỉnh thoảng vẫn xen câu zen).
   ROBOT: { kind: 'robot', everyMinutes: 5, napSeconds: 300,
