@@ -165,23 +165,24 @@
   .cat.rub .e-happy, .cat.talk .e-happy { opacity: 1; }
   .cat.sleep .e-sleep, .cat.stretch .e-sleep { opacity: 1; }
   /* đi */
-  .cat.walk .c-bob { animation: c-bob .26s ease-in-out infinite alternate; }
-  .cat.walk .c-bl, .cat.walk .c-fr { animation: c-hip .56s linear infinite; }                   /* chân chéo cùng nhịp */
-  .cat.walk .c-br, .cat.walk .c-fl { animation: c-hip .56s linear -.28s infinite; }
-  .cat.walk .c-bl .shin, .cat.walk .c-fr .shin { animation: c-knee .56s linear infinite; }
-  .cat.walk .c-br .shin, .cat.walk .c-fl .shin { animation: c-knee .56s linear -.28s infinite; }
-  .cat.walk .c-head { animation: c-headbob .56s ease-in-out infinite alternate; }
+  /* nhịp bước 0,9 s khớp với tốc độ đi SPEED (100 px/giây) trong mã: lững thững, mỗi bước ~90 px */
+  .cat.walk .c-bob { animation: c-bob .45s ease-in-out infinite alternate; }
+  .cat.walk .c-bl, .cat.walk .c-fr { animation: c-hip .9s linear infinite; }                    /* chân chéo cùng nhịp */
+  .cat.walk .c-br, .cat.walk .c-fl { animation: c-hip .9s linear -.45s infinite; }
+  .cat.walk .c-bl .shin, .cat.walk .c-fr .shin { animation: c-knee .9s linear infinite; }
+  .cat.walk .c-br .shin, .cat.walk .c-fl .shin { animation: c-knee .9s linear -.45s infinite; }
+  .cat.walk .c-head { animation: c-headbob .9s ease-in-out infinite alternate; }
   .cat.walk .c-tail { animation: c-tail .8s ease-in-out infinite alternate; }
   /* chạy lấy đà: chân đảo nhanh gấp đôi, người hơi chúi */
-  .cat.run .c-bob { animation-duration: .14s; }
-  .cat.run .c-bl, .cat.run .c-fr, .cat.run .c-bl .shin, .cat.run .c-fr .shin { animation-duration: .3s; }
-  .cat.run .c-br, .cat.run .c-fl, .cat.run .c-br .shin, .cat.run .c-fl .shin { animation-duration: .3s; animation-delay: -.15s; }
+  .cat.run .c-bob { animation-duration: .2s; }
+  .cat.run .c-bl, .cat.run .c-fr, .cat.run .c-bl .shin, .cat.run .c-fr .shin { animation-duration: .36s; }
+  .cat.run .c-br, .cat.run .c-fl, .cat.run .c-br .shin, .cat.run .c-fl .shin { animation-duration: .36s; animation-delay: -.18s; }
   /* leo tường: vươn chân xa, gối gập sâu */
-  .cat.climb .c-bob { animation: c-bob .35s ease-in-out infinite alternate; }
-  .cat.climb .c-bl, .cat.climb .c-fr { animation: c-hip-climb .7s ease-in-out infinite; }
-  .cat.climb .c-br, .cat.climb .c-fl { animation: c-hip-climb .7s ease-in-out -.35s infinite; }
-  .cat.climb .c-bl .shin, .cat.climb .c-fr .shin { animation: c-knee-climb .7s ease-in-out infinite; }
-  .cat.climb .c-br .shin, .cat.climb .c-fl .shin { animation: c-knee-climb .7s ease-in-out -.35s infinite; }
+  .cat.climb .c-bob { animation: c-bob .45s ease-in-out infinite alternate; }
+  .cat.climb .c-bl, .cat.climb .c-fr { animation: c-hip-climb .9s ease-in-out infinite; }
+  .cat.climb .c-br, .cat.climb .c-fl { animation: c-hip-climb .9s ease-in-out -.45s infinite; }
+  .cat.climb .c-bl .shin, .cat.climb .c-fr .shin { animation: c-knee-climb .9s ease-in-out infinite; }
+  .cat.climb .c-br .shin, .cat.climb .c-fl .shin { animation: c-knee-climb .9s ease-in-out -.45s infinite; }
   .cat.climb .c-tail { animation: c-tail 1s ease-in-out infinite alternate; }
   .cat.run .c-lean { transform: rotate(6deg); }
   /* dụi đầu */
@@ -802,7 +803,7 @@ function bootTV(PREVIEW) {
     if (list.length > 1 && t === lastLine) t = pick(list.filter(function (s) { return s !== lastLine; }));
     lastLine = t; return t;
   }
-  var S = .85, GROUND = 964, HEAD = 86 * S, SPEED = 170, CLIMB = 190;
+  var S = .85, GROUND = 964, HEAD = 86 * S, SPEED = 100, CLIMB = 130;   // px/giây: đi lững thững (chạy lấy đà = 2,4 lần), leo tường
   var fx = 0, fy = GROUND, rot = 0, dir = 1, busy = false;
   function $(id) { return document.getElementById(id); }
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
