@@ -185,11 +185,21 @@
   .cat.sleep .c-bl, .cat.sleep .c-br, .cat.sleep .c-fl, .cat.sleep .c-fr { transform: scaleY(.28); }
   .cat.sleep .c-head { transform: translate(-4px, 8px) rotate(14deg); }
   .cat.sleep .c-tail { animation: none; transform: rotate(-64deg); }
+  /* ngồi xổm liếm chân: hạ người, chân sau gập, chân trước phải giơ lên trước mặt, đầu cúi xuống liếm qua lại */
+  .cat.groom .c-bob { transform: translateY(12px); }
+  .cat.groom .c-lean { transform: rotate(-8deg); }
+  .cat.groom .c-bl, .cat.groom .c-br { transform: scaleY(.55); }
+  .cat.groom .c-fr { transform: rotate(-6deg); }
+  .cat.groom .c-fl { transform: rotate(-120deg); }       /* chân trước (vẽ trên đầu) giơ lên trước mõm */
+  .cat.groom .c-head { animation: c-lick .36s ease-in-out infinite alternate; }
+  .cat.groom .c-tail { animation: c-tail 1.4s ease-in-out infinite alternate; }
+  .cat.groom .e-open { opacity: 0; } .cat.groom .e-happy { opacity: 1; }
+  @keyframes c-lick { from { transform: translate(-2px, 12px) rotate(26deg); } to { transform: translate(-6px, 18px) rotate(34deg); } }
   /* nhảy từ trên khung xuống */
   .cat.jump .c-fl, .cat.jump .c-fr { transform: rotate(-42deg); }
   .cat.jump .c-bl, .cat.jump .c-br { transform: rotate(38deg); }
   .cat.jump .c-tail { animation: none; transform: rotate(28deg); }
-  .cat.sleep.flat .c-head { transform: translate(-8px, 30px) rotate(4deg); }   /* trên nóc khung cao: gục hẳn đầu cho thấp */
+  .cat.sleep.flat .c-head { transform: translate(-8px, 37px) rotate(8deg); }   /* trên nóc khung cao: gục hẳn đầu cho thấp */
   .cat.sleep .c-torso { animation: c-breathe 2.6s ease-in-out infinite alternate; }
   .cat .bubble { position: absolute; bottom: 100%; margin-bottom: 14px; padding: 12px 22px; max-width: 540px; width: max-content; border-radius: 22px; background: #F2F2F2; color: #000; font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.25; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.45); border-bottom: 4px solid var(--red); opacity: 0; transform: translateY(14px) scale(.7); transition: opacity .3s ease, transform .35s cubic-bezier(.3,1.6,.5,1); }
   .cat .bubble::after { content: ""; position: absolute; left: var(--tx, 50%); top: 100%; margin-left: -12px; border: 12px solid transparent; border-top-color: var(--red); }
@@ -270,7 +280,6 @@
         <g class="c-tail"><path d="M44 68 C 22 64, 12 44, 22 26" fill="none" stroke="#B5B4B4" stroke-width="10" stroke-linecap="round"/><path d="M44 68 C 22 64, 12 44, 22 26" fill="none" stroke="#44494D" stroke-width="10" stroke-dasharray="2 9" opacity=".5"/><circle class="c-light" cx="22" cy="24" r="7" fill="#EE0033"/></g>
         <g class="c-torso"><rect x="36" y="50" width="108" height="44" rx="22" fill="#F2F2F2"/><path d="M94 52 V92" stroke="#B5B4B4" stroke-width="2"/><rect x="40" y="82" width="100" height="12" rx="6" fill="#B5B4B4" opacity=".5"/><circle class="c-light" cx="70" cy="66" r="5" fill="#EE0033"/></g>
         <g class="c-bl"><rect x="54" y="80" width="13" height="34" rx="6.5" fill="#B5B4B4"/><rect x="51" y="108" width="21" height="10" rx="5" fill="#44494D"/></g>
-        <g class="c-fl"><rect x="120" y="80" width="13" height="34" rx="6.5" fill="#B5B4B4"/><rect x="118" y="108" width="21" height="10" rx="5" fill="#44494D"/></g>
         <g class="c-head">
           <path d="M122 22 L127 -2 L146 13 Z M155 13 L174 -2 L180 22 Z" fill="#F2F2F2" stroke="#F2F2F2" stroke-width="6" stroke-linejoin="round"/>
           <path d="M128 12 L130 3 L138 10 Z M163 10 L171 3 L173 12 Z" fill="#EE0033" opacity=".75"/>
@@ -283,6 +292,7 @@
           <path d="M112 40 h12 M112 47 l12 -3 M178 40 h12 M178 44 l12 3" stroke="#B5B4B4" stroke-width="2" stroke-linecap="round"/>
           <path d="M128 61 Q151 71 174 61 L174 67 Q151 77 128 67 Z" fill="#EE0033"/><circle cx="151" cy="76" r="4.5" fill="#F2F2F2" stroke="#B5B4B4" stroke-width="1.5"/>
         </g>
+        <g class="c-fl"><rect x="120" y="80" width="13" height="34" rx="6.5" fill="#B5B4B4"/><rect x="118" y="108" width="21" height="10" rx="5" fill="#44494D"/></g>
       </g>
     </g>
   </svg></div><div class="zzz"><span>z</span><span>z</span><span>z</span></div><div class="hearts"><span>♥</span><span>♥</span><span>♥</span></div><div class="bubble" id="cat-say"></div></div>
@@ -739,8 +749,8 @@ function bootTV(PREVIEW) {
   next(true);
 })();
 // Mèo robot (ROBOT.kind = 'meo'): luôn ở trên màn hình và luôn hoạt động: đi dạo, dụi đầu vào cạnh khung (khung khẽ rung),
-// leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra ngồi chơi rồi nhảy xuống; đang trên nóc Tin tiêu điểm thì
-// thỉnh thoảng lấy đà phóng sang nóc Hôm nay hoặc Sắp diễn ra. Cứ talkSeconds giây nói một câu trong zen;
+// ngồi xổm liếm chân, leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra và sinh hoạt tiếp trên đó; từ nóc Tin tiêu điểm
+// lấy đà phóng sang nóc Hôm nay hoặc Sắp diễn ra; từ nóc Hôm nay bò xuống nóc Sắp diễn ra; nhảy xuống đất. Cứ talkSeconds giây nói một câu trong zen;
 // cứ napEveryMinutes phút ngủ một giấc ít nhất napSeconds giây (thường trên nóc khung), tỉnh dậy vươn vai.
 // Toạ độ theo khung 1920×1080: (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90).
 // Trong khung giờ của một mục moods (ăn sáng, đói trưa, trà chiều…) mèo lượt nào cũng nói, lấy câu trong mục đó.
@@ -765,12 +775,16 @@ function bootTV(PREVIEW) {
     lastLine = t; return t;
   }
   var S = .85, GROUND = 964, HEAD = 86 * S, SPEED = 170, CLIMB = 190;
-  var fx = 0, fy = GROUND, rot = 0, dir = 1, busy = false, visit = 0, testSurf = 0;
+  var fx = 0, fy = GROUND, rot = 0, dir = 1, busy = false;
   function $(id) { return document.getElementById(id); }
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
   function rnd(a, b) { return a + Math.random() * (b - a); }
-  function cls(s) { el.className = 'cat' + (dir < 0 ? ' left' : '') + (s ? ' ' + s : ''); }
-  function place() { el.style.webkitTransform = el.style.transform = 'translate(' + (fx - 100) + 'px,' + (fy - 118) + 'px) rotate(' + rot + 'deg) scale(' + S + ')'; }
+  var curPose = '', saying = false, sayW = 0, sayT = 0;
+  function cls(s) { curPose = s || ''; el.className = 'cat' + (dir < 0 ? ' left' : '') + (saying ? ' say talk' : '') + (curPose ? ' ' + curPose : ''); }
+  function place() {
+    el.style.webkitTransform = el.style.transform = 'translate(' + (fx - 100) + 'px,' + (fy - 118) + 'px) rotate(' + rot + 'deg) scale(' + S + ')';
+    if (saying) placeBubble();
+  }
   function run(list, done) { var i = 0; (function step() { if (i >= list.length) done(); else list[i++](step); })(); }
   function wait(ms) { return function (done) { setTimeout(done, ms); }; }
   function smooth(p) { return p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
@@ -790,13 +804,16 @@ function bootTV(PREVIEW) {
     dir = tx > fx ? 1 : -1; cls(fast ? 'walk run' : 'walk');
     tween(tx, fy, rot, Math.abs(tx - fx) / (fast ? SPEED * 2.4 : SPEED) * 1000, false, 0, function () { if (fast) done(); else { cls(''); setTimeout(done, 300); } });
   }; }
-  function talk(text, ms) { return function (done) {
-    say.textContent = text; cls('talk');
-    var w = say.offsetWidth, head = dir > 0 ? 150 : 50, left = head - w / 2;      // toạ độ trong mèo (trước khi thu S)
+  // Bong bóng lời nói đi theo mèo (không chặn việc đang làm): mỗi khung hình đặt lại vị trí để không lọt ra ngoài mép màn hình.
+  function placeBubble() {
+    var w = sayW, head = dir > 0 ? 150 : 50, left = head - w / 2;      // toạ độ trong mèo (trước khi thu S)
     left = Math.max(left, 100 + (16 - fx) / S); left = Math.min(left, 100 + (1904 - fx) / S - w);
     say.style.left = left + 'px'; say.style.setProperty('--tx', Math.max(26, Math.min(w - 26, head - left)) + 'px');
-    cls('talk say'); setTimeout(function () { cls('talk'); setTimeout(function () { cls(''); done(); }, 400); }, ms);
-  }; }
+  }
+  function speak(text, ms) {
+    say.textContent = text; sayW = say.offsetWidth; saying = true; cls(curPose); placeBubble();
+    clearTimeout(sayT); sayT = setTimeout(function () { saying = false; cls(curPose); }, ms);
+  }
   function rect(node) {      // khung trang → toạ độ 1920×1080
     var st = $('stage').getBoundingClientRect(), k = st.width / 1920, r = node.getBoundingClientRect();
     return { L: (r.left - st.left) / k, R: (r.right - st.left) / k, T: (r.top - st.top) / k, B: (r.bottom - st.top) / k };
@@ -807,27 +824,34 @@ function bootTV(PREVIEW) {
   }; }
   function napSec() { return TEST ? 7 : Math.max(5, +R.napSeconds || 300) * rnd(1, 1.5); }   // napSeconds = giấc ngắn nhất
   function buoi() { var h = nowMin() / 60; return h < 11 ? 'sáng' : h < 14 ? 'trưa' : h < 18 ? 'chiều' : 'tối'; }
-  // Nóc khung mèo leo lên được. wallRight: tường ở bên phải mèo (leo cạnh trái khung); spot: khoảng chỗ nằm, né nhãn khung và chữ đầu trang.
+  // Các mặt mèo đứng được: đất và nóc 3 khung. top = y bàn chân; wall = cạnh để leo/nhảy xuống, side = +1 nếu cạnh ở bên phải mèo;
+  // range = khoảng x đi lại được (né nhãn khung và chữ đầu trang); napRange = khoảng x nằm ngủ được (nằm bẹp thấp nên rộng hơn);
+  // high = nóc sát mép trên (chỉ nằm bẹp khi ngủ, không nói vì bong bóng vượt màn hình); flatOnly = chỉ được nằm (nóc Hôm nay ngay dưới đồng hồ).
   function surfaces() {
-    var f = rect(document.querySelector('.feature')), sp = document.querySelectorAll('.side .panel'), out = [];
-    out.push({ wall: f.R, wallRight: false, top: f.T, spot: [f.R - 170, f.R - 95], high: true, feature: true });
-    [].forEach.call(sp, function (p) { var r = rect(p); out.push({ wall: r.L, wallRight: true, top: r.T, high: r.T < 300, spot: r.T < 300 ? [r.L + 296, r.L + 306] : [r.L + 350, r.R - 92] }); });
-    return out;
+    var f = rect(document.querySelector('.feature')), sp = document.querySelectorAll('.side .panel');
+    var S = { ground: { id: 'ground', top: GROUND, range: [XMIN, XMAX], napRange: [300, 1600] } };
+    S.feature = { id: 'feature', top: f.T, wall: f.R, side: -1, range: [f.R - 200, f.R - 95], napRange: [460, f.R - 95], high: true };
+    [].forEach.call(sp, function (p, i) {
+      var r = rect(p), hi = r.T < 300;
+      S[hi ? 'homnay' : 'sapdienra'] = { id: hi ? 'homnay' : 'sapdienra', top: r.T, bottom: r.B, wall: r.L, side: 1, high: hi, flatOnly: hi,
+        range: hi ? [r.L + 296, r.L + 306] : [r.L + 350, r.R - 92], napRange: hi ? [r.L + 296, r.L + 306] : [r.L + 350, r.R - 92] };
+    });
+    return S;
   }
-  // Trèo từ đất lên nóc khung sf rồi đi tới chỗ ngồi.
+  // Trèo từ đất lên nóc khung sf rồi đi tới chỗ đứng.
   function climbUp(sf) {
-    var w = sf.wall, side = sf.wallRight ? 1 : -1;
+    var w = sf.wall, side = sf.side;
     return [
       walkTo(w - side * (HEAD + 2)),
       function (done) { dir = side; cls('walk'); tween(w - side, GROUND - HEAD, -90 * side, 650, true, 0, done); },        // chồm lên tường
       function (done) { tween(w - side, sf.top + HEAD, -90 * side, (GROUND - sf.top - 2 * HEAD) / CLIMB * 1000, false, 0, done); },
       function (done) { tween(w + side * 70, sf.top, 0, 650, true, 0, function () { cls(''); setTimeout(done, 300); }); },   // trèo qua mép
-      walkTo(rnd(sf.spot[0], sf.spot[1]))
+      walkTo(rnd(sf.range[0], sf.range[1]))
     ];
   }
   // Từ nóc khung sf đi ra mép rồi nhảy xuống đất.
   function jumpDown(sf) {
-    var w = sf.wall, side = sf.wallRight ? 1 : -1;
+    var w = sf.wall, side = sf.side;
     return [
       walkTo(w + side * 40),
       function (done) {
@@ -838,7 +862,7 @@ function bootTV(PREVIEW) {
   }
   // Trên nóc Tin tiêu điểm: lùi lại lấy đà, chạy ra mép phải rồi phóng sang nóc khung to (Hôm nay ngang tầm, Sắp diễn ra thấp hơn).
   function leapPlan(f, to) {
-    var edge = f.wall - 50, land = rnd(to.spot[0], to.spot[1]), dx = land - edge, dy = to.top - f.top;
+    var edge = f.wall - 50, land = rnd(to.range[0], to.range[1]), dx = land - edge, dy = to.top - f.top;
     return [                                   // vồng thấp (34 px) để tai không lọt ra ngoài mép trên màn hình
       walkTo(edge - rnd(130, 180)),
       wait(TEST ? 300 : rnd(400, 900)),
@@ -846,48 +870,78 @@ function bootTV(PREVIEW) {
       function (done) { dir = 1; cls('jump'); tween(land, to.top, 0, 520 + dx * .6 + dy * .5, false, dy > 100 ? 80 : 34, function () { cls(''); setTimeout(done, 400); }); }
     ];
   }
-  // Việc làm trên nóc khung: đến giờ ngủ thì ngủ, không thì ngồi chơi một lát (và nói nếu đến lượt, trừ nóc cao sát mép trên).
-  // Trên nóc Hôm nay (dưới đồng hồ) đứng sẽ che số giờ, nên chỉ nằm bẹp chợp mắt.
-  function onTop(sf) {
-    var o = [], ms = TEST ? 2000 : rnd(6000, 16000);
-    if (napDue) { napDue = false; napLater(); o.push(nap(napSec(), sf.high)); }
-    else if (sf.high && !sf.feature) o.push(function (done) { cls('sleep flat'); setTimeout(function () { cls(''); setTimeout(done, 500); }, ms); });
-    else {
-      if (wantTalk && !sf.high) { wantTalk = false; o.push(talk(line(), 7000)); }
-      o.push(wait(ms));
-    }
-    return o;
+  // Từ nóc Hôm nay bò đầu chúi xuống theo cạnh trái rồi nhảy sang nóc Sắp diễn ra.
+  function climbDownPlan(a, b) {
+    var w = a.wall;
+    return [
+      walkTo(w + 40),
+      function (done) { dir = -1; cls('walk'); tween(w - 1, a.top + HEAD, -90, 650, true, 0, done); },                     // chúi đầu qua mép
+      function (done) { tween(w - 1, a.bottom - HEAD, -90, (a.bottom - a.top - 2 * HEAD) / CLIMB * 1000, false, 0, done); },
+      function (done) { dir = 1; cls('jump'); tween(w + 70, b.top, 0, 600, true, 30, function () { cls(''); setTimeout(done, 300); }); },
+      walkTo(rnd(b.range[0], b.range[1]))
+    ];
   }
-  var ACTS = {
-    rub: function () {
-      var t = [], f = rect(document.querySelector('.feature'));
-      [].forEach.call(document.querySelectorAll('.dash .panel'), function (p) {
-        var r = rect(p); if (r.B < 880) return;
-        if (r.L - HEAD - 100 >= 0) t.push({ x: r.L - HEAD, dir: 1, p: p });
-        if (r.R + HEAD + 100 <= 1920) t.push({ x: r.R + HEAD, dir: -1, p: p });
-      });
-      t = pick(t); if (!t) return [];
-      return [walkTo(t.x), function (done) {
-        dir = t.dir; cls('rub'); var n = dir > 0 ? 'nudge-r' : 'nudge-l'; t.p.classList.add(n);
-        setTimeout(function () { t.p.classList.remove(n); cls(''); setTimeout(done, 500); }, 4200);
-      }, talk(pick(['Meo~', 'Rừ rừ…', 'Meo, chào buổi ' + buoi() + '!']), 2200)];
-    },
-    stroll: function () { var tx; do { tx = rnd(XMIN, XMAX); } while (Math.abs(tx - fx) < 250); return [walkTo(tx)]; },
-    climb: function () {
-      var s = surfaces(), sf = TEST ? s[testSurf++ % s.length] : pick(s), steps = climbUp(sf);
-      if (sf.feature && s.length > 1 && (TEST || Math.random() < .5)) {      // thỉnh thoảng từ Tin tiêu điểm phóng sang khung bên phải
-        var to = TEST ? s[1 + (visit % (s.length - 1))] : pick(s.slice(1));
-        steps = steps.concat([wait(TEST ? 800 : rnd(1500, 4000))], leapPlan(sf, to)); sf = to;
-      }
-      return steps.concat(onTop(sf), jumpDown(sf));
-    },
-    nap: function () { napDue = false; napLater(); return [walkTo(clampX(rnd(300, 1600))), nap(napSec())]; },
-    zen: function () { wantTalk = false; return [talk(line(), 7000)]; }
-  };
-  // Mèo luôn ở trên màn hình và luôn bận: hết việc này nghỉ 1–5 giây rồi sang việc khác (dạo, leo khung, dụi đầu).
-  // Cứ talkSeconds giây (±30%) nói một câu (trong giờ moods lấy câu của mục đó); cứ napEveryMinutes phút ngủ một giấc (ưu tiên ngủ trên nóc khung).
-  var XMIN = 140, XMAX = 1780, wantTalk = false, napDue = false;
+  function groom(ms) { return function (done) { cls('groom'); setTimeout(function () { cls(''); setTimeout(done, 600); }, ms); }; }   // ngồi xổm liếm chân
+  function lie(ms) { return function (done) { cls('sleep flat'); setTimeout(function () { cls(''); setTimeout(done, 500); }, ms); }; } // nằm bẹp chợp mắt
+  function strollOn(h, far) {                      // far = đi xa hơn (lúc vừa đi vừa nói)
+    var r = h.range, tx; if (r[1] - r[0] < 60) return [walkTo(rnd(r[0], r[1]))];
+    do { tx = rnd(r[0], r[1]); } while (Math.abs(tx - fx) < Math.min(far ? 700 : 250, (r[1] - r[0]) / 2));
+    return [walkTo(tx)];
+  }
+  function rubSteps() {
+    var t = [];
+    [].forEach.call(document.querySelectorAll('.dash .panel'), function (p) {
+      var r = rect(p); if (r.B < 880) return;
+      if (r.L - HEAD - 100 >= 0) t.push({ x: r.L - HEAD, dir: 1, p: p });
+      if (r.R + HEAD + 100 <= 1920) t.push({ x: r.R + HEAD, dir: -1, p: p });
+    });
+    t = pick(t); if (!t) return [];
+    return [walkTo(t.x), function (done) {
+      dir = t.dir; cls('rub'); var n = dir > 0 ? 'nudge-r' : 'nudge-l'; t.p.classList.add(n);
+      setTimeout(function () { t.p.classList.remove(n); cls(''); setTimeout(done, 500); }, 4200);
+    }, function (done) { speak(pick(['Meo~', 'Rừ rừ…', 'Meo, chào buổi ' + buoi() + '!']), 2200); done(); }];
+  }
+  // Mèo luôn ở trên màn hình và luôn bận: hết việc này nghỉ 1–5 giây rồi sang việc khác. Đang ở mặt nào thì chọn việc của mặt đó
+  // (trọng số); chuyển mặt bằng leo lên, phóng sang, bò xuống, nhảy xuống. Đến giờ ngủ thì ngủ ngay tại mặt đang đứng, chỗ ngẫu nhiên;
+  // đến lượt nói thì nói ngay nếu đang ở đất hoặc nóc Sắp diễn ra. Cứ talkSeconds giây nói một câu; cứ napEveryMinutes phút ngủ một giấc.
+  var XMIN = 140, XMAX = 1780, wantTalk = false, napDue = false, at = 'ground', testI = 0;
+  var TESTSEQ = ['climb:feature', 'leap:homnay', 'climbdown', 'groom', 'down', 'groom', 'climb:feature', 'leap:sapdienra', 'down', 'rub',
+    'climb:homnay', 'rest', 'down', 'stroll', 'climb:sapdienra', 'stroll', 'down'];
   function clampX(x) { return Math.max(XMIN, Math.min(XMAX, x)); }
+  function choose(h, S) {
+    if (napDue) return { act: 'nap' };
+    if (wantTalk && !h.high) { wantTalk = false; return { act: 'stroll', say: line() }; }   // đến lượt nói: vừa đi dạo vừa nói
+    var opts;
+    if (h.id === 'ground') opts = [['stroll', 30], ['groom', 12], ['rub', 15], ['climb', 15, 'feature'], ['climb', 8, 'homnay'], ['climb', 12, 'sapdienra']];
+    else if (h.id === 'feature') opts = [['stroll', 20], ['groom', 15], ['leap', 15, 'homnay'], ['leap', 20, 'sapdienra'], ['down', 25]];
+    else if (h.flatOnly) opts = [['rest', 25], ['climbdown', 35, 'sapdienra'], ['down', 40]];
+    else opts = [['stroll', 15], ['groom', 20], ['down', 45]];
+    opts = opts.filter(function (o) { return !o[2] || S[o[2]]; });
+    if (saying) opts = opts.filter(function (o) { return o[0] === 'stroll' || o[0] === 'groom'; });   // đang nói thì chưa leo trèo (bong bóng sẽ xoay theo)
+    if (TEST) {
+      var t = TESTSEQ[testI % TESTSEQ.length].split(':'), m = opts.filter(function (o) { return o[0] === t[0] && (!t[1] || o[2] === t[1]); });
+      if (m.length) { testI++; return { act: m[0][0], to: m[0][2] }; }
+    }
+    var sum = 0; opts.forEach(function (o) { sum += o[1]; });
+    var r = Math.random() * sum;
+    for (var i = 0; i < opts.length; i++) { r -= opts[i][1]; if (r <= 0) return { act: opts[i][0], to: opts[i][2] }; }
+    return { act: opts[0][0], to: opts[0][2] };
+  }
+  function build(c, h, S) {
+    var to = c.to && S[c.to];
+    switch (c.act) {
+      case 'stroll': var st = strollOn(h, !!c.say); if (c.say) st.unshift(function (d) { speak(c.say, 7000); d(); }); return st;
+      case 'groom': return [groom(TEST ? 3000 : rnd(4000, 8000))];
+      case 'rest': return [lie(TEST ? 2000 : rnd(6000, 16000))];
+      case 'rub': return rubSteps();
+      case 'nap': napDue = false; napLater(); return [walkTo(rnd(h.napRange[0], h.napRange[1])), nap(napSec(), h.high)];
+      case 'climb': return climbUp(to);
+      case 'leap': return leapPlan(h, to);
+      case 'climbdown': return climbDownPlan(h, to);
+      case 'down': return jumpDown(h);
+    }
+    return [];
+  }
   function talkLater(first) {
     var ms = TEST ? 12000 : first ? rnd(10, 30) * 1000 : Math.max(10, +R.talkSeconds || 30) * 1000 * rnd(.7, 1.3);
     setTimeout(function () { wantTalk = true; talkLater(false); }, ms);
@@ -895,14 +949,13 @@ function bootTV(PREVIEW) {
   function napLater() { setTimeout(function () { napDue = true; }, TEST ? 40000 : Math.max(1, +R.napEveryMinutes || 20) * 60000 * rnd(.6, 1.4)); }
   function loop() {
     if (busy) return setTimeout(loop, 1000);
-    busy = true; visit++;
-    var steps;
-    if (wantTalk) steps = ACTS.zen();
-    else if (napDue && Math.random() < .3) steps = ACTS.nap();        // 30% ngủ ngay dưới đất, còn lại đợi lần leo khung
-    else if (TEST) steps = ACTS[['climb', 'stroll', 'rub', 'climb', 'stroll'][visit % 5]]();
-    else { var r = Math.random(); steps = r < .4 ? ACTS.stroll() : r < .75 ? ACTS.climb() : ACTS.rub(); }
-    fy = GROUND; rot = 0;
-    run(steps, function () { busy = false; setTimeout(loop, TEST ? 1000 : rnd(1500, 5000)); });
+    busy = true;
+    var S = surfaces(), h = S[at] || S.ground, c = choose(h, S);
+    if (c.act === 'down') c.to = 'ground';
+    run(build(c, h, S), function () {
+      if (c.act === 'climb' || c.act === 'leap' || c.act === 'climbdown' || c.act === 'down') at = c.to;
+      busy = false; setTimeout(loop, saying ? 300 : TEST ? 1000 : rnd(1500, 5000));   // còn đang nói thì đi tiếp ngay
+    });
   }
   window.robotGo = function () { wantTalk = true; };     // gọi trong console: nói ngay lượt tới
   window.robotNap = function () { napDue = true; };      // gọi trong console: ngủ ở lượt tới
