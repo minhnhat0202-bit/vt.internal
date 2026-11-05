@@ -434,8 +434,16 @@ function bootTV(PREVIEW) {
     STORIES.forEach((st) => { [].concat(st.ticker || []).forEach((m) => msgs.push(m)); });
     (C.TICKER || []).forEach((m) => { if (typeof m === 'string') msgs.push(m); else if (alive(m)) msgs.push(m.text); });
     const h = msgs.map((m) => `<span><i>▶</i>${esc(m)}</span>`).join('');
-    $('tv-run').innerHTML = h + h;
+    const run = $('tv-run'); run.innerHTML = h + h;
+    tickerSpeed();
   }
+  // Dòng chạy giữ tốc độ cố định TICKER_SPEED px/giây (khung 1920), nội dung dài hay ngắn đều chạy như nhau
+  const TICKER_SPEED = C.TICKER_SPEED || 150;
+  function tickerSpeed() {
+    const run = $('tv-run'), half = run.scrollWidth / 2;
+    if (half > 0) run.style.animationDuration = Math.max(8, half / TICKER_SPEED).toFixed(1) + 's';
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(tickerSpeed);
 
   // ---------- ảnh và video từ Google Drive ----------
   let media = [], mIdx = -1, mTimer = null, mFront = 'a', mediaOn = false, curVideo = null, bag = [];

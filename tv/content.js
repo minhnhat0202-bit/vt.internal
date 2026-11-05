@@ -77,6 +77,9 @@ window.TV = {
     { text: 'Đi một ngày đàng, học một sàng khôn.', by: 'Tục ngữ Việt Nam' }
   ],
 
+  // Tốc độ dòng chạy (px mỗi giây trên khung 1920). Tăng số = chạy nhanh hơn.
+  TICKER_SPEED: 150,
+
   // Câu thêm vào dòng chạy. Chuỗi, hoặc { text, until: 'YYYY-MM-DD' } để tự ẩn sau ngày đó.
   TICKER: [
     { text: 'Bóng đá · 16:15 Thứ Sáu 23/10, Sân bóng Đình Thôn 2, hai trận song song · Tranh hạng Ba: P.NTCN gặp Liên quân P.HTC & P.TNTT · Chung kết: Liên quân P.GPBRCĐ&CĐ – P.HTTK – P.KSCL gặp Liên quân P.GPDĐ & P.GPCNTT&QT', until: '2026-10-23' },
