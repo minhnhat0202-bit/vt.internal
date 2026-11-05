@@ -94,11 +94,11 @@ window.TV = {
 
   // Robot chào: thi thoảng chạy ngang màn hình, dừng giữa chừng vẫy tay kèm một câu chào ngẫu nhiên
   // (luôn có thêm câu chào theo buổi: sáng, trưa, chiều, tối). everyMinutes: bao lâu ra một lần. Tắt: ROBOT: null.
-  // kind: 'robot' = robot vẫy tay chào (dùng greetings) · 'meo' = mèo robot luôn ở trên màn hình, cứ everyMinutes phút
-  //   làm một lượt trò: đi dạo, dụi đầu vào khung, leo lên nóc khung, ngủ quên
-  //   ít nhất napSeconds giây (ngủ 1–1,5 lần số này) rồi vươn vai, nói một câu trong zen (≤ 45 ký tự cho gọn bong bóng).
-  //   moods: theo khung giờ (from ≤ giờ < to) mèo lượt nào cũng nói, câu lấy trong say của mục đó (thỉnh thoảng vẫn xen câu zen).
-  ROBOT: { kind: 'meo', everyMinutes: 5, napSeconds: 300,
+  // kind: 'robot' = robot vẫy tay chào (dùng greetings) · 'meo' = mèo robot luôn ở trên màn hình, liên tục đi dạo,
+  //   dụi đầu vào khung, leo lên nóc khung. Cứ everyMinutes phút nói một câu trong zen (≤ 45 ký tự cho gọn bong bóng);
+  //   cứ napEveryMinutes phút ngủ một giấc ít nhất napSeconds giây (ngủ 1–1,5 lần số này) rồi vươn vai.
+  //   moods: trong khung giờ (from ≤ giờ < to) mèo nói dày gấp đôi, câu lấy trong say của mục đó (thỉnh thoảng vẫn xen câu zen).
+  ROBOT: { kind: 'meo', everyMinutes: 5, napEveryMinutes: 20, napSeconds: 300,
     greetings: ['Xin chào!', 'Chúc một ngày vui!', 'Làm việc hiệu quả nhé!', 'Nhớ uống nước nha!'],
     zen: ['Hít vào, thở ra. Deadline rồi cũng qua.', 'Chậm lại một nhịp, việc vẫn chạy.', 'Tâm an thì code ít bug.',
       'Mây cứ trôi, mèo cứ ngồi.', 'Ngủ đủ cũng là một cách tu.', 'Làm tốt một việc nhỏ hôm nay là đủ.',

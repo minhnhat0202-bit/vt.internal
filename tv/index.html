@@ -734,9 +734,9 @@ function bootTV(PREVIEW) {
   }
   next(true);
 })();
-// Mèo robot (ROBOT.kind = 'meo'): luôn ở trên màn hình; cứ everyMinutes phút làm một lượt 1–2 việc ngẫu nhiên: dụi đầu vào cạnh khung
-// (khung khẽ rung), leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra rồi ngủ quên ở đó (napSeconds), tỉnh dậy vươn vai,
-// nhảy xuống; nói một câu trong zen. Giữa các lượt đứng dưới đất, thỉnh thoảng dạo vài bước.
+// Mèo robot (ROBOT.kind = 'meo'): luôn ở trên màn hình và luôn hoạt động: đi dạo, dụi đầu vào cạnh khung (khung khẽ rung),
+// leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra ngồi chơi rồi nhảy xuống. Cứ everyMinutes phút nói một câu trong zen;
+// cứ napEveryMinutes phút ngủ một giấc ít nhất napSeconds giây (thường trên nóc khung), tỉnh dậy vươn vai.
 // Toạ độ theo khung 1920×1080: (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90).
 // Trong khung giờ của một mục moods (ăn sáng, đói trưa, trà chiều…) mèo lượt nào cũng nói, lấy câu trong mục đó.
 // Xem thử: tv/?robot=meo · giả giờ: tv/?robot=meo&gio=11:45
@@ -804,11 +804,9 @@ function bootTV(PREVIEW) {
     [].forEach.call(sp, function (p) { var r = rect(p); out.push({ wall: r.L, wallRight: true, top: r.T, high: r.T < 300, spot: r.T < 300 ? [r.L + 296, r.L + 306] : [r.L + 350, r.R - 92] }); });
     return out;
   }
-  function climbPlan(sf) {
+  // Trèo lên nóc khung sf, ở trên làm các bước onTop, rồi nhảy xuống đất.
+  function climbPlan(sf, onTop) {
     var w = sf.wall, side = sf.wallRight ? 1 : -1;
-    var onTop = [];
-    if (!sf.high && Math.random() < .5 && !TEST) onTop.push(talk(line(), 7000));
-    if (TEST || Math.random() < .8) onTop.push(nap(napSec(), sf.high)); else onTop.push(function (d) { cls('talk'); setTimeout(function () { cls(''); d(); }, 4000); });
     return [
       walkTo(w - side * (HEAD + 2)),
       function (done) { dir = side; cls('walk'); tween(w - side, GROUND - HEAD, -90 * side, 650, true, 0, done); },        // chồm lên tường
@@ -837,49 +835,46 @@ function bootTV(PREVIEW) {
         setTimeout(function () { t.p.classList.remove(n); cls(''); setTimeout(done, 500); }, 4200);
       }, talk(pick(['Meo~', 'Rừ rừ…', 'Meo, chào buổi ' + buoi() + '!']), 2200)];
     },
-    climb: function () { var s = surfaces(); return climbPlan(TEST ? s[testSurf++ % s.length] : pick(s)); },
-    nap: function () { return [walkTo(rnd(300, 1500)), nap(napSec())]; },
-    zen: function () { return [walkTo(rnd(300, 1500)), talk(line(), 7000)]; }
+    stroll: function () { var tx; do { tx = rnd(XMIN, XMAX); } while (Math.abs(tx - fx) < 250); return [walkTo(tx)]; },
+    climb: function () {
+      var s = surfaces(), sf = TEST ? s[testSurf++ % s.length] : pick(s), onTop = [];
+      if (napDue) { napDue = false; napLater(); onTop.push(nap(napSec(), sf.high)); }          // đến giờ ngủ thì ngủ luôn trên nóc
+      else {
+        if (wantTalk && !sf.high) { wantTalk = false; onTop.push(talk(line(), 7000)); }
+        onTop.push(wait(TEST ? 2000 : rnd(6000, 16000)));                                      // ngồi chơi trên nóc một lát
+      }
+      return climbPlan(sf, onTop);
+    },
+    nap: function () { napDue = false; napLater(); return [walkTo(clampX(rnd(300, 1600))), nap(napSec())]; },
+    zen: function () { wantTalk = false; return [talk(line(), 7000)]; }
   };
-  // Mèo luôn ở trên màn hình: lúc mới mở đi vào một lần, sau đó đứng chơi dưới đất, thỉnh thoảng dạo vài bước,
-  // cứ everyMinutes phút (±30%) lại làm một lượt trò (1–2 việc) rồi về chỗ cũ đứng tiếp. Không bao giờ đi ra khỏi màn hình.
-  var XMIN = 140, XMAX = 1780;
+  // Mèo luôn ở trên màn hình và luôn bận: hết việc này nghỉ 1–5 giây rồi sang việc khác (dạo, leo khung, dụi đầu).
+  // Cứ everyMinutes phút (±30%, trong giờ moods nhanh gấp đôi) nói một câu; cứ napEveryMinutes phút ngủ một giấc (ưu tiên ngủ trên nóc khung).
+  var XMIN = 140, XMAX = 1780, wantTalk = false, napDue = false;
   function clampX(x) { return Math.max(XMIN, Math.min(XMAX, x)); }
-  function go() {
-    var bd = $('backdrop');
-    if (busy || document.hidden || (bd && bd.style.display === 'block')) return;
+  function talkLater(first) {
+    var ms = TEST ? 12000 : first ? rnd(30, 90) * 1000 : Math.max(1, +R.everyMinutes || 5) * (mood() ? .5 : 1) * 60000 * rnd(.7, 1.3);
+    setTimeout(function () { wantTalk = true; talkLater(false); }, ms);
+  }
+  function napLater() { setTimeout(function () { napDue = true; }, TEST ? 40000 : Math.max(1, +R.napEveryMinutes || 20) * 60000 * rnd(.6, 1.4)); }
+  function loop() {
+    if (busy) return setTimeout(loop, 1000);
     busy = true; visit++;
-    var acts;
-    if (TEST) acts = [['climb', 'zen'], ['rub', 'climb'], ['climb', 'rub']][(visit - 1) % 3];
-    else {
-      acts = [];
-      if (Math.random() < .5) acts.push('rub');
-      if (Math.random() < .5) acts.push('climb');
-      else if (Math.random() < .2) acts.push('nap');
-      if (!acts.length || mood() || Math.random() < .5) acts.push('zen');   // trong giờ moods thì lượt nào cũng nói
-      acts.sort(function () { return Math.random() - .5; });
-    }
-    fy = GROUND; rot = 0; place();
-    var steps = [];
-    acts.forEach(function (a) { steps = steps.concat(ACTS[a]()); });
-    run(steps, function () { busy = false; });
+    var steps;
+    if (wantTalk) steps = ACTS.zen();
+    else if (napDue && Math.random() < .3) steps = ACTS.nap();        // 30% ngủ ngay dưới đất, còn lại đợi lần leo khung
+    else if (TEST) steps = ACTS[['climb', 'stroll', 'rub', 'climb', 'stroll'][visit % 5]]();
+    else { var r = Math.random(); steps = r < .4 ? ACTS.stroll() : r < .75 ? ACTS.climb() : ACTS.rub(); }
+    fy = GROUND; rot = 0;
+    run(steps, function () { busy = false; setTimeout(loop, TEST ? 1000 : rnd(1500, 5000)); });
   }
-  function stroll() {                       // dạo vài bước cho đỡ đứng im, chỉ khi đang rảnh
-    if (busy || Math.random() < .4) return;
-    busy = true; walkTo(clampX(fx + rnd(-520, 520)))(function () { busy = false; });
-  }
-  window.robotGo = go;
-  function next(first) {
-    var ms = TEST ? (first ? 4000 : 6000) : first ? rnd(30, 90) * 1000
-      : Math.max(1, +R.everyMinutes || 5) * 60000 * rnd(.7, 1.3);
-    setTimeout(function () { go(); next(false); }, ms);
-  }
+  window.robotGo = function () { wantTalk = true; };     // gọi trong console: nói ngay lượt tới
+  window.robotNap = function () { napDue = true; };      // gọi trong console: ngủ ở lượt tới
   // Mở trang: đi từ mép vào một lần rồi ở lại luôn.
   dir = Math.random() < .5 ? 1 : -1; fx = dir > 0 ? -120 : 2040; fy = GROUND; rot = 0; place(); cls(''); el.style.display = 'block';
   busy = true;
-  setTimeout(function () { walkTo(clampX(rnd(400, 1500)))(function () { busy = false; }); }, TEST ? 500 : 3000);
-  setInterval(stroll, TEST ? 4000 : 30000);
-  next(true);
+  setTimeout(function () { walkTo(clampX(rnd(400, 1500)))(function () { busy = false; loop(); }); }, TEST ? 500 : 3000);
+  talkLater(true); napLater();
 })();
 (function () {
   const PREVIEW = /[?&]preview\b/.test(location.search);
