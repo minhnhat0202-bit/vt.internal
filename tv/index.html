@@ -140,7 +140,73 @@
   @keyframes rb-wave { from { transform: rotate(-150deg); } to { transform: rotate(-112deg); } }
   @keyframes rb-ant { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
   @keyframes rb-glow { from { opacity: .55; } to { opacity: 1; } }
-  @media (prefers-reduced-motion: reduce) { .robot { display: none !important; } }
+  /* Mèo robot (content.js ROBOT.kind = 'meo'): đi dạo trên dòng chạy, dụi đầu vào khung, ngủ quên, vươn vai, nói câu thiền. */
+  .cat { position: absolute; left: 0; top: 846px; width: 200px; height: 140px; z-index: 3; display: none; pointer-events: none; will-change: transform; }
+  .cat .c-flip { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .cat.left .c-flip { transform: scaleX(-1); }
+  .cat svg { display: block; width: 100%; height: 100%; overflow: visible; -webkit-filter: drop-shadow(0 6px 12px rgba(0,0,0,.55)); filter: drop-shadow(0 6px 12px rgba(0,0,0,.55)); }
+  .cat svg g { transition: transform .6s ease; }
+  .cat .c-bob { transform-origin: 100px 118px; }
+  .cat .c-lean { transform-origin: 62px 90px; }
+  .cat .c-tail { transform-origin: 42px 66px; animation: c-tail 2.4s ease-in-out infinite alternate; }
+  .cat .c-head { transform-origin: 140px 64px; }
+  .cat .c-torso { transform-origin: 90px 94px; }
+  .cat .c-bl { transform-origin: 60px 84px; } .cat .c-br { transform-origin: 70px 84px; }
+  .cat .c-fl { transform-origin: 126px 84px; } .cat .c-fr { transform-origin: 116px 84px; }
+  .cat .c-light { animation: rb-glow 1.2s ease-in-out infinite alternate; }
+  .cat .e-open, .cat .e-happy, .cat .e-sleep { transition: opacity .2s; }
+  .cat .e-happy, .cat .e-sleep { opacity: 0; }
+  .cat .e-open { animation: c-blink 4s infinite; transform-origin: 150px 41px; }
+  .cat.rub .e-open, .cat.talk .e-open, .cat.sleep .e-open, .cat.stretch .e-open { opacity: 0; }
+  .cat.rub .e-happy, .cat.talk .e-happy { opacity: 1; }
+  .cat.sleep .e-sleep, .cat.stretch .e-sleep { opacity: 1; }
+  /* đi */
+  .cat.walk .c-bob { animation: c-bob .26s ease-in-out infinite alternate; }
+  .cat.walk .c-bl, .cat.walk .c-fl { animation: c-leg .52s ease-in-out infinite alternate; }
+  .cat.walk .c-br, .cat.walk .c-fr { animation: c-leg .52s ease-in-out -.52s infinite alternate; }
+  .cat.walk .c-tail { animation: c-tail .8s ease-in-out infinite alternate; }
+  /* dụi đầu */
+  .cat.rub .c-head { animation: c-rub .7s ease-in-out infinite alternate; }
+  .cat.rub .c-lean { transform: rotate(4deg); }
+  .cat.rub .c-tail { animation: c-quiver .12s linear infinite alternate; transform: rotate(14deg); }
+  .panel.nudge-r { animation: c-nudge-r .7s ease-in-out infinite alternate; }
+  .panel.nudge-l { animation: c-nudge-l .7s ease-in-out infinite alternate; }
+  /* vươn vai: chúi đầu, chổng mông, duỗi chân trước */
+  .cat.stretch .c-lean { transform: rotate(10deg); }
+  .cat.stretch .c-fl, .cat.stretch .c-fr { transform: rotate(-70deg); }
+  .cat.stretch .c-head { transform: rotate(-22deg); }
+  .cat.stretch .c-tail { animation: none; transform: rotate(18deg); }
+  /* ngủ: nằm bẹp, cuộn đuôi, thở đều */
+  .cat.sleep .c-bob { transform: translateY(22px); }
+  .cat.sleep .c-bl, .cat.sleep .c-br, .cat.sleep .c-fl, .cat.sleep .c-fr { transform: scaleY(.28); }
+  .cat.sleep .c-head { transform: translate(-4px, 8px) rotate(14deg); }
+  .cat.sleep .c-tail { animation: none; transform: rotate(-64deg); }
+  .cat.sleep .c-torso { animation: c-breathe 2.6s ease-in-out infinite alternate; }
+  .cat .bubble { position: absolute; bottom: 100%; margin-bottom: 14px; padding: 12px 22px; max-width: 460px; width: max-content; border-radius: 22px; background: #F2F2F2; color: #000; font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.25; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,.45); border-bottom: 4px solid var(--red); opacity: 0; transform: translateY(14px) scale(.7); transition: opacity .3s ease, transform .35s cubic-bezier(.3,1.6,.5,1); }
+  .cat .bubble::after { content: ""; position: absolute; left: var(--tx, 50%); top: 100%; margin-left: -12px; border: 12px solid transparent; border-top-color: var(--red); }
+  .cat.say .bubble { opacity: 1; transform: translateY(0) scale(1); }
+  .cat .zzz, .cat .hearts { position: absolute; top: 0; left: 76%; width: 0; height: 0; }
+  .cat.left .zzz, .cat.left .hearts { left: 24%; }
+  .cat .zzz { left: 60%; } .cat.left .zzz { left: 40%; }
+  .cat .zzz span, .cat .hearts span { position: absolute; left: 0; top: 0; opacity: 0; font-family: var(--display); font-weight: 800; }
+  .cat .zzz span { color: #F2F2F2; font-size: 30px; }
+  .cat .hearts span { color: var(--red); font-size: 30px; }
+  .cat.sleep .zzz span { animation: c-zzz 3s ease-out infinite; }
+  .cat.sleep .zzz span:nth-child(2) { animation-delay: 1s; font-size: 24px; } .cat.sleep .zzz span:nth-child(3) { animation-delay: 2s; font-size: 20px; }
+  .cat.rub .hearts span { animation: c-heart 1.8s ease-out infinite; }
+  .cat.rub .hearts span:nth-child(2) { animation-delay: .6s; font-size: 22px; } .cat.rub .hearts span:nth-child(3) { animation-delay: 1.2s; font-size: 26px; }
+  @keyframes c-bob { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+  @keyframes c-leg { from { transform: rotate(-24deg); } to { transform: rotate(24deg); } }
+  @keyframes c-tail { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+  @keyframes c-quiver { from { transform: rotate(10deg); } to { transform: rotate(16deg); } }
+  @keyframes c-rub { from { transform: translateX(-3px) rotate(-16deg); } to { transform: translateX(4px) rotate(8deg); } }
+  @keyframes c-breathe { from { transform: scaleY(1); } to { transform: scaleY(1.06); } }
+  @keyframes c-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  @keyframes c-nudge-r { from { transform: translateX(0); } to { transform: translateX(3px); } }
+  @keyframes c-nudge-l { from { transform: translateX(0); } to { transform: translateX(-3px); } }
+  @keyframes c-zzz { 0% { opacity: 0; transform: translate(0, 0) scale(.6); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(34px, -90px) scale(1.2); } }
+  @keyframes c-heart { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(-16px, -80px) scale(1.1); } }
+  @media (prefers-reduced-motion: reduce) { .robot, .cat { display: none !important; } }
 
   @media (prefers-reduced-motion: reduce) { .fade { animation: none; } .ticker .run div { animation: none; } .feature .tabs .track { transition: none; } }
 </style>
@@ -185,6 +251,32 @@
       <circle cx="51" cy="71" r="5" fill="#EE0033" opacity=".5"/><circle cx="109" cy="71" r="5" fill="#EE0033" opacity=".5"/>
     </g></g>
   </svg></div><div class="bubble" id="robot-say"></div></div>
+
+  <div class="cat" id="cat"><div class="c-flip"><svg viewBox="0 0 200 140" aria-hidden="true">
+    <ellipse cx="96" cy="120" rx="70" ry="7" fill="#000" opacity=".45"/>
+    <g class="c-bob">
+      <g class="c-br"><rect x="64" y="80" width="13" height="34" rx="6.5" fill="#44494D"/><rect x="62" y="108" width="20" height="10" rx="5" fill="#17161b"/></g>
+      <g class="c-lean">
+        <g class="c-fr"><rect x="110" y="80" width="13" height="34" rx="6.5" fill="#44494D"/><rect x="108" y="108" width="20" height="10" rx="5" fill="#17161b"/></g>
+        <g class="c-tail"><path d="M44 68 C 22 64, 12 44, 22 26" fill="none" stroke="#B5B4B4" stroke-width="10" stroke-linecap="round"/><path d="M44 68 C 22 64, 12 44, 22 26" fill="none" stroke="#44494D" stroke-width="10" stroke-dasharray="2 9" opacity=".5"/><circle class="c-light" cx="22" cy="24" r="7" fill="#EE0033"/></g>
+        <g class="c-torso"><rect x="36" y="50" width="108" height="44" rx="22" fill="#F2F2F2"/><path d="M94 52 V92" stroke="#B5B4B4" stroke-width="2"/><rect x="40" y="82" width="100" height="12" rx="6" fill="#B5B4B4" opacity=".5"/><circle class="c-light" cx="70" cy="66" r="5" fill="#EE0033"/></g>
+        <g class="c-bl"><rect x="54" y="80" width="13" height="34" rx="6.5" fill="#B5B4B4"/><rect x="51" y="108" width="21" height="10" rx="5" fill="#44494D"/></g>
+        <g class="c-fl"><rect x="120" y="80" width="13" height="34" rx="6.5" fill="#B5B4B4"/><rect x="118" y="108" width="21" height="10" rx="5" fill="#44494D"/></g>
+        <g class="c-head">
+          <path d="M122 22 L127 -2 L146 13 Z M155 13 L174 -2 L180 22 Z" fill="#F2F2F2" stroke="#F2F2F2" stroke-width="6" stroke-linejoin="round"/>
+          <path d="M128 12 L130 3 L138 10 Z M163 10 L171 3 L173 12 Z" fill="#EE0033" opacity=".75"/>
+          <rect x="116" y="10" width="70" height="56" rx="24" fill="#F2F2F2"/>
+          <rect x="125" y="22" width="52" height="34" rx="14" fill="#17161b"/>
+          <g class="e-open" fill="#F2F2F2"><circle cx="139" cy="38" r="4.5"/><circle cx="163" cy="38" r="4.5"/></g>
+          <path class="e-happy" d="M134 41 q5 -8 10 0 M158 41 q5 -8 10 0" fill="none" stroke="#F2F2F2" stroke-width="3.5" stroke-linecap="round"/>
+          <path class="e-sleep" d="M134 38 q5 5 10 0 M158 38 q5 5 10 0" fill="none" stroke="#F2F2F2" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M146 47 q2.5 3.5 5 0 q2.5 3.5 5 0" fill="none" stroke="#EE0033" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M112 40 h12 M112 47 l12 -3 M178 40 h12 M178 44 l12 3" stroke="#B5B4B4" stroke-width="2" stroke-linecap="round"/>
+          <rect x="122" y="62" width="40" height="8" rx="4" fill="#EE0033"/><circle cx="142" cy="73" r="4.5" fill="#F2F2F2" stroke="#B5B4B4" stroke-width="1.5"/>
+        </g>
+      </g>
+    </g>
+  </svg></div><div class="zzz"><span>z</span><span>z</span><span>z</span></div><div class="hearts"><span>♥</span><span>♥</span><span>♥</span></div><div class="bubble" id="cat-say"></div></div>
 
   <footer class="ticker"><div class="tag">Đừng bỏ lỡ</div><div class="run"><div id="tv-run"></div></div><div class="qr"><div><b>Phòng bạn có tin hay?</b>Quét mã gửi tin lên Bản tin TV</div><img src="../img/qr-gui-tin.svg" alt=""></div></footer>
 </div>
@@ -583,7 +675,8 @@ function bootTV(PREVIEW) {
 // Xem thử: tv/?robot (ra sau 2 giây, lặp 15 giây/lần). Gọi tay trong console: robotGo().
 (function () {
   var R = (window.TV || {}).ROBOT, el = document.getElementById('robot'), say = document.getElementById('robot-say');
-  var TEST = /[?&]robot\b/.test(location.search);
+  var TEST = /[?&]robot\b/.test(location.search), km = /[?&]robot=(\w+)/.exec(location.search);
+  if (((km && km[1]) || (R && R.kind) || 'robot') !== 'robot') return;
   if (!el || (!R && !TEST) || /[?&]preview\b/.test(location.search)) return;
   R = R || {}; var busy = false, SPEED = 430;   // px/giây trên khung 1920
   function greet() {
@@ -623,6 +716,89 @@ function bootTV(PREVIEW) {
   window.robotGo = go;
   function next(first) {
     var ms = TEST ? (first ? 2000 : 15000) : first ? (30 + Math.random() * 60) * 1000
+      : Math.max(1, +R.everyMinutes || 5) * 60000 * (0.7 + Math.random() * 0.6);
+    setTimeout(function () { go(); next(false); }, ms);
+  }
+  next(true);
+})();
+// Mèo robot (ROBOT.kind = 'meo'): mỗi lượt vào làm 2–3 việc ngẫu nhiên: dụi đầu vào cạnh khung (khung khẽ rung),
+// ngủ quên (napSeconds) rồi vươn vai, nói một câu trong zen; xong đi ra. Xem thử: tv/?robot=meo
+(function () {
+  var R = (window.TV || {}).ROBOT, el = document.getElementById('cat'), say = document.getElementById('cat-say');
+  var qs = location.search, TEST = /[?&]robot\b/.test(qs), km = /[?&]robot=(\w+)/.exec(qs);
+  if (!el || ((km && km[1]) || (R && R.kind) || 'robot') !== 'meo' || (!R && !TEST) || /[?&]preview\b/.test(qs)) return;
+  R = R || {};
+  var ZEN = R.zen && R.zen.length ? R.zen : ['Hít vào, thở ra. Deadline rồi cũng qua.', 'Chậm lại một nhịp, việc vẫn chạy.', 'Tâm an thì code ít bug.'];
+  var x = 0, dir = 1, busy = false, W = 200, SPEED = 190, visit = 0;
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function cls(s) { el.className = 'cat' + (dir < 0 ? ' left' : '') + (s ? ' ' + s : ''); }
+  function place() { el.style.webkitTransform = el.style.transform = 'translateX(' + x + 'px)'; }
+  function run(list, done) { var i = 0; (function step() { if (i >= list.length) done(); else list[i++](step); })(); }
+  function walkTo(tx) { return function (done) {
+    if (Math.abs(tx - x) < 4) return done();
+    dir = tx > x ? 1 : -1; cls('walk');
+    var x0 = x, t0 = 0, ms = Math.abs(tx - x0) / SPEED * 1000;
+    function f(now) { if (!t0) t0 = now; var p = Math.min(1, (now - t0) / ms); x = x0 + (tx - x0) * p; place(); if (p < 1) requestAnimationFrame(f); else { cls(''); setTimeout(done, 300); } }
+    requestAnimationFrame(f);
+  }; }
+  function talk(text, ms) { return function (done) {
+    say.textContent = text; cls('talk');
+    var w = say.offsetWidth, head = dir > 0 ? 150 : 50, left = head - w / 2;
+    if (x + left < 16) left = 16 - x; if (x + left + w > 1904) left = 1904 - x - w;
+    say.style.left = left + 'px'; say.style.setProperty('--tx', Math.max(26, Math.min(w - 26, head - left)) + 'px');
+    cls('talk say'); setTimeout(function () { cls('talk'); setTimeout(function () { cls(''); done(); }, 400); }, ms);
+  }; }
+  function rubTargets() {     // cạnh trái/phải của các khung chạm dòng chạy, tính theo toạ độ khung 1920
+    var st = document.getElementById('stage').getBoundingClientRect(), k = st.width / 1920, out = [];
+    [].forEach.call(document.querySelectorAll('.dash .panel'), function (p) {
+      var r = p.getBoundingClientRect(), L = (r.left - st.left) / k, Rr = (r.right - st.left) / k;
+      if ((r.bottom - st.top) / k < 880) return;
+      if (L - 182 >= 0) out.push({ x: L - 182, dir: 1, p: p });
+      if (Rr - 18 + W <= 1920) out.push({ x: Rr - 18, dir: -1, p: p });
+    });
+    return out;
+  }
+  function buoi() { var h = new Date().getHours(); return h < 11 ? 'sáng' : h < 14 ? 'trưa' : h < 18 ? 'chiều' : 'tối'; }
+  var ACTS = {
+    rub: function () {
+      var t = pick(rubTargets()); if (!t) return [];
+      return [walkTo(t.x), function (done) {
+        dir = t.dir; cls('rub'); var n = dir > 0 ? 'nudge-r' : 'nudge-l'; t.p.classList.add(n);
+        setTimeout(function () { t.p.classList.remove(n); cls(''); setTimeout(done, 500); }, 4200);
+      }, talk(pick(['Meo~', 'Rừ rừ…', 'Meo, chào buổi ' + buoi() + '!']), 2200)];
+    },
+    nap: function () {
+      var s = TEST ? 8 : Math.max(5, +R.napSeconds || 30) * (0.7 + Math.random() * 0.6);
+      return [walkTo(300 + Math.random() * 1200), function (done) {
+        cls('sleep');
+        setTimeout(function () { cls(''); setTimeout(function () { cls('stretch'); setTimeout(function () { cls(''); setTimeout(done, 800); }, 2600); }, 900); }, s * 1000);
+      }];
+    },
+    zen: function () { return [walkTo(300 + Math.random() * 1200), talk(pick(ZEN), 7000)]; }
+  };
+  function go() {
+    var bd = document.getElementById('backdrop');
+    if (busy || document.hidden || (bd && bd.style.display === 'block')) return;
+    busy = true; visit++;
+    var acts;
+    if (TEST) acts = [['rub', 'zen'], ['nap', 'zen'], ['zen', 'rub']][(visit - 1) % 3];
+    else {
+      acts = [];
+      if (Math.random() < .6) acts.push('rub');
+      if (Math.random() < .35) acts.push('nap');
+      if (!acts.length || Math.random() < .7) acts.push('zen');
+      acts.sort(function () { return Math.random() - .5; });
+    }
+    dir = Math.random() < .5 ? 1 : -1; x = dir > 0 ? -W - 20 : 1940; place(); cls(''); el.style.display = 'block';
+    var steps = [];
+    acts.forEach(function (a) { steps = steps.concat(ACTS[a]()); });
+    run(steps, function () {
+      walkTo(x + W / 2 < 960 ? -W - 20 : 1940)(function () { el.style.display = 'none'; busy = false; });
+    });
+  }
+  window.robotGo = go;
+  function next(first) {
+    var ms = TEST ? (first ? 2000 : 10000) : first ? (30 + Math.random() * 60) * 1000
       : Math.max(1, +R.everyMinutes || 5) * 60000 * (0.7 + Math.random() * 0.6);
     setTimeout(function () { go(); next(false); }, ms);
   }

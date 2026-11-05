@@ -91,7 +91,14 @@ window.TV = {
 
   // Robot chào: thi thoảng chạy ngang màn hình, dừng giữa chừng vẫy tay kèm một câu chào ngẫu nhiên
   // (luôn có thêm câu chào theo buổi: sáng, trưa, chiều, tối). everyMinutes: bao lâu ra một lần. Tắt: ROBOT: null.
-  ROBOT: { everyMinutes: 5, greetings: ['Xin chào!', 'Chúc một ngày vui!', 'Làm việc hiệu quả nhé!', 'Nhớ uống nước nha!'] },
+  // kind: 'robot' = robot vẫy tay chào (dùng greetings) · 'meo' = mèo robot đi dạo, dụi đầu vào khung, ngủ quên
+  //   napSeconds giây rồi vươn vai, nói một câu trong zen (≤ 45 ký tự cho gọn bong bóng).
+  ROBOT: { kind: 'robot', everyMinutes: 5, napSeconds: 30,
+    greetings: ['Xin chào!', 'Chúc một ngày vui!', 'Làm việc hiệu quả nhé!', 'Nhớ uống nước nha!'],
+    zen: ['Hít vào, thở ra. Deadline rồi cũng qua.', 'Chậm lại một nhịp, việc vẫn chạy.', 'Tâm an thì code ít bug.',
+      'Mây cứ trôi, mèo cứ ngồi.', 'Ngủ đủ cũng là một cách tu.', 'Làm tốt một việc nhỏ hôm nay là đủ.',
+      'Đừng ôm cả núi, ôm từng viên đá thôi.', 'Uống ngụm nước, nhìn ra cửa sổ một chút.', 'Bug nào rồi cũng có duyên gặp người sửa.',
+      'Hôm nay không vội. Mèo cũng không vội.'] },
 
   // Mã tin phòng ban (news/) không chiếu lên TV, ví dụ tin đã gộp vào một tin trong STORIES.
   HIDE_NEWS: ['T261019-SBN7', 'T261027-WSVU'],
