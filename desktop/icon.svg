@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Icon app MeoRobot: nền đỏ Viettel bo góc theo lưới icon macOS (824 px giữa khung 1024), đầu mèo lấy từ tv/index.html. -->
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="#EE0033"/>
+  <g transform="translate(512 512) scale(7.4) translate(-151 -41)">
+    <path d="M122 22 L127 -2 L146 13 Z M155 13 L174 -2 L180 22 Z" fill="#F2F2F2" stroke="#F2F2F2" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M128 12 L130 3 L138 10 Z M163 10 L171 3 L173 12 Z" fill="#B5B4B4" opacity=".9"/>
+    <rect x="116" y="10" width="70" height="56" rx="24" fill="#F2F2F2"/>
+    <rect x="125" y="22" width="52" height="34" rx="14" fill="#17161b"/>
+    <circle cx="139" cy="38" r="4.5" fill="#F2F2F2"/><circle cx="163" cy="38" r="4.5" fill="#F2F2F2"/>
+    <path d="M146 47 q2.5 3.5 5 0 q2.5 3.5 5 0" fill="none" stroke="#EE0033" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M112 40 h12 M112 47 l12 -3 M178 40 h12 M178 44 l12 3" stroke="#B5B4B4" stroke-width="2" stroke-linecap="round"/>
+    <path d="M128 61 Q151 71 174 61 L174 67 Q151 77 128 67 Z" fill="#44494D"/><circle cx="151" cy="76" r="4.5" fill="#F2F2F2" stroke="#B5B4B4" stroke-width="1.5"/>
+  </g>
+</svg>
