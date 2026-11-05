@@ -729,13 +729,22 @@ function bootTV(PREVIEW) {
 // Mèo robot (ROBOT.kind = 'meo'): mỗi lượt vào làm 2–3 việc ngẫu nhiên: dụi đầu vào cạnh khung (khung khẽ rung),
 // leo cạnh khung lên nóc Tin tiêu điểm / Hôm nay / Sắp diễn ra rồi ngủ quên ở đó (napSeconds), tỉnh dậy vươn vai, nhảy xuống;
 // nói một câu trong zen; xong đi ra. Toạ độ theo khung 1920×1080: (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90).
-// Xem thử: tv/?robot=meo
+// Trong khung giờ của một mục moods (ăn sáng, đói trưa, trà chiều…) mèo lượt nào cũng nói, lấy câu trong mục đó.
+// Xem thử: tv/?robot=meo · giả giờ: tv/?robot=meo&gio=11:45
 (function () {
   var R = (window.TV || {}).ROBOT, el = document.getElementById('cat'), say = document.getElementById('cat-say');
-  var qs = location.search, TEST = /[?&]robot\b/.test(qs), km = /[?&]robot=(\w+)/.exec(qs);
+  var qs = location.search, TEST = /[?&]robot\b/.test(qs), km = /[?&]robot=(\w+)/.exec(qs), fakeT = /[?&]gio=(\d{1,2}):(\d{2})/.exec(qs);
   if (!el || ((km && km[1]) || (R && R.kind) || 'robot') !== 'meo' || (!R && !TEST) || /[?&]preview\b/.test(qs)) return;
   R = R || {};
   var ZEN = R.zen && R.zen.length ? R.zen : ['Hít vào, thở ra. Deadline rồi cũng qua.', 'Chậm lại một nhịp, việc vẫn chạy.', 'Tâm an thì code ít bug.'];
+  function nowMin() { if (fakeT) return +fakeT[1] * 60 + +fakeT[2]; var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+  function hm(s) { var m = /^(\d{1,2}):(\d{2})$/.exec(s || ''); return m ? +m[1] * 60 + +m[2] : NaN; }
+  function mood() {          // mục moods đang trong giờ (from ≤ giờ < to), không có thì null
+    var n = nowMin(), out = null;
+    (R.moods || []).forEach(function (m) { if (!out && m.say && m.say.length && n >= hm(m.from) && n < hm(m.to)) out = m; });
+    return out;
+  }
+  function line() { var m = mood(); return pick(m && Math.random() < .85 ? m.say : ZEN); }
   var S = .85, GROUND = 964, HEAD = 86 * S, SPEED = 170, CLIMB = 190;
   var fx = 0, fy = GROUND, rot = 0, dir = 1, busy = false, visit = 0, testSurf = 0;
   function $(id) { return document.getElementById(id); }
@@ -777,8 +786,8 @@ function bootTV(PREVIEW) {
     cls(flat ? 'sleep flat' : 'sleep');
     setTimeout(function () { cls(''); setTimeout(function () { cls('stretch'); setTimeout(function () { cls(''); setTimeout(done, 800); }, 2600); }, 900); }, sec * 1000);
   }; }
-  function napSec() { return TEST ? 7 : Math.max(5, +R.napSeconds || 30) * rnd(.7, 1.3); }
-  function buoi() { var h = new Date().getHours(); return h < 11 ? 'sáng' : h < 14 ? 'trưa' : h < 18 ? 'chiều' : 'tối'; }
+  function napSec() { return TEST ? 7 : Math.max(5, +R.napSeconds || 300) * rnd(1, 1.5); }   // napSeconds = giấc ngắn nhất
+  function buoi() { var h = nowMin() / 60; return h < 11 ? 'sáng' : h < 14 ? 'trưa' : h < 18 ? 'chiều' : 'tối'; }
   // Nóc khung mèo leo lên được. wallRight: tường ở bên phải mèo (leo cạnh trái khung); spot: khoảng chỗ nằm, né nhãn khung và chữ đầu trang.
   function surfaces() {
     var f = rect(document.querySelector('.feature')), sp = document.querySelectorAll('.side .panel'), out = [];
@@ -789,7 +798,7 @@ function bootTV(PREVIEW) {
   function climbPlan(sf) {
     var w = sf.wall, side = sf.wallRight ? 1 : -1;
     var onTop = [];
-    if (!sf.high && Math.random() < .5 && !TEST) onTop.push(talk(pick(ZEN), 7000));
+    if (!sf.high && Math.random() < .5 && !TEST) onTop.push(talk(line(), 7000));
     if (TEST || Math.random() < .8) onTop.push(nap(napSec(), sf.high)); else onTop.push(function (d) { cls('talk'); setTimeout(function () { cls(''); d(); }, 4000); });
     return [
       walkTo(w - side * (HEAD + 2)),
@@ -821,7 +830,7 @@ function bootTV(PREVIEW) {
     },
     climb: function () { var s = surfaces(); return climbPlan(TEST ? s[testSurf++ % s.length] : pick(s)); },
     nap: function () { return [walkTo(rnd(300, 1500)), nap(napSec())]; },
-    zen: function () { return [walkTo(rnd(300, 1500)), talk(pick(ZEN), 7000)]; }
+    zen: function () { return [walkTo(rnd(300, 1500)), talk(line(), 7000)]; }
   };
   function go() {
     var bd = $('backdrop');
@@ -834,7 +843,7 @@ function bootTV(PREVIEW) {
       if (Math.random() < .5) acts.push('rub');
       if (Math.random() < .5) acts.push('climb');
       else if (Math.random() < .2) acts.push('nap');
-      if (!acts.length || Math.random() < .5) acts.push('zen');
+      if (!acts.length || mood() || Math.random() < .5) acts.push('zen');   // trong giờ moods thì lượt nào cũng nói
       acts.sort(function () { return Math.random() - .5; });
     }
     dir = Math.random() < .5 ? 1 : -1; fx = dir > 0 ? -120 : 2040; fy = GROUND; rot = 0; place(); cls(''); el.style.display = 'block';
