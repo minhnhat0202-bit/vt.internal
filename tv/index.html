@@ -153,6 +153,10 @@
   .cat .c-torso { transform-origin: 90px 94px; }
   .cat .c-bl { transform-origin: 60px 84px; } .cat .c-br { transform-origin: 70px 84px; }
   .cat .c-fl { transform-origin: 126px 84px; } .cat .c-fr { transform-origin: 116px 84px; }
+  /* chân hai khúc: hông (c-bl…) và gối (.shin), gối gập khi vung chân */
+  .cat .c-bl .shin { transform-origin: 60.5px 99px; } .cat .c-br .shin { transform-origin: 70.5px 99px; }
+  .cat .c-fl .shin { transform-origin: 126.5px 99px; } .cat .c-fr .shin { transform-origin: 116.5px 99px; }
+  .cat .c-torso { animation: c-breathe2 3.2s ease-in-out infinite alternate; }   /* đứng im vẫn thở nhẹ */
   .cat .c-light { animation: rb-glow 1.2s ease-in-out infinite alternate; }
   .cat .e-open, .cat .e-happy, .cat .e-sleep { transition: opacity .2s; }
   .cat .e-happy, .cat .e-sleep { opacity: 0; }
@@ -162,12 +166,23 @@
   .cat.sleep .e-sleep, .cat.stretch .e-sleep { opacity: 1; }
   /* đi */
   .cat.walk .c-bob { animation: c-bob .26s ease-in-out infinite alternate; }
-  .cat.walk .c-bl, .cat.walk .c-fl { animation: c-leg .52s ease-in-out infinite alternate; }
-  .cat.walk .c-br, .cat.walk .c-fr { animation: c-leg .52s ease-in-out -.52s infinite alternate; }
+  .cat.walk .c-bl, .cat.walk .c-fr { animation: c-hip .56s linear infinite; }                   /* chân chéo cùng nhịp */
+  .cat.walk .c-br, .cat.walk .c-fl { animation: c-hip .56s linear -.28s infinite; }
+  .cat.walk .c-bl .shin, .cat.walk .c-fr .shin { animation: c-knee .56s linear infinite; }
+  .cat.walk .c-br .shin, .cat.walk .c-fl .shin { animation: c-knee .56s linear -.28s infinite; }
+  .cat.walk .c-head { animation: c-headbob .56s ease-in-out infinite alternate; }
   .cat.walk .c-tail { animation: c-tail .8s ease-in-out infinite alternate; }
   /* chạy lấy đà: chân đảo nhanh gấp đôi, người hơi chúi */
   .cat.run .c-bob { animation-duration: .14s; }
-  .cat.run .c-bl, .cat.run .c-fl, .cat.run .c-br, .cat.run .c-fr { animation-duration: .28s; }
+  .cat.run .c-bl, .cat.run .c-fr, .cat.run .c-bl .shin, .cat.run .c-fr .shin { animation-duration: .3s; }
+  .cat.run .c-br, .cat.run .c-fl, .cat.run .c-br .shin, .cat.run .c-fl .shin { animation-duration: .3s; animation-delay: -.15s; }
+  /* leo tường: vươn chân xa, gối gập sâu */
+  .cat.climb .c-bob { animation: c-bob .35s ease-in-out infinite alternate; }
+  .cat.climb .c-bl, .cat.climb .c-fr { animation: c-hip-climb .7s ease-in-out infinite; }
+  .cat.climb .c-br, .cat.climb .c-fl { animation: c-hip-climb .7s ease-in-out -.35s infinite; }
+  .cat.climb .c-bl .shin, .cat.climb .c-fr .shin { animation: c-knee-climb .7s ease-in-out infinite; }
+  .cat.climb .c-br .shin, .cat.climb .c-fl .shin { animation: c-knee-climb .7s ease-in-out -.35s infinite; }
+  .cat.climb .c-tail { animation: c-tail 1s ease-in-out infinite alternate; }
   .cat.run .c-lean { transform: rotate(6deg); }
   /* dụi đầu */
   .cat.rub .c-head { animation: c-rub .7s ease-in-out infinite alternate; }
@@ -178,6 +193,9 @@
   /* vươn vai: chúi đầu, chổng mông, duỗi chân trước */
   .cat.stretch .c-lean { transform: rotate(10deg); }
   .cat.stretch .c-fl, .cat.stretch .c-fr { transform: rotate(-70deg); }
+  .cat.stretch .c-fl .shin, .cat.stretch .c-fr .shin { transform: rotate(12deg); }
+  .cat.stretch .c-bl, .cat.stretch .c-br { transform: rotate(10deg); }
+  .cat.stretch .c-bl .shin, .cat.stretch .c-br .shin { transform: rotate(-14deg); }
   .cat.stretch .c-head { transform: rotate(-22deg); }
   .cat.stretch .c-tail { animation: none; transform: rotate(18deg); }
   /* ngủ: nằm bẹp, cuộn đuôi, thở đều */
@@ -188,16 +206,20 @@
   /* ngồi xổm liếm chân: hạ người, chân sau gập, chân trước phải giơ lên trước mặt, đầu cúi xuống liếm qua lại */
   .cat.groom .c-bob { transform: translateY(12px); }
   .cat.groom .c-lean { transform: rotate(-8deg); }
-  .cat.groom .c-bl, .cat.groom .c-br { transform: scaleY(.55); }
+  .cat.groom .c-bl, .cat.groom .c-br { transform: rotate(42deg); }                 /* chân sau gập, bàn chân duỗi ra trước */
+  .cat.groom .c-bl .shin, .cat.groom .c-br .shin { transform: rotate(-100deg); }
   .cat.groom .c-fr { transform: rotate(-6deg); }
   .cat.groom .c-fl { transform: rotate(-120deg); }       /* chân trước (vẽ trên đầu) giơ lên trước mõm */
+  .cat.groom .c-fl .shin { transform: rotate(40deg); }   /* cổ chân gập, bàn chân hướng vào mõm */
   .cat.groom .c-head { animation: c-lick .36s ease-in-out infinite alternate; }
   .cat.groom .c-tail { animation: c-tail 1.4s ease-in-out infinite alternate; }
   .cat.groom .e-open { opacity: 0; } .cat.groom .e-happy { opacity: 1; }
   @keyframes c-lick { from { transform: translate(-2px, 12px) rotate(26deg); } to { transform: translate(-6px, 18px) rotate(34deg); } }
   /* nhảy từ trên khung xuống */
   .cat.jump .c-fl, .cat.jump .c-fr { transform: rotate(-42deg); }
+  .cat.jump .c-fl .shin, .cat.jump .c-fr .shin { transform: rotate(38deg); }     /* chân trước co lại */
   .cat.jump .c-bl, .cat.jump .c-br { transform: rotate(38deg); }
+  .cat.jump .c-bl .shin, .cat.jump .c-br .shin { transform: rotate(-28deg); }    /* chân sau duỗi ra sau */
   .cat.jump .c-tail { animation: none; transform: rotate(28deg); }
   .cat.sleep.flat .c-head { transform: translate(-8px, 37px) rotate(8deg); }   /* trên nóc khung cao: gục hẳn đầu cho thấp */
   .cat.sleep .c-torso { animation: c-breathe 2.6s ease-in-out infinite alternate; }
@@ -220,6 +242,12 @@
   @keyframes c-quiver { from { transform: rotate(10deg); } to { transform: rotate(16deg); } }
   @keyframes c-rub { from { transform: translateX(-3px) rotate(-16deg); } to { transform: translateX(4px) rotate(8deg); } }
   @keyframes c-breathe { from { transform: scaleY(1); } to { transform: scaleY(1.06); } }
+  @keyframes c-breathe2 { from { transform: scaleY(1); } to { transform: scaleY(1.025); } }
+  @keyframes c-hip { 0% { transform: rotate(22deg); } 25% { transform: rotate(2deg); } 50% { transform: rotate(-22deg); } 75% { transform: rotate(-8deg); } 100% { transform: rotate(22deg); } }
+  @keyframes c-knee { 0% { transform: rotate(4deg); } 25% { transform: rotate(48deg); } 50% { transform: rotate(14deg); } 75% { transform: rotate(0deg); } 100% { transform: rotate(4deg); } }
+  @keyframes c-hip-climb { 0% { transform: rotate(30deg); } 50% { transform: rotate(-34deg); } 100% { transform: rotate(30deg); } }
+  @keyframes c-knee-climb { 0% { transform: rotate(10deg); } 30% { transform: rotate(60deg); } 60% { transform: rotate(20deg); } 100% { transform: rotate(10deg); } }
+  @keyframes c-headbob { from { transform: translateY(0) rotate(-2deg); } to { transform: translateY(2px) rotate(2deg); } }
   @keyframes c-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
   @keyframes c-nudge-r { from { transform: translateX(0); } to { transform: translateX(3px); } }
   @keyframes c-nudge-l { from { transform: translateX(0); } to { transform: translateX(-3px); } }
@@ -274,12 +302,12 @@
   <div class="cat" id="cat"><div class="c-flip"><svg viewBox="0 0 200 140" aria-hidden="true">
     <ellipse cx="96" cy="120" rx="70" ry="7" fill="#000" opacity=".45"/>
     <g class="c-bob">
-      <g class="c-br"><rect x="64" y="80" width="13" height="34" rx="6.5" fill="#44494D"/><rect x="62" y="108" width="20" height="10" rx="5" fill="#17161b"/></g>
+      <g class="c-br"><rect x="64" y="78" width="13" height="24" rx="6.5" fill="#44494D"/><g class="shin"><rect x="64.5" y="97" width="12" height="17" rx="6" fill="#44494D"/><rect x="62" y="108" width="20" height="10" rx="5" fill="#17161b"/><circle cx="70.5" cy="99" r="2.5" fill="#17161b"/></g></g>
       <g class="c-lean">
-        <g class="c-fr"><rect x="110" y="80" width="13" height="34" rx="6.5" fill="#44494D"/><rect x="108" y="108" width="20" height="10" rx="5" fill="#17161b"/></g>
+        <g class="c-fr"><rect x="110" y="78" width="13" height="24" rx="6.5" fill="#44494D"/><g class="shin"><rect x="110.5" y="97" width="12" height="17" rx="6" fill="#44494D"/><rect x="108" y="108" width="20" height="10" rx="5" fill="#17161b"/><circle cx="116.5" cy="99" r="2.5" fill="#17161b"/></g></g>
         <g class="c-tail"><path d="M44 68 C 22 64, 12 44, 22 26" fill="none" stroke="#B5B4B4" stroke-width="10" stroke-linecap="round"/><path d="M44 68 C 22 64, 12 44, 22 26" fill="none" stroke="#44494D" stroke-width="10" stroke-dasharray="2 9" opacity=".5"/><circle class="c-light" cx="22" cy="24" r="7" fill="#EE0033"/></g>
         <g class="c-torso"><rect x="36" y="50" width="108" height="44" rx="22" fill="#F2F2F2"/><path d="M94 52 V92" stroke="#B5B4B4" stroke-width="2"/><rect x="40" y="82" width="100" height="12" rx="6" fill="#B5B4B4" opacity=".5"/><circle class="c-light" cx="70" cy="66" r="5" fill="#EE0033"/></g>
-        <g class="c-bl"><rect x="54" y="80" width="13" height="34" rx="6.5" fill="#B5B4B4"/><rect x="51" y="108" width="21" height="10" rx="5" fill="#44494D"/></g>
+        <g class="c-bl"><rect x="54" y="78" width="13" height="24" rx="6.5" fill="#B5B4B4"/><g class="shin"><rect x="54.5" y="97" width="12" height="17" rx="6" fill="#B5B4B4"/><rect x="51" y="108" width="21" height="10" rx="5" fill="#44494D"/><circle cx="60.5" cy="99" r="2.5" fill="#44494D"/></g></g>
         <g class="c-head">
           <path d="M122 22 L127 -2 L146 13 Z M155 13 L174 -2 L180 22 Z" fill="#F2F2F2" stroke="#F2F2F2" stroke-width="6" stroke-linejoin="round"/>
           <path d="M128 12 L130 3 L138 10 Z M163 10 L171 3 L173 12 Z" fill="#EE0033" opacity=".75"/>
@@ -292,7 +320,7 @@
           <path d="M112 40 h12 M112 47 l12 -3 M178 40 h12 M178 44 l12 3" stroke="#B5B4B4" stroke-width="2" stroke-linecap="round"/>
           <path d="M128 61 Q151 71 174 61 L174 67 Q151 77 128 67 Z" fill="#EE0033"/><circle cx="151" cy="76" r="4.5" fill="#F2F2F2" stroke="#B5B4B4" stroke-width="1.5"/>
         </g>
-        <g class="c-fl"><rect x="120" y="80" width="13" height="34" rx="6.5" fill="#B5B4B4"/><rect x="118" y="108" width="21" height="10" rx="5" fill="#44494D"/></g>
+        <g class="c-fl"><rect x="120" y="78" width="13" height="24" rx="6.5" fill="#B5B4B4"/><g class="shin"><rect x="120.5" y="97" width="12" height="17" rx="6" fill="#B5B4B4"/><rect x="118" y="108" width="21" height="10" rx="5" fill="#44494D"/><circle cx="126.5" cy="99" r="2.5" fill="#44494D"/></g></g>
       </g>
     </g>
   </svg></div><div class="zzz"><span>z</span><span>z</span><span>z</span></div><div class="hearts"><span>♥</span><span>♥</span><span>♥</span></div><div class="bubble" id="cat-say"></div></div>
@@ -843,7 +871,7 @@ function bootTV(PREVIEW) {
     var w = sf.wall, side = sf.side;
     return [
       walkTo(w - side * (HEAD + 2)),
-      function (done) { dir = side; cls('walk'); tween(w - side, GROUND - HEAD, -90 * side, 650, true, 0, done); },        // chồm lên tường
+      function (done) { dir = side; cls('climb'); tween(w - side, GROUND - HEAD, -90 * side, 650, true, 0, done); },       // chồm lên tường
       function (done) { tween(w - side, sf.top + HEAD, -90 * side, (GROUND - sf.top - 2 * HEAD) / CLIMB * 1000, false, 0, done); },
       function (done) { tween(w + side * 70, sf.top, 0, 650, true, 0, function () { cls(''); setTimeout(done, 300); }); },   // trèo qua mép
       walkTo(rnd(sf.range[0], sf.range[1]))
@@ -875,7 +903,7 @@ function bootTV(PREVIEW) {
     var w = a.wall;
     return [
       walkTo(w + 40),
-      function (done) { dir = -1; cls('walk'); tween(w - 1, a.top + HEAD, -90, 650, true, 0, done); },                     // chúi đầu qua mép
+      function (done) { dir = -1; cls('climb'); tween(w - 1, a.top + HEAD, -90, 650, true, 0, done); },                    // chúi đầu qua mép
       function (done) { tween(w - 1, a.bottom - HEAD, -90, (a.bottom - a.top - 2 * HEAD) / CLIMB * 1000, false, 0, done); },
       function (done) { dir = 1; cls('jump'); tween(w + 70, b.top, 0, 600, true, 30, function () { cls(''); setTimeout(done, 300); }); },
       walkTo(rnd(b.range[0], b.range[1]))
