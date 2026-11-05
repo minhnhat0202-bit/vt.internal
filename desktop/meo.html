@@ -13,8 +13,9 @@
   :root { --red: #EE0033; --display: "FS PF BeauSans Pro", "Roboto", "Segoe UI", Helvetica, Arial, sans-serif; }
   html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; -webkit-user-select: none; user-select: none; cursor: default; }
   body.test { background: #333; }
-  /* Sân khấu neo đáy cửa sổ, cao cố định 480: app chỉ mở cửa sổ cao 210 (đủ mèo + bong bóng), lúc leo tường mới nới lên 480 rồi hạ lại để đỡ tốn CPU. */
-  #stage { position: absolute; left: 0; bottom: 0; width: 100%; height: 480px; }
+  /* Sân khấu = cả cửa sổ app (vùng màn hình trừ thanh menu và Dock); các lớp mèo ghép bằng GPU nên cửa sổ to không tốn thêm CPU. */
+  #stage { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
+  .test .win { position: absolute; background: #555; border: 1px solid #888; }
   /* Mèo: hộp 200×140 (toạ độ trước khi thu S), gốc xoay tại bàn chân (100,118). Bấm được vào mèo (app mở menu), bong bóng/z/tim thì không. */
   .cat { position: absolute; left: 0; top: 0; width: 200px; height: 140px; display: none; pointer-events: auto; cursor: pointer; will-change: transform; -webkit-transform-origin: 100px 118px; transform-origin: 100px 118px; }
   .cat .bubble, .cat .zzz, .cat .hearts, .cat .q { pointer-events: none; }
@@ -181,11 +182,13 @@
 
 <script src="../tv/content.js"></script>
 <script>
-// Mèo trên màn hình Mac: chỉ có mặt đất (y = GROUND, sát mép dưới cửa sổ = mép trên Dock) và hai cạnh màn hình (x = 0, x = W) làm tường.
-// Toạ độ theo điểm CSS trong #stage (rộng = cửa sổ, cao STAGE_H neo đáy): (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90).
-// Cửa sổ bình thường chỉ cao STRIP; trước khi leo tường mèo nhắn app {t:'size'} nới lên STAGE_H, leo xong hạ lại. Mèo luôn bận: đi dạo, liếm chân, chợp mắt,
-// dụi đầu vào cạnh màn hình, leo cạnh màn hình rồi bò/nhảy xuống; cứ TALK giây vừa đi vừa nói một câu; thức AWAKE giây thì ngủ đúng NAP giây.
-// Bấm vào mèo: mèo nói một câu và nhắn app mở menu. App nhận {t:'rect'} (vùng mèo chiếm) và {t:'menu'} qua webkit.messageHandlers.meo.
+// Mèo trên màn hình Mac. Các mặt đứng được: mặt đất (sát mép trên Dock), nóc các cửa sổ đang mở (app quét 3 lần/giây, gửi qua robotShelves(),
+// chỉ phần nóc không bị cửa sổ khác che) và hai cạnh màn hình để leo chơi. Toạ độ điểm CSS trong trang (phủ vùng màn hình trừ thanh menu
+// và Dock), y hướng xuống: (fx, fy) = điểm giữa bàn chân, rot = góc xoay (leo tường ±90). Mèo luôn bận: đi dạo, liếm chân, chợp mắt, dụi đầu,
+// phóng lên nóc cửa sổ thấp, leo cạnh cửa sổ chạm đất (như leo khung trên TV), phóng giữa hai nóc gần nhau, leo cạnh màn hình rồi phóng sang nóc
+// gần cạnh, nhảy xuống. Nóc đang đứng biến mất (cửa sổ đóng, bị che) thì rơi xuống mặt gần nhất; cửa sổ bị kéo đi thì mèo đi theo.
+// Cứ TALK giây vừa đi vừa nói một câu; thức AWAKE giây thì ngủ đúng NAP giây tại chỗ. Bấm vào mèo: nói một câu và nhắn app mở menu.
+// App nhận {t:'rect'} (vùng mèo chiếm), {t:'menu'}, {t:'drag'} qua webkit.messageHandlers.meo; gọi robotHover/robotNap/robotWake/robotGo/robotShelves.
 (function () {
   var R = (window.TV || {}).ROBOT || {}, C = window.MEO_CFG || {}, el = document.getElementById('cat'), say = document.getElementById('cat-say');
   var qs = location.search, TEST = /[?&]test\b/.test(qs), fakeT = /[?&]gio=(\d{1,2}):(\d{2})/.exec(qs), qS = /[?&]s=([\d.]+)/.exec(qs);
@@ -195,9 +198,10 @@
   var NAP = TEST ? 7 : Math.max(.1, +C.napMinutes || 5) * 60;            // giây mỗi giấc ngủ (đúng bằng, không ngẫu nhiên)
   var AWAKE = TEST ? 40 : Math.max(.5, +C.awakeMinutes || 5) * 60;       // giây thức giữa hai giấc (lệch ±30%)
   var TALK = TEST ? 12 : Math.max(10, +C.talkSeconds || 30);             // giây giữa hai câu nói (lệch ±30%)
-  var HEAD = 86 * S, SPEED = 100 * K, CLIMB = 130 * K;                   // px/giây: đi lững thững (như TV), leo tường
-  var STAGE_H = 480, STRIP = 210, W, GROUND, XMIN, XMAX;
-  function fit() { W = window.innerWidth; GROUND = STAGE_H - 8; XMIN = 100 * S + 8; XMAX = W - 100 * S - 8; }
+  var HEAD = 86 * S, CW = 100 * S, SPEED = 100 * K, CLIMB = 130 * K;     // CW = nửa bề rộng mèo; px/giây: đi lững thững, leo tường
+  var JUMP_UP = 300, JUMP_DX = 360, DROP_MAX = 500;                      // tầm phóng (px): lên cao nhất, xa nhất, xuống sâu nhất (xuống đất thì vô hạn)
+  var W, H, GROUND, XMIN, XMAX;
+  function fit() { W = window.innerWidth; H = window.innerHeight; GROUND = H - 8; XMIN = CW + 8; XMAX = W - CW - 8; }
   fit();
   function nowMin() { if (fakeT) return +fakeT[1] * 60 + +fakeT[2]; var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
   function hm(s) { var m = /^(\d{1,2}):(\d{2})$/.exec(s || ''); return m ? +m[1] * 60 + +m[2] : NaN; }
@@ -215,7 +219,11 @@
   var fx = 0, fy = GROUND, rot = 0, dir = 1, busy = false;
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
   function rnd(a, b) { return a + Math.random() * (b - a); }
-  // Cầu nối sang app: báo vùng mèo đang chiếm (app chỉ nhận chuột khi trỏ vào vùng này) và xin mở menu khi bấm vào mèo.
+  function clamp(x, r) { return Math.max(r[0], Math.min(r[1], x)); }
+  // Mặt đang đứng: {id, top (y bàn chân), range [x đi được], ground?} hoặc một nóc cửa sổ (thêm wid, wl, wr, bottom, lclear, rclear, high).
+  function groundSurf() { return { id: 'ground', ground: true, top: GROUND, range: [XMIN, XMAX] }; }
+  var at = groundSurf();
+  // Cầu nối sang app: báo vùng mèo đang chiếm (app chỉ nhận chuột khi trỏ vào vùng này), xin mở menu, báo đang kéo.
   var native = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.meo, rectT = 0;
   function post(m) { if (native) native.postMessage(m); }
   function report() { var r = el.getBoundingClientRect(); post({ t: 'rect', x: r.left, y: r.top, w: r.width, h: r.height }); }
@@ -234,15 +242,15 @@
     var now = Date.now(); if (now - rectT > 100) { rectT = now; report(); }
   }
   function run(list, done) { var i = 0; (function step() { if (i >= list.length) done(); else list[i++](step); })(); }
-  // Hẹn giờ của các hành động đi qua later() để lệnh từ menu (Đi ngủ) huỷ được tất cả một lượt.
+  // Hẹn giờ của các hành động đi qua later() để lệnh từ menu (Đi ngủ) hay cú rơi huỷ được tất cả một lượt.
   var timers = [], moveGen = 0, hopping = false, loopT = 0, napT = 0;
   function later(fn, ms) { var id = setTimeout(function () { var i = timers.indexOf(id); if (i >= 0) timers.splice(i, 1); fn(); }, ms); timers.push(id); return id; }
-  function cancelAll() { timers.forEach(clearTimeout); timers = []; clearTimeout(moveT); clearInterval(moveI); moveGen++; hopping = false; cur = null; resume = null; }
+  function cancelAll() { timers.forEach(clearTimeout); timers = []; clearTimeout(moveT); clearInterval(moveI); moveGen++; hopping = false; cur = null; resume = null; pausedP = null; wakeFn = null; }
   function scheduleLoop(ms) { clearTimeout(loopT); loopT = setTimeout(loop, ms); }
   function wait(ms) { return function (done) { later(done, ms); }; }
   function smooth(p) { return p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
-  // Di chuyển tới (tx, ty, tr) trong ms. Đi thẳng thì giao CSS transition; hop > 0 = nhảy theo đường cong (rơi nhanh dần) thì tính từng khung hình.
-  var moveT = 0, moveI = 0, cur = null, resume = null;   // cur = quãng trượt đang chạy; resume = việc tiếp tục sau khi chuột rời mèo
+  // Di chuyển tới (tx, ty, tr) trong ms. Đi thẳng thì giao CSS transition; hop > 0 = nhảy theo đường cong (lên vọt nhanh rồi chậm, xuống rơi nhanh dần).
+  var moveT = 0, moveI = 0, cur = null, resume = null, pausedP = null;   // cur = quãng trượt đang chạy; pausedP = quãng đang tạm dừng (chuột trỏ vào)
   function tween(tx, ty, tr, ms, ease, hop, done) {
     var x0 = fx, y0 = fy, r0 = rot, t0 = 0;
     if (!hop) {
@@ -253,23 +261,32 @@
       moveT = setTimeout(function () { clearInterval(moveI); cur = null; fxFrom = fx; place(0); report(); done(); }, ms);
       return;
     }
-    var g = moveGen; hopping = true;
+    var g = moveGen, up = ty < y0; hopping = true;
     function f(now) {
       if (g !== moveGen) return;                                      // bị huỷ giữa chừng
-      if (!t0) t0 = now; var p = Math.min(1, (now - t0) / ms), e = ease ? smooth(p) : p;
+      if (!t0) t0 = now; var p = Math.min(1, (now - t0) / ms), e = ease ? smooth(p) : p, q = up ? 1 - (1 - p) * (1 - p) : p * p;
       fx = x0 + (tx - x0) * e; rot = r0 + (tr - r0) * e;
-      fy = y0 + (ty - y0) * p * p - hop * 4 * p * (1 - p);
+      fy = y0 + (ty - y0) * q - hop * 4 * p * (1 - p);
       place(0); if (p < 1) requestAnimationFrame(f); else { hopping = false; fxFrom = fx; report(); done(); }
     }
     requestAnimationFrame(f);
   }
+  function pauseMove() {              // dừng quãng trượt đang chạy ngay tại chỗ (đọc vị trí hiện tại từ transition), trả về quãng để đi tiếp
+    if (!cur) return null;
+    var m = /matrix\(([^)]+)\)/.exec(getComputedStyle(el).transform);
+    if (m) { var v = m[1].split(',').map(Number); fx = v[4] + 100; fy = v[5] + 118; }
+    clearTimeout(moveT); clearInterval(moveI); var p = cur; cur = null; fxFrom = fx; place(0); report();
+    return p;
+  }
+  function resumeMove(p) { var left = Math.abs(p.tx - fx), full = Math.abs(p.tx - p.x0) || 1; tween(p.tx, p.ty, p.tr, p.ms * Math.min(1, left / full), p.ease, 0, p.done); }
   function walkTo(tx, fast) { return function (done) {       // fast = chạy, tới nơi không dừng lại
+    if (!at.ground) tx = clamp(tx, at.range);
     if (Math.abs(tx - fx) < 4) return done();
     dir = tx > fx ? 1 : -1; cls(fast ? 'walk run' : 'walk');
-    tween(tx, GROUND, 0, Math.abs(tx - fx) / (fast ? SPEED * 2.4 : SPEED) * 1000, false, 0, function () { if (fast) done(); else { cls(''); later(done, 300); } });
+    tween(tx, at.top, 0, Math.abs(tx - fx) / (fast ? SPEED * 2.4 : SPEED) * 1000, false, 0, function () { if (fast) done(); else { cls(''); later(done, 300); } });
   }; }
-  // Bong bóng lời nói đi theo mèo (không chặn việc đang làm): mỗi khung hình đặt lại vị trí để không lọt ra ngoài mép màn hình.
-  function placeBubble() {              // kẹp theo cả điểm đầu lẫn điểm cuối quãng đang trượt
+  // Bong bóng lời nói đi theo mèo (không chặn việc đang làm), kẹp theo cả điểm đầu lẫn điểm cuối quãng đang trượt để không lọt ra ngoài mép.
+  function placeBubble() {
     var w = sayW, head = dir > 0 ? 150 : 50, left = head - w / 2, lo = Math.min(fx, fxFrom), hi = Math.max(fx, fxFrom);   // toạ độ trong mèo (trước khi thu S)
     left = Math.min(left, 100 + (W - 16 - hi) / S - w); left = Math.max(left, 100 + (16 - lo) / S);
     var pad = 14 / S; say.style.left = left + 'px'; say.style.setProperty('--tx', Math.max(pad, Math.min(w - pad, head - left)) + 'px');
@@ -287,11 +304,12 @@
   function buoi() { var h = nowMin() / 60; return h < 11 ? 'sáng' : h < 14 ? 'trưa' : h < 18 ? 'chiều' : 'tối'; }
   function groom(ms) { return function (done) { cls('groom'); later(function () { cls(''); later(done, 600); }, ms); }; }   // ngồi xổm liếm chân
   function lie(ms) { return function (done) { cls('sleep'); later(function () { cls(''); later(done, 500); }, ms); }; }     // chợp mắt ngắn
-  function strollOn(far) {                      // far = đi xa hơn (lúc vừa đi vừa nói)
-    var tx; do { tx = rnd(XMIN, XMAX); } while (Math.abs(tx - fx) < Math.min(far ? 600 * K : 220 * K, (XMAX - XMIN) / 2));
+  function strollOn(h, far) {                      // far = đi xa hơn (lúc vừa đi vừa nói)
+    var r = h.range, tx; if (r[1] - r[0] < 60) return [walkTo(rnd(r[0], r[1]))];
+    do { tx = rnd(r[0], r[1]); } while (Math.abs(tx - fx) < Math.min(far ? 600 * K : 220 * K, (r[1] - r[0]) / 2));
     return [walkTo(tx)];
   }
-  // Dụi đầu vào cạnh trái hoặc phải màn hình.
+  // Dụi đầu vào cạnh trái hoặc phải màn hình (chỉ khi ở đất).
   function rubEdge() {
     var right = Math.random() < .5;
     return [walkTo(right ? W - HEAD : HEAD), function (done) {
@@ -299,49 +317,149 @@
       later(function () { cls(''); later(done, 500); }, 4200);
     }, function (done) { speak(pick(['Meo~', 'Rừ rừ…', 'Meo, chào buổi ' + buoi() + '!']), 2200); done(); }];
   }
-  // Leo cạnh màn hình lên một đoạn, bám nhìn quanh, rồi bò xuống hoặc nhảy xuống.
+  // Leo cạnh màn hình lên một đoạn, bám nhìn quanh, rồi: có nóc cửa sổ gần cạnh thì phóng sang, không thì bò xuống hoặc nhảy xuống.
   function climbEdge() {
-    var side = Math.random() < .5 ? 1 : -1, w = side > 0 ? W : 0, h = rnd(150, 360) * K;
+    var side = Math.random() < .5 ? 1 : -1, w = side > 0 ? W : 0;
+    var near = shelves.filter(function (s) {                                    // nóc với tới được từ cạnh này
+      var gap = side > 0 ? W - s.range[1] : s.range[0]; return gap <= JUMP_DX - 60 && s.top >= 120 && s.top <= GROUND - 2 * HEAD - 40;
+    });
+    var to = near.length && Math.random() < .7 ? pick(near) : null;
+    var h = to ? GROUND - HEAD - to.top - rnd(0, 40) : rnd(150, 360) * K;      // leo tới ngang nóc đích (hơi thấp hơn) hoặc một đoạn ngẫu nhiên
     var st = [
       walkTo(w - side * (HEAD + 2)),
-      function (done) { post({ t: 'size', h: STAGE_H }); later(done, 150); },                                            // nới cửa sổ cao lên
       function (done) { dir = side; cls('climb'); tween(w - side, GROUND - HEAD, -90 * side, 650, true, 0, done); },         // chồm lên tường
       function (done) { tween(w - side, GROUND - HEAD - h, -90 * side, h / CLIMB * 1000, false, 0, function () { cls(''); done(); }); },
       wait(TEST ? 800 : rnd(1200, 3500))
     ];
-    if (Math.random() < .5) st.push(                                                                                           // bò xuống
+    if (to) st.push(function (done) {                                                                                          // phóng sang nóc
+      var land = clamp(w - side * rnd(CW + 20, CW + 100), to.range), up = fy - to.top;
+      dir = -side; cls('jump');
+      tween(land, to.top, 0, 420 + Math.abs(up) * 1.1 + Math.abs(land - fx) * .5, false, (up > 0 ? up * .35 : 0) + 40 * K, function () { at = to; cls(''); later(done, 350); });
+    });
+    else if (Math.random() < .5) st.push(                                                                                      // bò xuống
       function (done) { cls('climb'); tween(w - side, GROUND - HEAD, -90 * side, h / CLIMB * 1000, false, 0, done); },
       function (done) { tween(w - side * (HEAD + 2), GROUND, 0, 650, true, 0, function () { cls(''); later(done, 300); }); });
     else st.push(function (done) {                                                                                             // nhảy xuống
       dir = -side; cls('jump');
       tween(w - side * 120 * K, GROUND, 0, 450 + Math.sqrt(h + HEAD) * 26, false, 70 * K, function () { cls(''); later(done, 400); });
     });
-    st.push(function (done) { post({ t: 'size', h: STRIP }); done(); });                                                      // hạ cửa sổ lại
     return st;
   }
-  // Hết việc này nghỉ 1–5 giây rồi sang việc khác (trọng số). Đến giờ ngủ thì ngủ ngay, chỗ ngẫu nhiên; đến lượt nói thì vừa đi vừa nói.
-  var wantTalk = false, napDue = false, testI = 0, TESTSEQ = ['climb', 'rub', 'groom', 'rest', 'stroll', 'climb', 'stroll'];
-  function clampX(x) { return Math.max(XMIN, Math.min(XMAX, x)); }
-  function choose() {
-    if (napDue) return 'nap';
-    if (wantTalk) { wantTalk = false; return 'talk'; }
-    var opts = [['stroll', 30], ['groom', 12], ['rest', 14], ['rub', 10], ['climb', 14]];
-    if (saying) opts = opts.filter(function (o) { return o[0] === 'stroll' || o[0] === 'groom'; });   // đang nói thì chưa leo (bong bóng sẽ xoay theo)
-    if (TEST && !saying) return TESTSEQ[testI++ % TESTSEQ.length];
-    var sum = 0; opts.forEach(function (o) { sum += o[1]; });
-    var r = Math.random() * sum;
-    for (var i = 0; i < opts.length; i++) { r -= opts[i][1]; if (r <= 0) return opts[i][0]; }
-    return 'stroll';
+  // ---- Nóc cửa sổ (app gửi: wid, x1..x2 phần nóc không bị che, top, wl, wr, bottom, lclear/rclear = cạnh trái/phải không bị che) ----
+  var shelves = [];
+  window.robotShelves = function (list) {
+    shelves = [];
+    (list || []).forEach(function (s) {
+      var r = [s.x1 + CW, s.x2 - CW];
+      if (r[1] - r[0] < 10 || s.top < 70 || s.top > GROUND - 30) return;
+      shelves.push({ id: 'w' + s.wid + '@' + Math.round(s.x1), wid: s.wid, top: s.top, range: r, wl: s.wl, wr: s.wr, bottom: s.bottom,
+        lclear: !!s.lclear, rclear: !!s.rclear, high: s.top < 170 });            // high: sát mép trên, không nói (bong bóng vượt màn hình)
+    });
+    checkStand();
+  };
+  function checkStand() {             // nóc đang đứng còn không? Cửa sổ bị kéo thì dời mèo theo; mất nóc thì rơi.
+    if (at.ground) return;
+    var same = shelves.filter(function (s) { return s.wid === at.wid; });
+    if (same.length) {
+      var dx = same[0].wl - at.wl, dy = same[0].top - at.top, p = null;
+      if (dx || dy) {
+        p = pauseMove(); fx += dx; fy += dy; fxFrom = fx;
+        [p, pausedP].forEach(function (q) { if (q) { q.tx += dx; q.ty += dy; q.x0 += dx; } });
+        place(0); report();
+      }
+      var s = same.filter(function (s) { return fx >= s.range[0] - CW && fx <= s.range[1] + CW; })[0];
+      if (s) { at = s; if (p) resumeMove(p); return; }
+    }
+    fall();
   }
-  function build(act) {
-    switch (act) {
-      case 'stroll': return strollOn(false);
-      case 'talk': var st = strollOn(true); st.unshift(function (d) { speak(line(), 7000); d(); }); return st;
+  function fall() {                   // rơi xuống nóc gần nhất bên dưới hoặc đất; đang ngủ thì xuống tới nơi ngủ tiếp
+    var asleep = curPose.indexOf('sleep') >= 0;
+    cancelAll(); hovering = false;
+    var below = shelves.filter(function (s) { return s.top > fy + 10 && fx >= s.range[0] && fx <= s.range[1]; }).sort(function (a, b) { return a.top - b.top; })[0];
+    var to = below || groundSurf();
+    busy = true; rot = 0; cls('jump');
+    tween(fx, to.top, 0, 250 + Math.sqrt(Math.max(0, to.top - fy)) * 24, false, .001, function () {     // hop ≈ 0: rơi thẳng, nhanh dần
+      at = to; cls(''); if (asleep) napDue = true; later(function () { busy = false; scheduleLoop(300); }, 300);
+    });
+  }
+  function leapable(h, s) {           // từ mặt h phóng sang nóc s được không
+    if (s === h || (s.wid === h.wid && Math.abs(s.top - h.top) < 2)) return false;
+    var up = h.top - s.top;
+    if (up > JUMP_UP || -up > DROP_MAX) return false;
+    if (Math.abs(up) < 30 && s.range[0] < h.range[1] && s.range[1] > h.range[0]) return false;   // ngang tầm, chồng nhau: chẳng khác gì đi bộ
+    var gap = Math.max(0, s.range[0] - h.range[1], h.range[0] - s.range[1]);
+    return gap <= JUMP_DX - 60;
+  }
+  function leapPlan(h, s) {           // lấy đà (nếu nhảy cao và có chỗ) rồi phóng từ mặt h sang nóc s
+    var up = h.top - s.top, d, take, land;
+    if (s.range[0] > h.range[1] - 10) { d = 1; take = h.range[1]; land = Math.min(s.range[1], s.range[0] + rnd(0, 60)); }        // đích ở bên phải
+    else if (s.range[1] < h.range[0] + 10) { d = -1; take = h.range[0]; land = Math.max(s.range[0], s.range[1] - rnd(0, 60)); }  // đích ở bên trái
+    else { land = clamp(fx + rnd(-80, 80), s.range); d = land >= fx ? 1 : -1; take = clamp(land - d * rnd(30, 90), h.range); }  // chồng nhau: nhảy gần thẳng
+    if (Math.abs(land - take) > JUMP_DX) land = take + d * JUMP_DX;
+    var dx = land - take, ms = 420 + Math.abs(up) * 1.1 + Math.abs(dx) * .5, hop = (up > 0 ? up * .35 : 0) + 40 * K, st = [];
+    var back = take - d * rnd(110, 160);
+    if (up > 100 && back >= h.range[0] && back <= h.range[1]) st.push(walkTo(back), wait(TEST ? 300 : rnd(300, 800)), walkTo(take, true));   // lấy đà
+    else st.push(walkTo(take));
+    st.push(function (done) { dir = d; cls('jump'); tween(land, s.top, 0, ms, false, hop, function () { at = s; cls(''); later(done, 350); }); });
+    return st;
+  }
+  function climbSides(s) {            // từ đất leo cạnh cửa sổ s lên nóc: cửa sổ phải chạm gần đất, cạnh không bị che, có chỗ đứng và chỗ trèo qua mép
+    if (s.bottom < GROUND - 80 || s.top > GROUND - 2 * HEAD - 20) return [];
+    var out = [];
+    if (s.lclear && s.wl - HEAD - 30 >= 0 && s.wl + CW + 6 >= s.range[0] && s.wl + CW + 6 <= s.range[1]) out.push(1);
+    if (s.rclear && s.wr + HEAD + 30 <= W && s.wr - CW - 6 <= s.range[1] && s.wr - CW - 6 >= s.range[0]) out.push(-1);
+    return out;
+  }
+  function climbPlan(s, side) {       // side = +1: tường ở bên phải mèo (leo cạnh trái cửa sổ)
+    var w = side > 0 ? s.wl : s.wr, land = w + side * (CW + 6);
+    return [
+      walkTo(w - side * (HEAD + 2)),
+      function (done) { dir = side; cls('climb'); tween(w - side, GROUND - HEAD, -90 * side, 650, true, 0, done); },         // chồm lên tường
+      function (done) { tween(w - side, s.top + HEAD, -90 * side, (GROUND - s.top - 2 * HEAD) / CLIMB * 1000, false, 0, done); },
+      function (done) { tween(land, s.top, 0, 650, true, 0, function () { at = s; cls(''); later(done, 300); }); },        // trèo qua mép
+      function (done) { walkTo(rnd(s.range[0], s.range[1]))(done); }
+    ];
+  }
+  function jumpDown(h) {              // từ nóc đi ra đầu gần hơn rồi nhảy xuống đất
+    var toLeft = fx - h.range[0] < h.range[1] - fx, edge = toLeft ? h.range[0] : h.range[1], d = toLeft ? -1 : 1, g = groundSurf();
+    var land = clamp(edge + d * (CW + rnd(50, 110) * K), g.range);
+    return [walkTo(edge), function (done) {
+      dir = d; cls('jump');
+      tween(land, g.top, 0, 450 + Math.sqrt(g.top - h.top) * 26, false, 70 * K, function () { at = g; cls(''); later(done, 400); });
+    }];
+  }
+  // ---- Vòng lặp: hết việc này nghỉ 1–5 giây rồi sang việc khác (trọng số theo mặt đang đứng). Đến giờ ngủ thì ngủ ngay tại chỗ; đến lượt nói thì vừa đi vừa nói.
+  var wantTalk = false, napDue = false, testI = 0, TESTSEQ = ['climb', 'stroll', 'leap', 'down', 'leap', 'groom', 'down', 'rub', 'edge', 'rest', 'stroll'];
+  function choose(h) {
+    if (napDue) return { act: 'nap' };
+    if (wantTalk && !h.high) { wantTalk = false; return { act: 'talk' }; }
+    var opts = [];
+    function add(act, w, to, side) { opts.push({ act: act, w: w, to: to, side: side }); }
+    if (h.ground) { add('stroll', 30); add('groom', 12); add('rest', 12); add('rub', 8); add('edge', 8); }
+    else { if (h.range[1] - h.range[0] > 120) add('stroll', 20); add('groom', 15); add('rest', 15); add('down', 25); }
+    shelves.forEach(function (s) {
+      if (leapable(h, s)) add('leap', h.ground ? 14 : 12, s);
+      if (h.ground) climbSides(s).forEach(function (side) { add('climb', 10, s, side); });
+    });
+    if (saying) opts = opts.filter(function (o) { return o.act === 'stroll' || o.act === 'groom' || o.act === 'rest'; });   // đang nói thì chưa nhảy nhót
+    if (TEST) { var t = TESTSEQ[testI % TESTSEQ.length], m = opts.filter(function (o) { return o.act === t; }); if (m.length) { testI++; return m[0]; } }
+    var sum = 0; opts.forEach(function (o) { sum += o.w; });
+    var r = Math.random() * sum;
+    for (var i = 0; i < opts.length; i++) { r -= opts[i].w; if (r <= 0) return opts[i]; }
+    return opts[0];
+  }
+  function build(c, h) {
+    switch (c.act) {
+      case 'stroll': return strollOn(h, false);
+      case 'talk': var st = strollOn(h, true); st.unshift(function (d) { speak(line(), 7000); d(); }); return st;
       case 'groom': return [groom(TEST ? 3000 : rnd(4000, 8000))];
       case 'rest': return [lie(TEST ? 2000 : rnd(8000, 20000))];
       case 'rub': return rubEdge();
-      case 'climb': return climbEdge();
+      case 'edge': return climbEdge();
       case 'nap': napDue = false; napLater(); return [nap(NAP)];                      // ngủ ngay tại chỗ đang đứng
+      case 'leap': return leapPlan(h, c.to);
+      case 'climb': return climbPlan(c.to, c.side);
+      case 'down': return jumpDown(h);
     }
     return [];
   }
@@ -354,8 +472,27 @@
   function loop() {
     if (busy) return scheduleLoop(1000);
     busy = true;
-    run(build(choose()), function () { busy = false; scheduleLoop(pause()); });
+    var h = at;
+    run(build(choose(h), h), function () { busy = false; scheduleLoop(pause()); });
   }
+  // ---- Lệnh từ menu. Đi ngủ: bỏ dở việc đang làm, nằm ngay tại chỗ (đang leo, đang nhảy thì ngủ ngay khi tiếp đất). Nói: nói ngay.
+  function freezeHere() { pauseMove(); cancelAll(); fxFrom = fx; place(0); report(); }
+  window.robotGo = function () { if (rot === 0 && !hopping) speak(line(), 7000); else wantTalk = true; };
+  window.robotNap = function () {
+    if (curPose.indexOf('sleep') >= 0) return;
+    if (rot !== 0 || hopping || (cur && cur.r0 !== 0)) { napDue = true; return; }
+    freezeHere(); busy = true; napDue = false; napLater();
+    run([nap(NAP)], function () { busy = false; scheduleLoop(pause()); });
+  };
+  window.robotWake = function () { if (wakeFn) wakeFn(); };
+  // App gọi robotHover(true/false) khi chuột vào/ra vùng mèo: đang đi thì dừng ngay tại chỗ, ngồi ngắc ngư; chuột rời thì đi tiếp quãng còn lại.
+  // Đang leo tường, đang nhảy hay đang ngủ thì kệ.
+  window.robotHover = function (on) {
+    on = !!on; if (on === hovering) return; hovering = on;
+    if (on && cur && rot === 0 && cur.tr === 0) { pausedP = pauseMove(); resume = function () { var p = pausedP; pausedP = null; if (p) resumeMove(p); }; }
+    cls(curPose);
+    if (!on && resume) { var r = resume; resume = null; r(); }
+  };
   // Đang ngủ thì bấm giữ kéo ngang sang chỗ khác (kẻo nằm chắn chỗ đang làm); bấm nhanh không kéo thì vẫn ra menu.
   var drag = null, dragged = false;
   el.addEventListener('mousedown', function (e) {
@@ -365,7 +502,7 @@
   window.addEventListener('mousemove', function (e) {
     if (!drag) return;
     var dx = e.clientX - drag.x; if (Math.abs(dx) > 4) { drag.moved = true; document.body.style.cursor = 'grabbing'; }
-    if (drag.moved) { fx = fxFrom = clampX(drag.fx0 + dx); place(0); report(); }
+    if (drag.moved) { fx = fxFrom = clamp(drag.fx0 + dx, at.range); place(0); report(); }
   });
   window.addEventListener('mouseup', function () {
     if (!drag) return; var moved = drag.moved; drag = null; document.body.style.cursor = ''; post({ t: 'drag', on: false });
@@ -377,43 +514,21 @@
     if (rot === 0) speak(pick(curPose.indexOf('sleep') >= 0 ? ['Zzz… mở gì đấy?', 'Meo… đang ngủ mà…'] : ['Meo? Mở gì nào?', 'Chọn đi, meo mở cho!', 'Rừ rừ… gọi meo à?']), 3000);
     post({ t: 'menu' });
   });
-  // App gọi robotHover(true/false) khi chuột vào/ra vùng mèo: đang đi trên đất thì dừng ngay tại chỗ (đọc vị trí hiện tại từ transition),
-  // ngồi ngắc ngư; chuột rời thì đi tiếp quãng còn lại. Đang leo tường hay đang ngủ thì kệ.
-  window.robotHover = function (on) {
-    on = !!on; if (on === hovering) return; hovering = on;
-    if (on && cur && rot === 0 && cur.tr === 0) {
-      var m = /matrix\(([^)]+)\)/.exec(getComputedStyle(el).transform);
-      if (m) { var v = m[1].split(',').map(Number); fx = v[4] + 100; fy = v[5] + 118; }
-      clearTimeout(moveT); clearInterval(moveI); fxFrom = fx; place(0); report();
-      var p = cur; cur = null;
-      resume = function () { var left = Math.abs(p.tx - fx), full = Math.abs(p.tx - p.x0) || 1; tween(p.tx, p.ty, p.tr, p.ms * left / full, p.ease, 0, p.done); };
-    }
-    cls(curPose);
-    if (!on && resume) { var r = resume; resume = null; r(); }
-  };
-  // Lệnh từ menu. Đi ngủ: bỏ dở việc đang làm, nằm ngay tại chỗ (đang leo tường, đang nhảy thì ngủ ngay khi chạm đất). Nói: nói ngay.
-  function freezeHere() {
-    if (cur && rot === 0 && cur.tr === 0) {                      // đang trượt trên đất: lấy vị trí hiện tại
-      var m = /matrix\(([^)]+)\)/.exec(getComputedStyle(el).transform);
-      if (m) { var v = m[1].split(',').map(Number); fx = v[4] + 100; fy = v[5] + 118; }
-    }
-    cancelAll(); fxFrom = fx; place(0); report();
+  window.addEventListener('resize', function () { fit(); if (at.ground) at = groundSurf(); if (rot === 0 && !busy) { fx = fxFrom = clamp(fx, at.range); fy = at.top; place(0); } report(); });
+  if (TEST && !native) {   // thử trong trình duyệt: hai "cửa sổ" giả (một chạm đất để leo, một lơ lửng để phóng)
+    var fake = [{ wid: 1, wl: 260, wr: 760, top: GROUND - 150, bottom: GROUND + 8 }, { wid: 2, wl: 900, wr: 1300, top: GROUND - 330, bottom: GROUND - 60 }];
+    fake.forEach(function (f) {
+      var d = document.createElement('div'); d.className = 'win';
+      d.style.cssText = 'left:' + f.wl + 'px;top:' + f.top + 'px;width:' + (f.wr - f.wl) + 'px;height:' + (f.bottom - f.top) + 'px';
+      document.getElementById('stage').insertBefore(d, el); f.x1 = f.wl; f.x2 = f.wr; f.lclear = f.rclear = true;
+    });
+    window.robotShelves(fake);
   }
-  window.robotGo = function () { if (rot === 0 && !hopping) speak(line(), 7000); else wantTalk = true; };
-  window.robotNap = function () {
-    if (curPose.indexOf('sleep') >= 0) return;
-    if (rot !== 0 || hopping || (cur && cur.r0 !== 0)) { napDue = true; return; }
-    freezeHere(); busy = true; napDue = false; napLater();
-    run([nap(NAP)], function () { busy = false; scheduleLoop(pause()); });
-  };
-  window.robotWake = function () { if (wakeFn) wakeFn(); };
-  window.addEventListener('resize', function () { fit(); if (rot === 0 && !busy) { fx = fxFrom = clampX(fx); place(0); } report(); });
   // Mở app: đi từ mép vào một lần rồi ở lại luôn.
-  post({ t: 'size', h: STRIP });
   el.style.setProperty('--is', 1 / S);                   // bong bóng, dấu hỏi giữ cỡ chữ theo điểm màn hình
   dir = Math.random() < .5 ? 1 : -1; fx = fxFrom = dir > 0 ? -120 : W + 120; fy = GROUND; rot = 0; place(0); cls(''); el.style.display = 'block';
   busy = true;
-  setTimeout(function () { walkTo(clampX(rnd(W * .25, W * .75)))(function () { busy = false; scheduleLoop(pause()); }); }, TEST ? 500 : 1500);
+  setTimeout(function () { walkTo(clamp(rnd(W * .25, W * .75), [XMIN, XMAX]))(function () { busy = false; scheduleLoop(pause()); }); }, TEST ? 500 : 1500);
   talkLater(true); napLater();
 })();
 </script>

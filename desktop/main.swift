@@ -28,17 +28,17 @@ final class App: NSObject, NSApplicationDelegate, WKScriptMessageHandler, NSMenu
     var status: NSStatusItem!
     var catRect = NSRect.zero          // vùng mèo đang chiếm, toạ độ màn hình (gốc dưới trái)
     var timer: Timer?
-    var height: CGFloat = 210          // cửa sổ là dải sát Dock, cao bấy nhiêu điểm; trang xin nới cao lên lúc mèo leo tường
     var hoverOn = false
+    var tick = 0
+    var lastShelves = ""
     var dragging = false               // đang kéo mèo: giữ cửa sổ nhận chuột dù chuột vượt ra ngoài vùng mèo
 
     func screenFrame() -> NSRect { NSScreen.screens.first?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 800) }
-    func stripFrame() -> NSRect { var f = screenFrame(); f.size.height = min(height, f.size.height); return f }
 
     func applicationDidFinishLaunching(_ note: Notification) {
         NSApp.setActivationPolicy(.accessory)
         let cfg = loadConfig()
-        window = PetWindow(contentRect: stripFrame(), styleMask: .borderless, backing: .buffered, defer: false)
+        window = PetWindow(contentRect: screenFrame(), styleMask: .borderless, backing: .buffered, defer: false)
         window.isOpaque = false
         window.backgroundColor = .clear
         window.hasShadow = false
@@ -71,10 +71,13 @@ final class App: NSObject, NSApplicationDelegate, WKScriptMessageHandler, NSMenu
         menu.autoenablesItems = false
         status.menu = menu
 
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in self?.track() }
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            guard let s = self else { return }
+            s.track(); s.tick += 1; if s.tick % 3 == 0 { s.scanWindows() }
+        }
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
             guard let s = self else { return }
-            s.window.setFrame(s.stripFrame(), display: true)
+            s.window.setFrame(s.screenFrame(), display: true)
         }
     }
 
@@ -91,9 +94,6 @@ final class App: NSObject, NSApplicationDelegate, WKScriptMessageHandler, NSMenu
         if t == "rect", let x = b["x"] as? Double, let y = b["y"] as? Double, let w = b["w"] as? Double, let h = b["h"] as? Double {
             let f = window.frame
             catRect = NSRect(x: f.minX + x, y: f.maxY - y - h, width: w, height: h)
-        } else if t == "size", let h = b["h"] as? Double {
-            height = CGFloat(h)
-            window.setFrame(stripFrame(), display: true)
         } else if t == "drag" {
             dragging = (b["on"] as? Bool) ?? false
         } else if t == "menu" {
@@ -102,6 +102,55 @@ final class App: NSObject, NSApplicationDelegate, WKScriptMessageHandler, NSMenu
             rebuild(m)
             m.popUp(positioning: nil, at: NSEvent.mouseLocation, in: nil)
             DispatchQueue.main.async { NSApp.deactivate() }     // trả tiêu điểm về app đang dùng
+        }
+    }
+
+    // Nóc cửa sổ cho mèo trèo: cửa sổ thường (layer 0) đang hiện, không phải của app này, đủ to. Duyệt từ trước ra sau, mỗi nóc trừ đi
+    // phần bị cửa sổ phía trước che (vùng mèo đứng cao 70 điểm trên mép), cạnh trái/phải cũng xét bị che. Toạ độ trang: gốc mép trên vùng
+    // hiển thị (dưới thanh menu), y hướng xuống. Chỉ gửi sang trang khi danh sách đổi. Không cần quyền gì (chỉ tên cửa sổ mới cần Screen Recording).
+    func scanWindows() {
+        guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]],
+              let scr = NSScreen.screens.first else { return }
+        let vf = scr.visibleFrame, full = scr.frame, offY = full.maxY - vf.maxY, offX = vf.minX - full.minX
+        let me = ProcessInfo.processInfo.processIdentifier
+        var rects: [(id: Int, r: CGRect)] = []
+        for w in list {
+            guard (w["kCGWindowLayer"] as? Int) == 0, (w["kCGWindowOwnerPID"] as? Int32) != me, ((w["kCGWindowAlpha"] as? Double) ?? 1) > 0.3,
+                  let bd = w["kCGWindowBounds"] as? [String: Any], let b = CGRect(dictionaryRepresentation: bd as CFDictionary),
+                  b.width >= 180, b.height >= 80 else { continue }
+            rects.append((w["kCGWindowNumber"] as? Int ?? 0, CGRect(x: b.minX - offX, y: b.minY - offY, width: b.width, height: b.height)))
+        }
+        var out: [[String: Any]] = []
+        let catH: CGFloat = 70
+        for (i, w) in rects.enumerated() {
+            let top = w.r.minY
+            if top < 70 || top > vf.height - 40 { continue }
+            var segs: [(CGFloat, CGFloat)] = [(max(0, w.r.minX), min(vf.width, w.r.maxX))]
+            let band = CGRect(x: w.r.minX, y: top - catH, width: w.r.width, height: catH)
+            let lwall = CGRect(x: w.r.minX - 60, y: top, width: 60, height: w.r.height), rwall = CGRect(x: w.r.maxX, y: top, width: 60, height: w.r.height)
+            var lclear = true, rclear = true
+            for f in rects[0..<i] {
+                if f.r.intersects(band) {
+                    segs = segs.flatMap { s -> [(CGFloat, CGFloat)] in
+                        if f.r.maxX <= s.0 || f.r.minX >= s.1 { return [s] }
+                        var o: [(CGFloat, CGFloat)] = []
+                        if f.r.minX > s.0 { o.append((s.0, f.r.minX)) }
+                        if f.r.maxX < s.1 { o.append((f.r.maxX, s.1)) }
+                        return o
+                    }
+                }
+                if f.r.intersects(lwall) { lclear = false }
+                if f.r.intersects(rwall) { rclear = false }
+            }
+            for s in segs where s.1 - s.0 >= 150 {
+                out.append(["wid": w.id, "x1": s.0.rounded(), "x2": s.1.rounded(), "top": top.rounded(), "wl": w.r.minX.rounded(), "wr": w.r.maxX.rounded(),
+                            "bottom": w.r.maxY.rounded(), "lclear": lclear, "rclear": rclear])
+            }
+            if out.count >= 16 { break }
+        }
+        if let d = try? JSONSerialization.data(withJSONObject: out), let s = String(data: d, encoding: .utf8), s != lastShelves {
+            lastShelves = s
+            web.evaluateJavaScript("robotShelves(\(s))", completionHandler: nil)
         }
     }
 
