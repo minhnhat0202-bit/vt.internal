@@ -147,8 +147,9 @@
         skew = (TEST[1] ? at(p, +TEST[1] * 60 + +TEST[2]) : at(p, hm(p.start)) - 3000) - Date.now();
         console.log('[nhạc] thử: giờ giả ' + new Date(now()).toLocaleString('vi-VN'));
       }
-      var changed = !plan || plan.day !== p.day || JSON.stringify(plan.items) !== JSON.stringify(p.items);
-      if (changed && plan) { stopAll(); }
+      // chỉ dừng nhạc khi các bài đã xếp đổi chỗ; bài duyệt muộn được nối thêm vào cuối thì phát tiếp bình thường
+      var same = plan && plan.day === p.day && plan.items.length <= p.items.length && plan.items.every(function (x, k) { return p.items[k].id === x.id && p.items[k].at === x.at; });
+      if (plan && !same) stopAll();
       plan = p;
     }, function () {});
   }

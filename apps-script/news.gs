@@ -303,7 +303,8 @@ function musicPlan_() {
   const target = isMusicDay_(day) && min < hmMin_(MUSIC.end) ? day : nextMusicDay_(day);
   const saved = prop_('MUSIC-' + target);
   let res;
-  if (saved) res = planOut_(target, JSON.parse(saved), true, mRows_().map((x) => x.rec));
+  if (saved && target === day && lateSongs_(JSON.parse(saved), mRows_().map((x) => x.rec)).length) res = withLock_(() => appendLate_(target, now));
+  else if (saved) res = planOut_(target, JSON.parse(saved), true, mRows_().map((x) => x.rec));
   else if (target === day && min >= hmMin_(MUSIC.start) - MUSIC.lockMin) res = withLock_(() => lockPlan_(target));
   else { const recs = mRows_().map((x) => x.rec); res = planOut_(target, plan_(target, recs), false, recs); }
   try { cache.put('music', JSON.stringify(res), 60); } catch (x) {}
@@ -333,10 +334,33 @@ function lockPlan_(day) {
   return planOut_(day, plan, true, recs);
 }
 
+// Bài duyệt sau giờ chốt: nối vào cuối danh sách hôm nay nếu còn giờ (bài đang phát, bài đã xếp giữ nguyên chỗ).
+// Bắt đầu sớm nhất 2 phút sau lúc này, để TV (hỏi lại mỗi phút, đệm 60 giây) kịp biết và tải sẵn file.
+function lateSongs_(plan, recs) {
+  const inPlan = {}; plan.forEach((x) => { inPlan[x[0]] = 1; });
+  return recs.filter((r) => r.status === 'approved' && !r.fallback && r.file && r.file.id && r.duration > 0 && !inPlan[r.id]);
+}
+function appendLate_(day, now) {
+  const key = 'MUSIC-' + day, rows = mRows_(), recs = rows.map((x) => x.rec);
+  const old = JSON.parse(prop_(key) || '[]'), byId = {};
+  recs.forEach((r) => { byId[r.id] = r; });
+  const elapsed = (now.getTime() - new Date(day + 'T' + MUSIC.start + ':00+07:00').getTime()) / 1000;
+  let t0 = Math.max(0, Math.ceil(elapsed + 120));
+  old.forEach((x) => { const r = byId[x[0]]; if (r) t0 = Math.max(t0, x[1] + r.duration + MUSIC.gap); });
+  const plan = plan_(day, recs, old, t0);
+  if (plan.length > old.length) {
+    PropertiesService.getScriptProperties().setProperty(key, JSON.stringify(plan));
+    const added = {}, ts = new Date().toISOString(), sh = mSheet_();
+    plan.slice(old.length).forEach((x) => { added[x[0]] = 1; });
+    rows.forEach((x) => { if (added[x.rec.id]) { const r = x.rec; r.status = 'played'; r.playedOn = day; r.updatedAt = ts; sh.getRange(x.row, 1, 1, M_COLS.length).setValues([mRow_(r)]); } });
+  }
+  return planOut_(day, plan, true, recs);
+}
+
 // Xếp hàng: bài ghim trước; còn lại xen kẽ các phòng, mỗi vòng một bài/phòng, trong phòng bài duyệt trước phát trước.
 // Bỏ qua (giữ lượt hôm sau) bài vượt giới hạn mỗi người/mỗi phòng, bài vừa phát trong noRepeatDays ngày, bài không còn đủ giờ.
-// Trả về [[id, giây bắt đầu tính từ MUSIC.start], …]
-function plan_(day, recs) {
+// Trả về [[id, giây bắt đầu tính từ MUSIC.start], …]. prev, t0: danh sách đã chốt và giây bắt đầu xếp thêm (bài duyệt muộn).
+function plan_(day, recs, prev, t0) {
   const total = (hmMin_(MUSIC.end) - hmMin_(MUSIC.start)) * 60;
   const recent = {}, week = {}, weekFrom = addDay_(day, -6), repFrom = addDay_(day, -MUSIC.noRepeatDays);
   recs.forEach((r) => {
@@ -351,8 +375,14 @@ function plan_(day, recs) {
   queue.filter((r) => !r.pin).forEach((r) => { if (!byDept[r.dept]) { byDept[r.dept] = []; order.push(r.dept); } byDept[r.dept].push(r); });
   for (let k = 0; order.some((d) => byDept[d].length > k); k++) order.forEach((d) => { if (byDept[d][k]) mixed.push(byDept[d][k]); });
 
-  const out = [], day1 = {}, dept1 = {}, songs = {};
-  let t = 0;
+  const out = (prev || []).slice(), day1 = {}, dept1 = {}, songs = {}, byId = {};
+  let t = t0 || 0;
+  recs.forEach((r) => { byId[r.id] = r; });
+  out.forEach((x) => {                                       // bài đã xếp tính vào giới hạn mỗi người, mỗi phòng
+    const r = byId[x[0]]; if (!r) return;
+    songs[songKey_(r)] = 1;
+    if (!r.fallback) { day1[person_(r)] = (day1[person_(r)] || 0) + 1; dept1[r.dept] = (dept1[r.dept] || 0) + 1; }
+  });
   const fits = (r) => t + r.duration <= total;
   const take = (r) => { out.push([r.id, t]); t += r.duration + MUSIC.gap; songs[songKey_(r)] = 1; };
   mixed.forEach((r) => {
@@ -362,7 +392,7 @@ function plan_(day, recs) {
     take(r); day1[who] = n + 1; dept1[r.dept] = (dept1[r.dept] || 0) + 1;
   });
   // lấp chỗ trống bằng nhạc dự phòng, xáo theo ngày, mỗi bài tối đa một lần; hết bài thì để im tới hết giờ
-  shuffle_(recs.filter((r) => playable(r) && r.fallback), day).forEach((r) => { if (!songs[songKey_(r)] && fits(r)) take(r); });
+  if (!prev) shuffle_(recs.filter((r) => playable(r) && r.fallback), day).forEach((r) => { if (!songs[songKey_(r)] && fits(r)) take(r); });
   return out;
 }
 
