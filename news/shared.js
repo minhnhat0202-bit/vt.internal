@@ -90,7 +90,7 @@
     data = data || {};
     if (!CFG.API_URL) return demo(action, data);
     var url = CFG.API_URL, req;
-    if (action === 'published') req = fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + 'action=published&t=' + Date.now(), { cache: 'no-store', redirect: 'follow' });
+    if (action === 'published' || action === 'music') req = fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + 'action=' + action + '&t=' + Date.now(), { cache: 'no-store', redirect: 'follow' });
     else req = fetch(url, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action: action }, data)) });
     return req.then(function (r) { if (!r.ok) throw new Error('Máy chủ trả lỗi ' + r.status); return r.json(); })
       .then(function (j) { if (!j.ok) throw new Error(j.error || 'Lỗi không rõ'); return j; });
@@ -112,6 +112,7 @@
       setTimeout(function () {
         try {
           if (action === 'login') return res({ ok: true, demo: true });
+          if (/^music/.test(action)) throw new Error('Nhạc giải lao cần nối máy chủ (API_URL trong news/config.js)');
           if (action === 'published') return res({ ok: true, items: list.filter(function (r) { return r.status === 'approved'; }).map(publicOf) });
           if (action === 'list') return res({ ok: true, items: list });
           if (action === 'submit') {

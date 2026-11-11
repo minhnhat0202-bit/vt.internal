@@ -42,5 +42,19 @@ window.VTNEWS_CONFIG = {
   DEFAULT_DAYS: 7,      // tin mặc định chiếu 7 ngày kể từ ngày bắt đầu
   MAX_IMAGES: 8,
   IMAGE_EDGE: 1600,     // ảnh được thu về cạnh dài 1600 px, JPG, ngay trên máy người gửi
-  SLIDE_SECONDS: 8      // giây mỗi ảnh khi tin có nhiều ảnh
+  SLIDE_SECONDS: 8,     // giây mỗi ảnh khi tin có nhiều ảnh
+
+  // Nhạc giải lao (tab Gửi nhạc theo yêu cầu, news/nhac.html, tv/music.js). Giờ phát và luật xếp hàng thật nằm ở
+  // MUSIC trong apps-script/news.gs; đổi ở đó thì sửa cả chữ ở đây cho khớp.
+  MUSIC: {
+    slot: '16:00 – 16:30',
+    maxMB: 10, maxMinutes: 6, message: 90, title: 80, artist: 60,
+    rules: [
+      'Mỗi người tối đa <b>1 bài mỗi buổi</b> và <b>2 bài mỗi tuần</b>; mỗi phòng tối đa <b>3 bài mỗi buổi</b>, các phòng phát xen kẽ.',
+      'Bài duyệt trước phát trước. Hết giờ chưa tới lượt thì chuyển sang buổi sau; chờ quá 7 ngày thì bài hết hạn.',
+      'Một bài đã phát thì 14 ngày sau mới phát lại.',
+      'Lời bài hát phù hợp nơi công sở; Ban Truyền thông có thể không duyệt bài có lời nhạy cảm hoặc chất lượng âm thanh kém.',
+      'Tên người gửi, phòng và lời nhắn hiện trên TV khi bài được phát.'
+    ]
+  }
 };

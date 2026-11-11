@@ -5,18 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../img/logo-vtnet.png">
-<title>Gửi tin lên Bản tin TV</title>
+<title>Gửi tin, gửi nhạc lên Bản tin TV</title>
 <link rel="stylesheet" href="news.css">
-<!-- Trang các phòng ban gửi tin. Tin vào hàng chờ, Ban Truyền thông duyệt ở duyet.html rồi mới lên TV. -->
+<!-- Trang các phòng ban gửi tin (tab Đăng tin tức) và gửi nhạc giải lao (tab Gửi nhạc theo yêu cầu, #nhac, music.js).
+     Tin, nhạc vào hàng chờ; Ban Truyền thông duyệt ở duyet.html / nhac.html rồi mới lên TV. -->
 </head>
 <body>
 <header class="top">
   <img src="../img/logo-vtnet.png" alt="">
-  <div class="ttl"><b>Gửi tin lên Bản tin TV</b><span>Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số</span></div>
+  <div class="ttl"><b>Bản tin TV</b><span>Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số</span></div>
   <span class="sp"></span>
   <span class="demo" id="demo" hidden title="Chưa nối máy chủ: tin chỉ lưu trong trình duyệt này">Chế độ thử</span>
   <a class="lnk" href="../tv/" target="_blank" rel="noopener">Xem Bản tin TV</a>
 </header>
+
+<nav class="modes" role="tablist" aria-label="Chọn việc">
+  <div class="modes-in">
+    <button type="button" role="tab" data-mode="tin" aria-selected="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5M8 16h3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span><b>Đăng tin tức</b><small>Tin, ảnh, lịch sự kiện của phòng</small></span></button>
+    <button type="button" role="tab" data-mode="nhac" aria-selected="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm11-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      <span><b>Gửi nhạc theo yêu cầu</b><small>Phát trên TV giờ giải lao 16:00 – 16:30</small></span></button>
+  </div>
+</nav>
 
 <main class="wrap" id="main">
   <div class="hero">
@@ -68,9 +80,21 @@
   <button class="btn primary" id="again">Gửi tin khác</button>
 </section>
 
+<main class="wrap" id="music" hidden></main>
+
+<section class="done" id="mdone" hidden>
+  <div class="ok"><svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <h2>Đã gửi bài</h2>
+  <p>Ban Truyền thông sẽ nghe và duyệt. Bài được duyệt vào hàng chờ, phát trên TV giờ giải lao chiều các ngày làm việc. Mã bài:</p>
+  <div class="code" id="mcode"></div>
+  <p id="mmailnote"></p>
+  <button class="btn primary" id="magain">Gửi bài khác</button>
+</section>
+
 <script src="config.js"></script>
 <script src="shared.js"></script>
 <script src="form.js"></script>
+<script src="music.js"></script>
 <script>
 (function () {
   'use strict';
@@ -110,6 +134,28 @@
       $('errs').textContent = 'Chưa gửi được: ' + err.message + '. Thử lại, hoặc gửi ảnh và nội dung qua email cho Ban Truyền thông.';
     }).then(() => { btn.disabled = false; btn.textContent = 'Gửi tin để duyệt'; });
   });
+
+  // ---------- hai tab: Đăng tin tức | Gửi nhạc theo yêu cầu (#nhac) ----------
+  let music = null;
+  function mode(m) {
+    const nhac = m === 'nhac';
+    document.querySelectorAll('[data-mode]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === m)));
+    $('main').hidden = nhac || !$('done').hidden; $('done').hidden = nhac || $('done').hidden;
+    $('music').hidden = !nhac || !$('mdone').hidden; $('mdone').hidden = !nhac || $('mdone').hidden;
+    if (nhac && !music) music = VTMusic.mount($('music'), { onDone: (id, r) => {
+      $('mcode').textContent = id;
+      $('mmailnote').textContent = /@/.test(r.contact) ? 'Kết quả duyệt sẽ gửi về ' + r.contact + '.' : '';
+      $('music').hidden = true; $('mdone').hidden = false; window.scrollTo(0, 0);
+    } });
+    document.title = nhac ? 'Gửi nhạc giải lao · Bản tin TV' : 'Gửi tin lên Bản tin TV';
+  }
+  document.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => {
+    history.replaceState(null, '', b.dataset.mode === 'nhac' ? '#nhac' : location.pathname + location.search);
+    mode(b.dataset.mode); window.scrollTo(0, 0);
+  }));
+  window.addEventListener('hashchange', () => mode(location.hash === '#nhac' ? 'nhac' : 'tin'));
+  mode(location.hash === '#nhac' ? 'nhac' : 'tin');
+  $('magain').addEventListener('click', () => { $('mdone').hidden = true; $('music').hidden = false; window.scrollTo(0, 0); });
 
   $('again').addEventListener('click', () => {
     form.set(fresh()); preview(form.get());

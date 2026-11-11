@@ -201,6 +201,57 @@ a { color: var(--red-d); }
 .login h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 24px; }
 .login p { margin: 0; color: var(--ink-2); font-size: 14px; }
 
+/* hai tab đầu trang gửi: Đăng tin tức | Gửi nhạc theo yêu cầu */
+.modes { background: var(--card); border-bottom: 1px solid var(--line); }
+.modes-in { max-width: 1320px; margin: 0 auto; padding: 0 28px; display: flex; gap: 8px; }
+.modes button { position: relative; display: flex; align-items: center; gap: 12px; padding: 14px 22px 14px 14px; border: 0; background: none; text-align: left; cursor: pointer; color: var(--ink-2); border-radius: 12px 12px 0 0; transition: background .15s, color .15s; }
+.modes button:hover { background: var(--red-tt); }
+.modes button svg { flex: none; width: 40px; height: 40px; padding: 9px; border-radius: 10px; background: var(--bg); color: var(--ink-2); transition: background .15s, color .15s; }
+.modes button span { display: flex; flex-direction: column; line-height: 1.3; }
+.modes button b { font-family: var(--display); font-weight: 700; font-size: 17px; color: var(--ink); }
+.modes button small { font-size: 12.5px; color: var(--ink-3); }
+.modes button[aria-selected="true"] { color: var(--ink); }
+.modes button[aria-selected="true"] svg { background: var(--red); color: #fff; }
+.modes button[aria-selected="true"]::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--red); }
+
+/* nhạc: bài đã chọn */
+.song { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--red-tt); }
+.song .s-ic { flex: none; width: 44px; height: 44px; border-radius: 10px; background: var(--red); display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding: 11px 0; }
+.song .s-ic span { width: 4px; height: 40%; border-radius: 2px; background: #fff; animation: eq 1s ease-in-out infinite alternate; }
+.song .s-ic span:nth-child(2) { animation-delay: -.4s; } .song .s-ic span:nth-child(3) { animation-delay: -.7s; }
+@keyframes eq { from { height: 25%; } to { height: 100%; } }
+.song .s-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.song .s-info b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.song .s-info small { color: var(--ink-3); font-size: 12.5px; }
+.song audio { width: 100%; height: 34px; }
+
+/* nhạc: hàng chờ */
+.q-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+.queue { list-style: none; margin: 0; padding: 0; }
+.queue li { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--line); }
+.queue time { font-weight: 700; font-size: 13px; color: var(--red-d); font-variant-numeric: tabular-nums; }
+.queue b { display: block; font-weight: 500; font-size: 14px; line-height: 1.3; }
+.queue b span { font-weight: 400; color: var(--ink-2); }
+.queue small { display: block; color: var(--ink-3); font-size: 12.5px; line-height: 1.35; margin-top: 2px; }
+.queue i { font-style: normal; font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.queue li.fb time { color: var(--ink-3); }
+.q-empty { margin: 0; padding: 14px 0; color: var(--ink-3); font-size: 14px; }
+.q-more { margin: 8px 0 0; color: var(--ink-3); font-size: 12.5px; }
+@media (prefers-reduced-motion: reduce) { .song .s-ic span { animation: none; height: 70%; } }
+
+/* trang duyệt nhạc (nhac.html) */
+.mlist { display: grid; gap: 14px; }
+.mcard { display: grid; gap: 12px; padding: 18px 20px; }
+.mcard .m-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.mcard .m-meta { margin-left: auto; font-size: 12.5px; color: var(--ink-3); }
+.mcard .m-who { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+.mcard .m-play { display: flex; align-items: center; gap: 14px; font-size: 13.5px; }
+.mcard .m-play audio { flex: 1; height: 38px; }
+.mcard .m-act { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mcard .m-act .sp { flex: 1; }
+.opt.sm { padding: 8px 10px; align-items: center; font-size: 14px; }
+.opt.sm input { margin: 0; width: 18px; height: 18px; }
+
 @media (max-width: 1180px) {
   .cols, .ecols { grid-template-columns: minmax(0, 1fr); }
   .side { order: -1; }
@@ -216,6 +267,12 @@ a { color: var(--red-d); }
   .top { padding: 10px 16px; }
   .top .ttl span, .top .lnk { display: none; }
   .top .ttl b { font-size: 17px; }
+  .modes-in { padding: 0 8px; gap: 0; }
+  .modes button { flex: 1 1 0; min-width: 0; padding: 12px 8px; gap: 8px; }
+  .modes button span { min-width: 0; }
+  .modes button svg { width: 34px; height: 34px; padding: 7px; }
+  .modes button b { font-size: 14.5px; }
+  .modes button small { display: none; }
   .steps li { white-space: normal; }
   .wrap { padding: 18px 16px 60px; }
   .hero { grid-template-columns: minmax(0, 1fr); }

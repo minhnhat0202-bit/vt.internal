@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="../img/logo-vtnet.png">
+<title>Duyệt nhạc giải lao</title>
+<link rel="stylesheet" href="news.css">
+<!-- Ban Truyền thông duyệt nhạc giải lao mọi người gửi (index.html#nhac). Mật khẩu = ADMIN_KEY, dùng chung đăng nhập với duyet.html. -->
+</head>
+<body>
+<header class="top">
+  <img src="../img/logo-vtnet.png" alt="">
+  <div class="ttl"><b>Duyệt nhạc giải lao</b><span>Ban Truyền thông · Trung tâm Nền tảng Công nghệ &amp; Chuyển đổi số</span></div>
+  <span class="sp"></span>
+  <button class="lnk" id="copy" type="button">Sao chép link gửi nhạc</button>
+  <a class="lnk" href="duyet.html">Duyệt tin</a>
+  <a class="lnk" href="../tv/" target="_blank" rel="noopener">Mở Bản tin TV</a>
+  <button class="lnk" id="logout" type="button" hidden>Đăng xuất</button>
+</header>
+
+<form class="login" id="login" hidden>
+  <h2>Đăng nhập duyệt nhạc</h2>
+  <p>Nhập mật khẩu Ban Truyền thông (giống trang duyệt tin).</p>
+  <label class="f"><span class="fl">Mật khẩu</span><input type="password" id="key" autocomplete="current-password" required></label>
+  <p class="errs" id="lerr" role="alert"></p>
+  <button class="btn primary lg" type="submit">Vào trang duyệt</button>
+</form>
+
+<main class="wrap" id="app" hidden>
+  <div class="cols">
+    <div>
+      <div class="stats" style="margin-bottom:14px">
+        <div><b id="s-pending">0</b><span>Chờ duyệt</span></div>
+        <div class="live"><b id="s-queue">0</b><span>Trong hàng chờ</span></div>
+        <div><b id="s-fb">0</b><span>Nhạc nền</span></div>
+      </div>
+      <div class="filters" id="filters" style="margin-bottom:12px"></div>
+      <input class="search" id="q" type="search" placeholder="Tìm tên bài, ca sĩ, người gửi, phòng, mã bài…" style="margin-bottom:14px">
+      <div class="mlist" id="items"></div>
+    </div>
+    <aside class="side"><div class="sticky">
+      <div class="panel"><h3><span class="dot"></span>Danh sách phát buổi tới</h3><div id="plan"></div></div>
+      <div class="panel tips-panel"><h3>Cách duyệt</h3><ul class="tips">
+        <li><b>Duyệt</b>: bài vào hàng chờ; người gửi nhận email nếu có để lại.</li>
+        <li><b>Ghim</b>: bài lên đầu buổi tới, không tính giới hạn mỗi người, mỗi phòng.</li>
+        <li><b>Nhạc nền</b>: bài dự phòng, lấp chỗ trống khi hàng chờ không đủ 30 phút; không hết lượt, mỗi buổi phát tối đa một lần. Muốn thêm nhạc nền: gửi bài ở tab Gửi nhạc, rồi bấm Nhạc nền + Duyệt ở đây.</li>
+        <li>Danh sách tự chốt 5 phút trước giờ phát (khi TV hỏi); sau đó bài được chọn chuyển sang <b>Đã phát</b>.</li>
+        <li>Giờ phát và luật xếp hàng: <code>MUSIC</code> trong <code>apps-script/news.gs</code>.</li>
+      </ul></div>
+    </div></aside>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script src="shared.js"></script>
+<script src="music.js"></script>
+<script>
+(function () {
+  'use strict';
+  const N = window.VTNews, V = window.VTMusic, esc = V.esc, $ = (id) => document.getElementById(id);
+  const KEY_SS = 'vtnews-admin';
+  let key = '', items = [], filter = 'pending';
+
+  function toast(msg, bad) {
+    const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = msg;
+    document.body.appendChild(t); setTimeout(() => t.remove(), bad ? 6000 : 2800);
+  }
+  const ss = (v) => { try { if (v === undefined) return sessionStorage.getItem(KEY_SS) || ''; if (v) sessionStorage.setItem(KEY_SS, v); else sessionStorage.removeItem(KEY_SS); } catch (e) { return ''; } };
+
+  function start(k) {
+    return N.call('login', { key: k }).then(() => { key = k; ss(k); $('login').hidden = true; $('app').hidden = false; $('logout').hidden = false; return load(); })
+      .then(() => { if (location.hash.length > 1 && items.some((x) => '#' + x.id === location.hash)) { filter = 'all'; $('q').value = location.hash.slice(1); render(); } });
+  }
+  $('login').addEventListener('submit', (e) => {
+    e.preventDefault(); $('lerr').textContent = '';
+    start($('key').value).catch((err) => { $('lerr').textContent = err.message; });
+  });
+  $('logout').addEventListener('click', () => { ss(null); location.reload(); });
+  $('copy').addEventListener('click', () => {
+    const u = new URL('./#nhac', location.href).href;
+    (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => toast('Đã chép link gửi nhạc: ' + u), () => prompt('Link gửi nhạc:', u));
+  });
+
+  // ---------- danh sách ----------
+  const STATE = {
+    pending: ['pending', 'Chờ duyệt'], approved: ['live', 'Trong hàng chờ'], fallback: ['scheduled', 'Nhạc nền'],
+    played: ['archived', 'Đã phát'], rejected: ['rejected', 'Từ chối'], expired: ['expired', 'Hết hạn']
+  };
+  const stateOf = (r) => (r.status === 'approved' && r.fallback ? 'fallback' : r.status);
+  const FILTERS = [['pending', 'Chờ duyệt'], ['approved', 'Trong hàng chờ'], ['fallback', 'Nhạc nền'], ['played', 'Đã phát'], ['done', 'Từ chối, hết hạn'], ['all', 'Tất cả']];
+  const inFilter = (r, f) => { const s = stateOf(r); return f === 'all' || s === f || (f === 'done' && (s === 'rejected' || s === 'expired')); };
+  const fmtTime = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
+  // Trùng bài đã phát trong 14 ngày (MUSIC.noRepeatDays) thì máy chủ bỏ qua khi xếp hàng: nhắc trước cho người duyệt
+  const norm = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '');
+  const songKey = (r) => norm(r.title) + '|' + norm(r.artist);
+  function repeatOf(r) {
+    const from = N.addDays(N.dayKey(), -14);
+    return items.filter((x) => x.id !== r.id && x.playedOn && x.playedOn >= from && !x.fallback && songKey(x) === songKey(r))[0];
+  }
+  const fileUrl = (r) => (r.file && r.file.id ? 'https://drive.google.com/uc?export=download&id=' + r.file.id : '');
+
+  function load() {
+    return Promise.all([
+      N.call('music_list', { key }).then((j) => { items = j.items || []; render(); }),
+      N.call('music').then((p) => { $('plan').innerHTML = V.queueHTML(p, true); }, () => { $('plan').innerHTML = '<p class="q-empty">Chưa tải được danh sách phát.</p>'; })
+    ]).catch((e) => toast('Không tải được danh sách: ' + e.message, true));
+  }
+  function render() {
+    $('s-pending').textContent = items.filter((r) => r.status === 'pending').length;
+    $('s-queue').textContent = items.filter((r) => stateOf(r) === 'approved').length;
+    $('s-fb').textContent = items.filter((r) => stateOf(r) === 'fallback').length;
+    $('filters').innerHTML = FILTERS.map(([k, t]) => `<button type="button" data-f="${k}" class="${k === filter ? 'on' : ''}">${t}<i>${items.filter((r) => inFilter(r, k)).length}</i></button>`).join('');
+    const q = $('q').value.trim().toLowerCase();
+    const list = items.filter((r) => inFilter(r, filter) && (!q || [r.id, r.title, r.artist, r.dept, r.sender, r.message].join(' ').toLowerCase().indexOf(q) > -1));
+    $('items').innerHTML = list.length ? list.map(card).join('') : '<p class="q-empty">Không có bài nào ở mục này.</p>';
+  }
+  function card(r) {
+    const s = stateOf(r), st = STATE[s] || STATE.pending, url = fileUrl(r);
+    return `<article class="card mcard" data-id="${esc(r.id)}">
+      <div class="m-top"><span class="chip ${st[0]}">${st[1]}</span>${r.pin ? '<span class="chip live">Ghim</span>' : ''}
+        <span class="m-meta">${esc(r.id)} · gửi ${fmtTime(r.createdAt)}${r.playedOn ? ' · phát ' + esc(r.playedOn.split('-').reverse().join('/')) : ''} · ${V.mmss(r.duration)}</span></div>
+      <div class="grid">
+        <label class="f"><span class="fl">Tên bài</span><input data-k="title" maxlength="80" value="${esc(r.title)}"></label>
+        <label class="f"><span class="fl">Ca sĩ</span><input data-k="artist" maxlength="60" value="${esc(r.artist)}"></label>
+        <label class="f wide"><span class="fl">Lời nhắn trên TV</span><input data-k="message" maxlength="90" value="${esc(r.message)}"></label>
+      </div>
+      ${(() => { const d = (r.status === 'pending' || r.status === 'approved') && !r.fallback && repeatOf(r); return d ? `<p class="warn">Trùng bài đã phát ngày ${esc(d.playedOn.split('-').reverse().join('/'))}: sẽ chưa được xếp lịch tới khi đủ 14 ngày, sau 7 ngày chờ thì hết hạn.</p>` : ''; })()}
+      <p class="m-who"><b>${esc(r.sender)}</b> · ${esc(r.dept)}${r.contact ? ' · ' + esc(r.contact) : ''}</p>
+      ${url ? `<div class="m-play"><button type="button" class="btn" data-a="listen">▶ Nghe thử</button><a href="${url}" target="_blank" rel="noopener">Mở file trên Drive</a></div>` : '<p class="m-who">File đã được dọn khỏi Drive.</p>'}
+      <label class="f"><span class="fl">Phản hồi cho người gửi</span><input data-k="note" maxlength="500" value="${esc(r.note)}" placeholder="Bắt buộc khi từ chối; gửi kèm email kết quả"></label>
+      <div class="m-act">
+        <button type="button" class="btn ghost" data-a="delete">Xoá</button>
+        <span class="sp"></span>
+        <label class="opt sm"><input type="checkbox" data-k="pin" ${r.pin ? 'checked' : ''}><span>Ghim lên đầu</span></label>
+        <label class="opt sm"><input type="checkbox" data-k="fallback" ${r.fallback ? 'checked' : ''}><span>Nhạc nền</span></label>
+        ${r.status !== 'rejected' ? '<button type="button" class="btn" data-a="rejected">Từ chối</button>' : ''}
+        <button type="button" class="btn dark" data-a="save">Lưu</button>
+        ${r.status !== 'approved' ? '<button type="button" class="btn primary" data-a="approved">Duyệt</button>' : ''}
+      </div>
+    </article>`;
+  }
+  $('filters').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { filter = b.dataset.f; render(); } });
+  $('q').addEventListener('input', render);
+
+  $('items').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-a]'), el = e.target.closest('.mcard'); if (!b || !el) return;
+    const r = items.filter((x) => x.id === el.dataset.id)[0]; if (!r) return;
+    const a = b.dataset.a;
+    if (a === 'listen') { const au = document.createElement('audio'); au.controls = true; au.autoplay = true; au.src = fileUrl(r); b.replaceWith(au); return; }
+    if (a === 'delete') {
+      if (!confirm('Xoá hẳn bài "' + r.title + '" và file nhạc? Không khôi phục được.')) return;
+      N.call('music_delete', { key, id: r.id }).then(() => { items = items.filter((x) => x.id !== r.id); render(); toast('Đã xoá'); load(); }).catch((x) => toast('Lỗi: ' + x.message, true));
+      return;
+    }
+    const rec = Object.assign({}, r);
+    el.querySelectorAll('[data-k]').forEach((i) => { rec[i.dataset.k] = i.type === 'checkbox' ? i.checked : i.value.trim(); });
+    if (a === 'rejected' && !rec.note) { toast('Ghi lý do ở ô "Phản hồi cho người gửi" trước khi từ chối.', true); el.querySelector('[data-k="note"]').focus(); return; }
+    if (a === 'approved' || a === 'rejected') rec.status = a;
+    el.querySelectorAll('.btn').forEach((x) => (x.disabled = true));
+    N.call('music_save', { key, record: rec }).then((j) => {
+      items = items.map((x) => (x.id === j.record.id ? j.record : x)); render();
+      toast({ approved: 'Đã duyệt, bài vào hàng chờ', rejected: 'Đã từ chối', save: 'Đã lưu' }[a] + (j.mailed ? ' · đã gửi email cho ' + j.mailed : ''));
+      N.call('music').then((p) => { $('plan').innerHTML = V.queueHTML(p, true); }, () => {});
+    }).catch((x) => { toast('Lỗi: ' + x.message, true); el.querySelectorAll('.btn').forEach((y) => (y.disabled = false)); });
+  });
+  setInterval(() => { if (!document.hidden && key && !document.activeElement.closest('.mcard')) load(); }, 60000);
+
+  if (N.isDemo()) { document.body.insertAdjacentHTML('beforeend', '<p class="login">Nhạc giải lao cần nối máy chủ: điền API_URL trong news/config.js.</p>'); return; }
+  const saved = ss();
+  if (saved) start(saved).catch(() => { ss(null); $('login').hidden = false; });
+  else $('login').hidden = false;
+})();
+</script>
+</body>
+</html>
