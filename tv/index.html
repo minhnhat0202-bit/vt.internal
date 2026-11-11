@@ -337,9 +337,9 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 </script>
 <script src="../media.js"></script>
 <script src="content.js"></script>
-<script src="../news/config.js"></script>
-<script src="../news/shared.js"></script>
-<script src="music.js"></script>
+<script src="../news/config.js?v=20261111"></script>
+<script src="../news/shared.js?v=20261111"></script>
+<script src="music.js?v=20261111"></script>
 <script>
 // Chạy sau khi ghép tin các phòng đã duyệt (news/, Apps Script) vào window.TV. ?preview=1 = khung xem trước của trang gửi tin, trang duyệt.
 function bootTV(PREVIEW) {
@@ -690,7 +690,7 @@ function bootTV(PREVIEW) {
     if (window.VTNews) VTNews.watch(60);   // tin phòng ban đổi (duyệt, gỡ, sửa) thì tải lại; kiểm tra mỗi 60 giây
     let baseline = '';
     fetchAll().then((h) => { baseline = h; });
-    setInterval(() => { fetchAll().then((h) => { if (baseline && h !== baseline && h.indexOf('5381:0') < 0) location.reload(); }); }, Math.max(30, AUTO_RELOAD.checkSeconds) * 1000);
+    setInterval(() => { fetchAll().then((h) => { if (baseline && h !== baseline && h.indexOf('5381:0') < 0 && !(window.nhacGiu && window.nhacGiu())) location.reload(); }); }, Math.max(30, AUTO_RELOAD.checkSeconds) * 1000);
   }
   let lastDaily = '';
   setInterval(() => {

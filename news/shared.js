@@ -171,7 +171,7 @@
     setInterval(function () {
       published().then(function (items) {
         var s = sig(items.filter(function (r) { return onAir(r); }));
-        if (api.bootSig !== null && s !== api.bootSig) location.reload();
+        if (api.bootSig !== null && s !== api.bootSig && !(W.nhacGiu && W.nhacGiu())) location.reload();   // nhacGiu: tv/music.js
       }, function () {});
     }, Math.max(30, seconds || 120) * 1000);
   }

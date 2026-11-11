@@ -66,15 +66,47 @@
     var pr = a.play();
     if (pr && pr.then) pr.then(function () { blocked = false; }, function (e) { if (e && e.name === 'NotAllowedError') blocked = true; });
   }
-  function unlock() { if (!blocked || cur < 0) return; var a = player(cur); if (a) tryPlay(a); }
+  // Trình duyệt TV (Samsung, Android TV) không có chỗ cho phép tự phát tiếng: chỉ cần một lần bấm OK trên điều khiển
+  // sau khi trang mở là cả trang được phát tiếng. 15 phút trước giờ phát, thử phát một đoạn im lặng; bị chặn thì nhắc bấm OK.
+  var probed = false, needTap = false;
+  function silent() {                    // WAV im lặng 0,05 giây, tạo tại chỗ
+    var n = 400, h = 'RIFF' + u32(36 + n) + 'WAVEfmt ' + u32(16) + u16(1) + u16(1) + u32(8000) + u32(8000) + u16(1) + u16(8) + 'data' + u32(n), k;
+    for (k = 0; k < n; k++) h += String.fromCharCode(128);
+    return 'data:audio/wav;base64,' + btoa(h);
+    function u16(x) { return String.fromCharCode(x & 255, (x >> 8) & 255); }
+    function u32(x) { return u16(x & 65535) + u16((x >>> 16) & 65535); }
+  }
+  function probe() {
+    if (probed) return; probed = true;
+    try {
+      var pr = new Audio(silent()).play();
+      if (pr && pr.then) pr.then(function () { needTap = false; }, function (e) { if (e && e.name === 'NotAllowedError') needTap = true; });
+    } catch (e) {}
+  }
+  function unlock() {
+    if (needTap) { needTap = false; try { new Audio(silent()).play(); } catch (e) {} }
+    if (!blocked || cur < 0) return; var a = player(cur); if (a) tryPlay(a);
+  }
   document.addEventListener('click', unlock); document.addEventListener('keydown', unlock);
+  // Giữ trang không tự tải lại (tin mới, sửa nội dung) từ 15 phút trước giờ phát tới hết giờ: tải lại là mất lần bấm OK.
+  // tv/index.html và news/shared.js hỏi hàm này trước khi tải lại; đổi nội dung sẽ được tải sau giờ nhạc.
+  window.nhacGiu = function () {
+    if (!plan || !plan.items || !plan.items.length) return false;
+    var t = now(); return t > at(plan, hm(plan.start)) - 900000 && t < at(plan, hm(plan.end));
+  };
 
   function tick() {
     var p = plan, t = now();
     if (!p || !p.items) return hide();
     var s = at(p, hm(p.start)), e = at(p, hm(p.end));
-    if (t < s - 240000 || t >= e) { if (cur > -1 || shown) { stopAll(); hide(); } return; }
-    if (t < s) { if (p.items[0]) player(0); return; }          // 4 phút trước giờ phát: tải sẵn bài đầu
+    if (t < s - 900000 || t >= e || !p.items.length) { if (cur > -1 || shown) { stopAll(); hide(); } return; }
+    if (t < s) {
+      if (t >= s - 240000) player(0);                            // 4 phút trước giờ phát: tải sẵn bài đầu
+      probe();
+      if (needTap) show('<b>Bấm OK để bật nhạc</b><span class="by">Nhạc giải lao bắt đầu lúc ' + esc(p.start) + '</span>', true);
+      else hide();
+      return;
+    }
     var el = (t - s) / 1000, i = -1, k;
     for (k = 0; k < p.items.length; k++) if (el >= p.items[k].at && el < p.items[k].at + p.items[k].duration) { i = k; break; }
     var left = (e - t) / 1000;
@@ -96,7 +128,7 @@
     } else if (a.paused && !blocked && !a.ended) tryPlay(a);
     if (left < 6) a.volume = Math.max(0, left / 6);                  // nhỏ dần 6 giây cuối khung giờ
     if (p.items[i + 1] && it.at + it.duration - el < 60) player(i + 1);   // phút cuối bài: tải sẵn bài kế
-    show(blocked ? '<b>Bấm vào màn hình để bật nhạc</b><span class="by">Trình duyệt TV đang chặn tự phát âm thanh</span>' : line(it) + '<span class="tm">' + mmss(want) + ' / ' + mmss(it.duration) + '</span>', blocked);
+    show(blocked ? '<b>Bấm OK để bật nhạc</b><span class="by">TV đang chặn tự phát âm thanh</span>' : line(it) + '<span class="tm">' + mmss(want) + ' / ' + mmss(it.duration) + '</span>', blocked);
   }
 
   // ---------- lấy danh sách: quanh giờ phát mỗi phút, ngoài giờ 10 phút một lần ----------
