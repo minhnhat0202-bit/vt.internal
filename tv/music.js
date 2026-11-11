@@ -1,6 +1,6 @@
 // Nhạc giải lao trên Bản tin TV: phát danh sách GET ?action=music (phần NHẠC GIẢI LAO trong apps-script/news.gs)
 // trong khung start–end. Bài nào, giây thứ mấy đều tính theo giờ thực, nên nhiều TV phát khớp nhau và trang tự tải lại
-// giữa chừng vẫn phát tiếp đúng chỗ. Trong giờ nhạc, khung "Giờ giải lao" nổi lên phủ cột phải (Hôm nay, Sắp diễn ra).
+// giữa chừng vẫn phát tiếp đúng chỗ. Trong giờ nhạc, pop-up "Giờ giải lao" nổi giữa màn hình trên nền tối, hết giờ tự đóng.
 // Trình duyệt chặn tự phát tiếng: máy chạy TV cần Chrome mở kèm --autoplay-policy=no-user-gesture-required
 // (hoặc Site settings → Sound → Allow); không thì khung nhạc hiện lời nhắc bấm OK trên điều khiển.
 // Thử: tv/?nhac (giả giờ: 3 giây trước giờ phát), tv/?nhac=16:20 (giả giờ đó của ngày phát).
@@ -19,43 +19,50 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function mmss(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
 
-  // ---------- giao diện: khung "Giờ giải lao" nổi lên phủ cột phải (Hôm nay + Sắp diễn ra) trong giờ nhạc ----------
-  // Cùng kiểu khung kính, nhãn đỏ của trang; Tin tiêu điểm bên trái và dòng chạy vẫn chạy bình thường.
+  // ---------- giao diện: pop-up "Giờ giải lao" giữa màn hình, nền tối phủ lên bản tin (chừa dòng chạy có mã QR gửi bài) ----------
+  // Hiện từ 2 phút trước giờ phát, tự đóng lúc hết giờ (MUSIC.end trong news.gs).
   var css = document.createElement('style');
   css.textContent =
-    '.mpop { position: absolute; top: 136px; right: 64px; bottom: 144px; width: 470px; z-index: 4; display: flex; flex-direction: column; padding: 46px 30px 24px; background: rgba(12,12,14,.93); border-color: rgba(238,0,51,.55); box-shadow: 0 28px 70px rgba(0,0,0,.6), 0 0 60px rgba(238,0,51,.22); opacity: 0; visibility: hidden; transform: translateX(60px); transition: opacity .6s ease, transform .6s ease, visibility 0s .6s; }' +
-    '.mpop.on { opacity: 1; visibility: visible; transform: none; transition: opacity .6s ease, transform .6s ease; }' +
-    '.mpop .disc { flex: none; position: relative; width: 210px; height: 210px; margin: 6px auto 22px; border-radius: 50%; background: repeating-radial-gradient(circle, #000 0 2px, #1d1f21 2px 4px); box-shadow: 0 0 0 5px rgba(255,255,255,.07), 0 18px 44px rgba(0,0,0,.7), 0 0 70px rgba(238,0,51,.28); }' +
-    '.mpop .disc i { position: absolute; left: 33%; top: 33%; right: 33%; bottom: 33%; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; color: #fff; font-style: normal; font-size: 34px; line-height: 1; }' +
-    '.mpop .disc i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #000; }' +
-    '.mpop .disc i b { position: absolute; left: 14%; top: 10%; font-weight: 400; }' +
+    '.mscrim { position: absolute; left: 0; top: 0; right: 0; bottom: 116px; z-index: 20; background: rgba(0,0,0,.85); opacity: 0; visibility: hidden; transition: opacity .8s ease, visibility 0s .8s; }' +
+    '.mscrim.on { opacity: 1; visibility: visible; transition: opacity .8s ease; }' +
+    '.mpop { position: absolute; left: 50%; top: 482px; width: 1240px; height: 620px; margin: -310px 0 0 -620px; z-index: 21; display: flex; flex-direction: row; align-items: center; padding: 56px 64px 48px; background: rgba(14,14,16,.97); border-color: rgba(238,0,51,.6); box-shadow: 0 40px 120px rgba(0,0,0,.8), 0 0 90px rgba(238,0,51,.25); opacity: 0; visibility: hidden; transform: scale(.94); transition: opacity .6s ease, transform .6s ease, visibility 0s .6s; }' +
+    '.mpop.on { opacity: 1; visibility: visible; transform: none; transition: opacity .6s ease .2s, transform .6s ease .2s; }' +
+    '.mpop .lbl { left: 44px; top: -26px; font-size: 30px; padding: 10px 26px; }' +
+    '.mpop .pg { right: 40px; top: 18px; font-size: 26px; }' +
+    '.mpop .ml { flex: none; width: 380px; display: flex; justify-content: center; margin-right: 60px; }' +
+    '.mpop .mr { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; height: 100%; }' +
+    '.mpop .disc { position: relative; width: 360px; height: 360px; border-radius: 50%; background: repeating-radial-gradient(circle, #000 0 2px, #1d1f21 2px 4px); box-shadow: 0 0 0 7px rgba(255,255,255,.07), 0 24px 60px rgba(0,0,0,.75), 0 0 100px rgba(238,0,51,.3); }' +
+    '.mpop .disc i { position: absolute; left: 33%; top: 33%; right: 33%; bottom: 33%; border-radius: 50%; background: var(--red); color: #fff; font-style: normal; font-size: 46px; line-height: 1; }' +
+    '.mpop .disc i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: #000; }' +
+    '.mpop .disc i b { position: absolute; left: 16%; top: 12%; font-weight: 400; }' +
     '.mpop .disc::after { content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,.14), transparent 40%, transparent 60%, rgba(255,255,255,.06)); }' +
     '.mpop.play .disc { animation: mp-spin 4s linear infinite; }' +
-    '.mpop .kick { display: flex; align-items: center; font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: .12em; text-transform: uppercase; color: var(--red); }' +
-    '.mpop .eq { display: none; align-items: flex-end; height: 22px; margin-right: 12px; }' +
+    '.mpop .kick { display: flex; align-items: center; font-family: var(--display); font-weight: 700; font-size: 26px; letter-spacing: .14em; text-transform: uppercase; color: var(--red); }' +
+    '.mpop .eq { display: none; align-items: flex-end; height: 26px; margin-right: 14px; }' +
     '.mpop.play .eq { display: flex; }' +
-    '.mpop .eq i { width: 5px; height: 40%; margin-right: 4px; border-radius: 2px; background: var(--red); animation: mp-eq 1s ease-in-out infinite alternate; }' +
+    '.mpop .eq i { width: 6px; height: 40%; margin-right: 5px; border-radius: 3px; background: var(--red); animation: mp-eq 1s ease-in-out infinite alternate; }' +
     '.mpop .eq i:nth-child(2) { animation-delay: -.35s; } .mpop .eq i:nth-child(3) { animation-delay: -.7s; } .mpop .eq i:nth-child(4) { animation-delay: -.15s; }' +
-    '.mpop .ttl { margin: 10px 0 0; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1.15; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }' +
-    '.mpop .art { margin-top: 6px; font-size: 26px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
-    '.mpop .bar { height: 8px; margin-top: 20px; border-radius: 4px; background: rgba(255,255,255,.14); overflow: hidden; }' +
-    '.mpop .bar b { display: block; height: 100%; width: 0; background: var(--red); border-radius: 4px; transition: width 1s linear; }' +
-    '.mpop .tm { display: flex; justify-content: space-between; margin-top: 8px; font-size: 22px; color: var(--ink-3); font-variant-numeric: tabular-nums; }' +
-    '.mpop .gift { margin-top: 18px; padding-top: 16px; border-top: 1.5px solid rgba(255,255,255,.14); font-size: 24px; color: var(--ink-2); }' +
-    '.mpop .gift small { display: block; font-size: 19px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }' +
-    '.mpop .gift b { color: var(--ink); font-size: 28px; }' +
-    '.mpop .gift p { margin: 8px 0 0; font-size: 27px; line-height: 1.3; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }' +
-    '.mpop .gift p::before { content: "“"; color: var(--red); font-family: var(--display); font-weight: 800; margin-right: 4px; }' +
-    '.mpop .gift p::after { content: "”"; color: var(--red); font-family: var(--display); font-weight: 800; margin-left: 2px; }' +
-    '.mpop .foot { margin-top: auto; padding-top: 14px; font-size: 22px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+    '.mpop .ttl { margin: 12px 0 0; font-family: var(--display); font-weight: 800; font-size: 58px; line-height: 1.12; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 0 0 30px rgba(238,0,51,.35); }' +
+    '.mpop .art { margin-top: 8px; font-size: 34px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+    '.mpop .bar { height: 10px; margin-top: 26px; border-radius: 5px; background: rgba(255,255,255,.14); overflow: hidden; }' +
+    '.mpop .bar b { display: block; height: 100%; width: 0; background: var(--red); border-radius: 5px; transition: width 1s linear; }' +
+    '.mpop .tm { display: flex; justify-content: space-between; margin-top: 10px; font-size: 26px; color: var(--ink-3); font-variant-numeric: tabular-nums; }' +
+    '.mpop .gift { margin-top: 24px; padding-top: 20px; border-top: 1.5px solid rgba(255,255,255,.14); font-size: 30px; color: var(--ink-2); }' +
+    '.mpop .gift small { display: block; font-size: 22px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }' +
+    '.mpop .gift b { color: var(--ink); font-size: 36px; }' +
+    '.mpop .gift p { margin: 10px 0 0; font-size: 38px; line-height: 1.25; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }' +
+    '.mpop .gift p::before { content: "“"; color: var(--red); font-family: var(--display); font-weight: 800; margin-right: 6px; }' +
+    '.mpop .gift p::after { content: "”"; color: var(--red); font-family: var(--display); font-weight: 800; margin-left: 4px; }' +
+    '.mpop .foot { margin-top: 22px; font-size: 26px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
     '.mpop .foot b { color: var(--ink-2); font-weight: 500; }' +
-    '.mpop .ok { flex: none; width: 120px; height: 120px; margin: 30px auto 10px; border-radius: 50%; border: 5px solid var(--ink); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 800; font-size: 44px; animation: mp-pulse 1.6s ease-in-out infinite; }' +
+    '.mpop .ok { width: 220px; height: 220px; border-radius: 50%; border: 8px solid var(--ink); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 800; font-size: 80px; animation: mp-pulse 1.6s ease-in-out infinite; }' +
     '@keyframes mp-spin { to { transform: rotate(360deg); } }' +
     '@keyframes mp-eq { from { height: 20%; } to { height: 100%; } }' +
-    '@keyframes mp-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(238,0,51,.6); } 50% { box-shadow: 0 0 0 22px rgba(238,0,51,0); } }' +
+    '@keyframes mp-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(238,0,51,.6); } 50% { box-shadow: 0 0 0 36px rgba(238,0,51,0); } }' +
     '@media (prefers-reduced-motion: reduce) { .mpop.play .disc, .mpop .eq i, .mpop .ok { animation: none; } }';
   document.head.appendChild(css);
   var stage = document.getElementById('stage') || document.body;
+  var scrim = document.createElement('div'); scrim.className = 'mscrim'; stage.appendChild(scrim);
   var pop = document.createElement('section'); pop.className = 'mpop glass panel'; stage.appendChild(pop);
   var popSig = '';
   function hhmm(p, sec) { var m = hm(p.start) * 60 + Math.round(sec); return ('0' + Math.floor(m / 3600)).slice(-2) + ':' + ('0' + Math.floor(m / 60) % 60).slice(-2); }
@@ -67,23 +74,24 @@
     var k = p.items.indexOf(it), nx = k > -1 ? p.items[k + 1] : null;
     return nx ? '<div class="foot">Tiếp theo ' + hhmm(p, nx.at) + ' · <b>' + esc(nx.title) + '</b></div>' : '<div class="foot">Gửi bài cho buổi sau: quét mã góc phải dưới</div>';
   }
+  var DISC = '<div class="ml"><div class="disc"><i><b>♪</b></i></div></div>';
   // v: { kind: 'play' | 'next' | 'end' | 'tap', it, el (giây đã phát), left (giây còn lại tới bài kế / hết giờ) }
   function show(v) {
     var p = plan, it = v.it, sig = v.kind + '|' + (it ? it.id : '') + '|' + p.items.length;
     if (sig !== popSig) {
       popSig = sig;
       var h = '<span class="lbl">Giờ giải lao</span><span class="pg">' + esc(p.start) + ' – ' + esc(p.end) + '</span>';
-      if (v.kind === 'tap') h += '<div class="ok">OK</div><div class="kick">Chưa có tiếng</div><h3 class="ttl">Bấm OK trên điều khiển để bật nhạc</h3>' +
-        '<div class="art">' + (v.pre ? 'Nhạc bắt đầu lúc ' + esc(p.start) : 'TV đang chặn tự phát âm thanh') + '</div>' + (it ? '<div class="foot">' + (v.pre ? 'Bài đầu tiên' : 'Đang tới lượt') + ': <b>' + esc(it.title) + '</b></div>' : '');
-      else if (v.kind === 'end') h += '<div class="disc"><i><b>♪</b></i></div><div class="kick">Hết bài hôm nay</div><h3 class="ttl">Muốn nghe bài của mình?</h3>' +
-        '<div class="art">Quét mã góc phải dưới để gửi bài</div><div class="tm"><span>Giờ giải lao còn</span><span data-x="left"></span></div><div class="foot">Bài được duyệt sẽ phát buổi tới</div>';
-      else h += '<div class="disc"><i><b>♪</b></i></div><div class="kick"><span class="eq"><i></i><i></i><i></i><i></i></span>' + (v.kind === 'play' ? 'Đang phát' : 'Sắp phát · ' + hhmm(p, it.at)) + '</div>' +
+      if (v.kind === 'tap') h += '<div class="ml"><div class="ok">OK</div></div><div class="mr"><div class="kick">Chưa có tiếng</div><h3 class="ttl">Bấm OK trên điều khiển để bật nhạc</h3>' +
+        '<div class="art">' + (v.pre ? 'Nhạc bắt đầu lúc ' + esc(p.start) : 'TV đang chặn tự phát âm thanh') + '</div>' + (it ? '<div class="foot">' + (v.pre ? 'Bài đầu tiên' : 'Đang tới lượt') + ': <b>' + esc(it.title) + '</b></div>' : '') + '</div>';
+      else if (v.kind === 'end') h += DISC + '<div class="mr"><div class="kick">Hết bài hôm nay</div><h3 class="ttl">Muốn nghe bài của mình?</h3>' +
+        '<div class="art">Quét mã góc phải dưới để gửi bài</div><div class="tm"><span>Giờ giải lao còn</span><span data-x="left"></span></div><div class="foot">Bài được duyệt sẽ phát buổi tới</div></div>';
+      else h += DISC + '<div class="mr"><div class="kick"><span class="eq"><i></i><i></i><i></i><i></i></span>' + (v.kind === 'play' ? 'Đang phát' : 'Sắp phát · ' + hhmm(p, it.at)) + '</div>' +
         '<h3 class="ttl">' + esc(it.title) + '</h3>' + (it.artist ? '<div class="art">' + esc(it.artist) + '</div>' : '') +
         (v.kind === 'play' ? '<div class="bar"><b data-x="bar"></b></div><div class="tm"><span data-x="el"></span><span>' + mmss(it.duration) + '</span></div>'
-          : '<div class="tm"><span>Bắt đầu sau</span><span data-x="left"></span></div>') + gift(it) + after(p, it);
+          : '<div class="tm"><span>Bắt đầu sau</span><span data-x="left"></span></div>') + gift(it) + after(p, it) + '</div>';
       pop.innerHTML = h;
     }
-    pop.className = 'mpop glass panel on ' + v.kind;
+    pop.className = 'mpop glass panel on ' + v.kind; scrim.className = 'mscrim on';
     var x = pop.querySelectorAll('[data-x]'), k;
     for (k = 0; k < x.length; k++) {
       var f = x[k].getAttribute('data-x');
@@ -93,7 +101,7 @@
     }
     shown = true;
   }
-  function hide() { if (!shown) return; pop.className = 'mpop glass panel'; popSig = ''; shown = false; }
+  function hide() { if (!shown) return; pop.className = 'mpop glass panel'; scrim.className = 'mscrim'; popSig = ''; shown = false; }
 
   // ---------- phát ----------
   function player(i) {
