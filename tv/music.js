@@ -55,14 +55,22 @@
   // ---------- phát ----------
   function player(i) {
     var it = plan.items[i]; if (!it) return null;
-    if (!players[it.id]) { var a = new Audio(); a.preload = 'auto'; a.src = it.url; players[it.id] = a; }
+    if (!players[it.id]) {                // Drive chặn phát thẳng từ trang ngoài: lấy file qua Apps Script rồi phát blob
+      var a = new Audio(); a.preload = 'auto'; players[it.id] = a;
+      N.audio(it.id).then(function (u) { if (players[it.id] === a) a.src = u; else URL.revokeObjectURL(u); },
+        function () { if (players[it.id] === a) delete players[it.id]; });   // lỗi mạng: lần tick sau thử lại
+    }
     return players[it.id];
   }
   function stopAll() {
-    for (var k in players) { try { players[k].pause(); players[k].removeAttribute('src'); players[k].load(); } catch (e) {} }
+    for (var k in players) drop(players[k]);
     players = {}; cur = -1;
   }
+  function drop(a) {
+    try { a.pause(); if (/^blob:/.test(a.src)) URL.revokeObjectURL(a.src); a.removeAttribute('src'); a.load(); } catch (e) {}
+  }
   function tryPlay(a) {
+    if (!a.src) return;                                            // file chưa tải xong
     var pr = a.play();
     if (pr && pr.then) pr.then(function () { blocked = false; }, function (e) { if (e && e.name === 'NotAllowedError') blocked = true; });
   }
@@ -119,11 +127,11 @@
     }
     var it = p.items[i], a = player(i), want = el - it.at;
     if (i !== cur) {
-      if (cur > -1 && players[p.items[cur] && p.items[cur].id]) { players[p.items[cur].id].pause(); delete players[p.items[cur].id]; }
+      if (cur > -1 && players[p.items[cur] && p.items[cur].id]) { drop(players[p.items[cur].id]); delete players[p.items[cur].id]; }
       cur = i; a.volume = 1;
       if (want > 3) { try { a.currentTime = want; } catch (x) {} }
       tryPlay(a);
-    } else if (!a.paused && a.readyState > 2 && Math.abs(a.currentTime - want) > 6) {
+    } else if (a.readyState > 0 && Math.abs(a.currentTime - want) > 6) {
       try { a.currentTime = want; } catch (x) {}                   // lệch giờ quá 6 giây (mạng chậm, TV khác) thì kéo về
     } else if (a.paused && !blocked && !a.ended) tryPlay(a);
     if (left < 6) a.volume = Math.max(0, left / 6);                  // nhỏ dần 6 giây cuối khung giờ

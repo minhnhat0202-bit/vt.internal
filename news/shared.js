@@ -90,10 +90,19 @@
     data = data || {};
     if (!CFG.API_URL) return demo(action, data);
     var url = CFG.API_URL, req;
-    if (action === 'published' || action === 'music') req = fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + 'action=' + action + '&t=' + Date.now(), { cache: 'no-store', redirect: 'follow' });
+    if (action === 'published' || action === 'music' || action === 'audio') req = fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + 'action=' + action + (data.id ? '&id=' + encodeURIComponent(data.id) : '') + '&t=' + Date.now(), { cache: 'no-store', redirect: 'follow' });
     else req = fetch(url, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action: action }, data)) });
     return req.then(function (r) { if (!r.ok) throw new Error('Máy chủ trả lỗi ' + r.status); return r.json(); })
       .then(function (j) { if (!j.ok) throw new Error(j.error || 'Lỗi không rõ'); return j; });
+  }
+  // Nhạc: Drive chặn trang ngoài phát file trực tiếp (403 khi trình duyệt xin media từ github.io),
+  // nên lấy file qua Apps Script (GET ?action=audio&id=<mã bài>, trả base64) rồi dựng thành blob URL để phát.
+  function audio(id) {
+    return call('audio', { id: id }).then(function (j) {
+      var b = atob(j.data), n = b.length, u = new Uint8Array(n), i;
+      for (i = 0; i < n; i++) u[i] = b.charCodeAt(i);
+      return URL.createObjectURL(new Blob([u], { type: j.type || 'audio/mpeg' }));
+    });
   }
   // images: record.images giữ thứ tự; ảnh mới là { new: k } trỏ tới files[k] = { name, type, data (base64), w, h }
   function placeImages(list, files, upload) {
@@ -178,7 +187,7 @@
 
   W.VTNews = Object.assign(api, {
     KEY: KEY, store: store, dayKey: dayKey, addDays: addDays, deptShort: deptShort, onAir: onAir, stateOf: stateOf,
-    toTV: toTV, mergeInto: mergeInto, call: call, published: published, loadForTV: loadForTV, watch: watch,
+    toTV: toTV, mergeInto: mergeInto, call: call, audio: audio, published: published, loadForTV: loadForTV, watch: watch,
     isDemo: function () { return !CFG.API_URL; },
     setPreview: function (r) { return store(KEY.preview, r); }
   });

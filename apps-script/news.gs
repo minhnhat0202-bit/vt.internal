@@ -3,7 +3,7 @@
 //   news/duyet.html  → login, list, save, delete (cần ADMIN_KEY)
 //   tv/index.html    → GET ?action=published (tin đã duyệt, đã bỏ thông tin liên hệ)
 //   Nhạc giải lao (phần cuối file): news/index.html#nhac → music_submit; news/nhac.html → music_list, music_save, music_delete;
-//   tv/music.js và trang gửi nhạc → GET ?action=music (danh sách phát buổi tới, chốt lúc 15:55).
+//   tv/music.js và trang gửi nhạc → GET ?action=music (danh sách phát buổi tới, chốt lúc 15:55); GET ?action=audio&id= (file nhạc base64).
 // Tin lưu trong sheet "Tin" của Google Sheet chứa script này; ảnh lưu trong một thư mục Drive chia sẻ "ai có link đều xem được".
 //
 // CÀI ĐẶT (một lần, khoảng 10 phút):
@@ -37,6 +37,7 @@ function doGet(e) {
   const a = (e && e.parameter && e.parameter.action) || 'published';
   if (a === 'published') return out_(published_());
   if (a === 'music') { try { return out_(musicPlan_()); } catch (x) { return out_({ ok: false, error: String(x && x.message || x) }); } }
+  if (a === 'audio') { try { return out_(mAudio_(e.parameter.id)); } catch (x) { return out_({ ok: false, error: String(x && x.message || x) }); } }
   return out_({ ok: false, error: 'Thao tác không hỗ trợ' });
 }
 
@@ -283,6 +284,15 @@ function mDel_(p) {
     CacheService.getScriptCache().remove('music');
     return { ok: true };
   });
+}
+
+// File nhạc dạng base64. Drive trả 403 khi trang ngoài (github.io) phát file trực tiếp, nên TV và trang duyệt lấy qua đây.
+// Chỉ trả file của bài có trong sheet Nhạc (không mở cửa cho file Drive khác của chủ script).
+function mAudio_(id) {
+  const r = mRows_().map((x) => x.rec).filter((x) => x.id === id)[0];
+  if (!r || !r.file || !r.file.id) throw new Error('Không tìm thấy file nhạc');
+  const blob = DriveApp.getFileById(r.file.id).getBlob();
+  return { ok: true, type: r.file.type || blob.getContentType() || 'audio/mpeg', data: Utilities.base64Encode(blob.getBytes()) };
 }
 
 // Danh sách phát buổi tới. TV gọi mỗi phút quanh giờ phát; trang gửi nhạc gọi để hiện hàng chờ.

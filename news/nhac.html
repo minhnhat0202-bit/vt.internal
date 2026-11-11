@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../img/logo-vtnet.png">
 <title>Duyệt nhạc giải lao</title>
-<link rel="stylesheet" href="news.css?v=20261111">
+<link rel="stylesheet" href="news.css?v=20261111b">
 <!-- Ban Truyền thông duyệt nhạc giải lao mọi người gửi (index.html#nhac). Mật khẩu = ADMIN_KEY, dùng chung đăng nhập với duyet.html. -->
 </head>
 <body>
@@ -53,9 +53,9 @@
   </div>
 </main>
 
-<script src="config.js?v=20261111"></script>
-<script src="shared.js?v=20261111"></script>
-<script src="music.js?v=20261111"></script>
+<script src="config.js?v=20261111b"></script>
+<script src="shared.js?v=20261111b"></script>
+<script src="music.js?v=20261111b"></script>
 <script>
 (function () {
   'use strict';
@@ -148,7 +148,12 @@
     const b = e.target.closest('[data-a]'), el = e.target.closest('.mcard'); if (!b || !el) return;
     const r = items.filter((x) => x.id === el.dataset.id)[0]; if (!r) return;
     const a = b.dataset.a;
-    if (a === 'listen') { const au = document.createElement('audio'); au.controls = true; au.autoplay = true; au.src = fileUrl(r); b.replaceWith(au); return; }
+    if (a === 'listen') {                         // qua Apps Script: Drive chặn phát thẳng từ trang ngoài
+      b.disabled = true; b.textContent = 'Đang tải bài…';
+      N.audio(r.id).then((u) => { const au = document.createElement('audio'); au.controls = true; au.autoplay = true; au.src = u; b.replaceWith(au); },
+        (e) => { b.disabled = false; b.textContent = '▶ Nghe thử'; alert('Không tải được bài: ' + e.message); });
+      return;
+    }
     if (a === 'delete') {
       if (!confirm('Xoá hẳn bài "' + r.title + '" và file nhạc? Không khôi phục được.')) return;
       N.call('music_delete', { key, id: r.id }).then(() => { items = items.filter((x) => x.id !== r.id); render(); toast('Đã xoá'); load(); }).catch((x) => toast('Lỗi: ' + x.message, true));
