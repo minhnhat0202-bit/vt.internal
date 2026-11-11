@@ -135,7 +135,7 @@
       try { a.currentTime = want; } catch (x) {}                   // lệch giờ quá 6 giây (mạng chậm, TV khác) thì kéo về
     } else if (a.paused && !blocked && !a.ended) tryPlay(a);
     if (left < 6) a.volume = Math.max(0, left / 6);                  // nhỏ dần 6 giây cuối khung giờ
-    if (p.items[i + 1] && it.at + it.duration - el < 60) player(i + 1);   // phút cuối bài: tải sẵn bài kế
+    if (p.items[i + 1] && it.at + it.duration - el < 150) player(i + 1);  // 2,5 phút cuối bài: tải sẵn bài kế (qua Apps Script 10 MB mất ~40 giây)
     show(blocked ? '<b>Bấm OK để bật nhạc</b><span class="by">TV đang chặn tự phát âm thanh</span>' : line(it) + '<span class="tm">' + mmss(want) + ' / ' + mmss(it.duration) + '</span>', blocked);
   }
 
