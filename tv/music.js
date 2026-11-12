@@ -85,9 +85,9 @@
         '<div class="art">' + (v.pre ? 'Nhạc bắt đầu lúc ' + esc(p.start) : 'TV đang chặn tự phát âm thanh') + '</div>' + (it ? '<div class="foot">' + (v.pre ? 'Bài đầu tiên' : 'Đang tới lượt') + ': <b>' + esc(it.title) + '</b></div>' : '') + '</div>';
       else if (v.kind === 'end') h += DISC + '<div class="mr"><div class="kick">Hết bài hôm nay</div><h3 class="ttl">Muốn nghe bài của mình?</h3>' +
         '<div class="art">Quét mã góc phải dưới để gửi bài</div><div class="tm"><span>Giờ giải lao còn</span><span data-x="left"></span></div><div class="foot">Bài được duyệt sẽ phát buổi tới</div></div>';
-      else h += DISC + '<div class="mr"><div class="kick"><span class="eq"><i></i><i></i><i></i><i></i></span>' + (v.kind === 'play' ? 'Đang phát' : 'Sắp phát · ' + hhmm(p, it.at)) + '</div>' +
+      else h += DISC + '<div class="mr"><div class="kick"><span class="eq"><i></i><i></i><i></i><i></i></span>' + (v.kind === 'play' ? 'Đang phát' : v.kind === 'load' ? 'Đang tải bài…' : 'Sắp phát · ' + hhmm(p, it.at)) + '</div>' +
         '<h3 class="ttl">' + esc(it.title) + '</h3>' + (it.artist ? '<div class="art">' + esc(it.artist) + '</div>' : '') +
-        (v.kind === 'play' ? '<div class="bar"><b data-x="bar"></b></div><div class="tm"><span data-x="el"></span><span>' + mmss(it.duration) + '</span></div>'
+        (v.kind !== 'next' ? '<div class="bar"><b data-x="bar"></b></div><div class="tm"><span data-x="el"></span><span>' + mmss(it.duration) + '</span></div>'
           : '<div class="tm"><span>Bắt đầu sau</span><span data-x="left"></span></div>') + gift(it) + after(p, it) + '</div>';
       pop.innerHTML = h;
     }
@@ -104,21 +104,38 @@
   function hide() { if (!shown) return; pop.className = 'mpop glass panel'; scrim.className = 'mscrim'; popSig = ''; shown = false; }
 
   // ---------- phát ----------
+  // File nhạc lấy qua Apps Script (Drive chặn phát thẳng từ trang ngoài) rất chậm: 15–45 giây mỗi bài. Nên từ 15 phút trước
+  // giờ phát tải lần lượt cả danh sách vào bộ nhớ (blobs), bài sắp phát trước; lỗi thì 10 giây sau thử lại.
+  var blobs = {}, failAt = {}, loading = 0;
+  function preload(from) {
+    if (loading && Date.now() - loading < 120000) return;              // mỗi lần một bài; treo quá 2 phút thì bỏ
+    for (var k = 0; k < plan.items.length; k++) {
+      var id = plan.items[(from + k) % plan.items.length].id;
+      if (blobs[id] || failAt[id] > Date.now() - 10000) continue;
+      loading = Date.now();
+      (function (id) {
+        N.audio(id).then(function (u) { blobs[id] = u; loading = 0; }, function () { failAt[id] = Date.now(); loading = 0; });
+      })(id);
+      return;
+    }
+  }
   function player(i) {
     var it = plan.items[i]; if (!it) return null;
-    if (!players[it.id]) {                // Drive chặn phát thẳng từ trang ngoài: lấy file qua Apps Script rồi phát blob
-      var a = new Audio(); a.preload = 'auto'; players[it.id] = a;
-      N.audio(it.id).then(function (u) { if (players[it.id] === a) a.src = u; else URL.revokeObjectURL(u); },
-        function () { if (players[it.id] === a) delete players[it.id]; });   // lỗi mạng: lần tick sau thử lại
-    }
-    return players[it.id];
+    var a = players[it.id];
+    if (!a) { a = new Audio(); a.preload = 'auto'; players[it.id] = a; }
+    if (!a.src && blobs[it.id]) a.src = blobs[it.id];
+    return a;
   }
-  function stopAll() {
-    for (var k in players) drop(players[k]);
+  function stopAll(keep) {
+    for (var k in players) drop(k, keep);
     players = {}; cur = -1;
+    if (!keep) { for (k in blobs) try { URL.revokeObjectURL(blobs[k]); } catch (e) {} blobs = {}; }
   }
-  function drop(a) {
-    try { a.pause(); if (/^blob:/.test(a.src)) URL.revokeObjectURL(a.src); a.removeAttribute('src'); a.load(); } catch (e) {}
+  function drop(id, keep) {
+    var a = players[id];
+    if (a) try { a.pause(); a.removeAttribute('src'); a.load(); } catch (e) {}
+    delete players[id];
+    if (!keep && blobs[id]) { try { URL.revokeObjectURL(blobs[id]); } catch (e) {} delete blobs[id]; }
   }
   function tryPlay(a) {
     if (!a.src) return;                                            // file chưa tải xong
@@ -160,7 +177,7 @@
     var s = at(p, hm(p.start)), e = at(p, hm(p.end));
     if (t < s - 900000 || t >= e || !p.items.length) { if (cur > -1 || shown) { stopAll(); hide(); } return; }
     if (t < s) {
-      if (t >= s - 240000) player(0);                            // 4 phút trước giờ phát: tải sẵn bài đầu
+      preload(0);                                                // 15 phút trước giờ phát: tải sẵn cả danh sách
       probe();
       if (needTap) show({ kind: 'tap', pre: true, it: p.items[0] });
       else if (t >= s - 120000) show({ kind: 'next', it: p.items[0], left: (s + p.items[0].at * 1000 - t) / 1000 });   // 2 phút trước: khung nổi lên
@@ -173,13 +190,13 @@
     if (i < 0) {                                                 // giữa hai bài, hoặc hết danh sách
       var nx = null; for (k = 0; k < p.items.length; k++) if (p.items[k].at > el) { nx = p.items[k]; break; }
       if (cur > -1) { var old = player(cur); if (old && !old.ended && el > p.items[cur].at + p.items[cur].duration + 3) old.pause(); }
-      if (nx) { show({ kind: 'next', it: nx, left: nx.at - el }); player(p.items.indexOf(nx)); }
+      if (nx) { show({ kind: 'next', it: nx, left: nx.at - el }); preload(p.items.indexOf(nx)); }
       else show({ kind: 'end', left: left });
       return;
     }
     var it = p.items[i], a = player(i), want = el - it.at;
     if (i !== cur) {
-      if (cur > -1 && players[p.items[cur] && p.items[cur].id]) { drop(players[p.items[cur].id]); delete players[p.items[cur].id]; }
+      if (cur > -1 && p.items[cur]) drop(p.items[cur].id);       // bài trước xong: trả bộ nhớ
       cur = i; a.volume = 1;
       if (want > 3) { try { a.currentTime = want; } catch (x) {} }
       tryPlay(a);
@@ -187,8 +204,9 @@
       try { a.currentTime = want; } catch (x) {}                   // lệch giờ quá 6 giây (mạng chậm, TV khác) thì kéo về
     } else if (a.paused && !blocked && !a.ended) tryPlay(a);
     if (left < 6) a.volume = Math.max(0, left / 6);                  // nhỏ dần 6 giây cuối khung giờ
-    if (p.items[i + 1] && it.at + it.duration - el < 150) player(i + 1);  // 2,5 phút cuối bài: tải sẵn bài kế (qua Apps Script 10 MB mất ~40 giây)
-    show(blocked ? { kind: 'tap', it: it } : { kind: 'play', it: it, el: want });
+    preload(i);                                                     // bài đang phát trước, rồi các bài sau
+    // chưa có file (đang tải) thì nói thật, không hiện "Đang phát" khi chưa có tiếng
+    show(blocked ? { kind: 'tap', it: it } : { kind: a.src && a.readyState > 1 ? 'play' : 'load', it: it, el: want });
   }
 
   // ---------- lấy danh sách: quanh giờ phát mỗi phút, ngoài giờ 10 phút một lần ----------
@@ -201,7 +219,7 @@
       }
       // chỉ dừng nhạc khi các bài đã xếp đổi chỗ; bài duyệt muộn được nối thêm vào cuối thì phát tiếp bình thường
       var same = plan && plan.day === p.day && plan.items.length <= p.items.length && plan.items.every(function (x, k) { return p.items[k].id === x.id && p.items[k].at === x.at; });
-      if (plan && !same) stopAll();
+      if (plan && !same) stopAll(true);                           // giữ file đã tải (theo mã bài)
       plan = p;
     }, function () {});
   }
