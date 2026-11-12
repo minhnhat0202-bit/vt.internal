@@ -97,13 +97,14 @@
   }
   // Nhạc: Drive chặn trang ngoài phát file trực tiếp (403 khi trình duyệt xin media từ github.io),
   // nên lấy file qua Apps Script (GET ?action=audio&id=<mã bài>, trả base64) rồi dựng thành blob URL để phát.
-  function audio(id) {
+  function audioBlob(id) {
     return call('audio', { id: id }).then(function (j) {
       var b = atob(j.data), n = b.length, u = new Uint8Array(n), i;
       for (i = 0; i < n; i++) u[i] = b.charCodeAt(i);
-      return URL.createObjectURL(new Blob([u], { type: j.type || 'audio/mpeg' }));
+      return new Blob([u], { type: j.type || 'audio/mpeg' });
     });
   }
+  function audio(id) { return audioBlob(id).then(function (b) { return URL.createObjectURL(b); }); }
   // images: record.images giữ thứ tự; ảnh mới là { new: k } trỏ tới files[k] = { name, type, data (base64), w, h }
   function placeImages(list, files, upload) {
     return (list || []).map(function (i) { return i && i['new'] !== undefined ? upload(files[i['new']]) : i; }).filter(Boolean);
@@ -187,7 +188,7 @@
 
   W.VTNews = Object.assign(api, {
     KEY: KEY, store: store, dayKey: dayKey, addDays: addDays, deptShort: deptShort, onAir: onAir, stateOf: stateOf,
-    toTV: toTV, mergeInto: mergeInto, call: call, audio: audio, published: published, loadForTV: loadForTV, watch: watch,
+    toTV: toTV, mergeInto: mergeInto, call: call, audio: audio, audioBlob: audioBlob, published: published, loadForTV: loadForTV, watch: watch,
     isDemo: function () { return !CFG.API_URL; },
     setPreview: function (r) { return store(KEY.preview, r); }
   });

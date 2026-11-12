@@ -85,7 +85,7 @@
         '<div class="art">' + (v.pre ? 'Nhạc bắt đầu lúc ' + esc(p.start) : 'TV đang chặn tự phát âm thanh') + '</div>' + (it ? '<div class="foot">' + (v.pre ? 'Bài đầu tiên' : 'Đang tới lượt') + ': <b>' + esc(it.title) + '</b></div>' : '') + '</div>';
       else if (v.kind === 'end') h += DISC + '<div class="mr"><div class="kick">Hết bài hôm nay</div><h3 class="ttl">Muốn nghe bài của mình?</h3>' +
         '<div class="art">Quét mã góc phải dưới để gửi bài</div><div class="tm"><span>Giờ giải lao còn</span><span data-x="left"></span></div><div class="foot">Bài được duyệt sẽ phát buổi tới</div></div>';
-      else h += DISC + '<div class="mr"><div class="kick"><span class="eq"><i></i><i></i><i></i><i></i></span>' + (v.kind === 'play' ? 'Đang phát' : v.kind === 'load' ? 'Đang tải bài…' : 'Sắp phát · ' + hhmm(p, it.at)) + '</div>' +
+      else h += DISC + '<div class="mr"><div class="kick"><span class="eq"><i></i><i></i><i></i><i></i></span>' + (v.kind === 'play' ? 'Đang phát' : v.kind === 'load' ? 'Đang tải bài…' : v.kind === 'bad' ? 'Không tải được bài này' : 'Sắp phát · ' + hhmm(p, it.at)) + '</div>' +
         '<h3 class="ttl">' + esc(it.title) + '</h3>' + (it.artist ? '<div class="art">' + esc(it.artist) + '</div>' : '') +
         (v.kind !== 'next' ? '<div class="bar"><b data-x="bar"></b></div><div class="tm"><span data-x="el"></span><span>' + mmss(it.duration) + '</span></div>'
           : '<div class="tm"><span>Bắt đầu sau</span><span data-x="left"></span></div>') + gift(it) + after(p, it) + '</div>';
@@ -104,19 +104,54 @@
   function hide() { if (!shown) return; pop.className = 'mpop glass panel'; scrim.className = 'mscrim'; popSig = ''; shown = false; }
 
   // ---------- phát ----------
-  // File nhạc lấy qua Apps Script (Drive chặn phát thẳng từ trang ngoài) rất chậm: 15–45 giây mỗi bài. Nên từ 15 phút trước
-  // giờ phát tải lần lượt cả danh sách vào bộ nhớ (blobs), bài sắp phát trước; lỗi thì 10 giây sau thử lại.
-  var blobs = {}, failAt = {}, loading = 0;
+  // File nhạc lấy qua Apps Script (Drive chặn phát thẳng từ trang ngoài) rất chậm: 15–45 giây mỗi bài. Nên:
+  // - ngày có giờ nhạc, từ PRELOAD_FROM giờ sáng tải lần lượt mọi bài trong danh sách (bài sắp tới lượt trước);
+  // - lưu file vào Cache Storage của trình duyệt: trang tải lại giữa chừng lấy ngay, không tải lại; bài rời danh sách thì xoá;
+  // - tải xong thử mở file (đọc được, có thời lượng) rồi mới coi là sẵn sàng; lỗi thì 10 giây sau thử lại.
+  // Bài chưa sẵn sàng tới lượt thì pop-up ghi "Đang tải bài…", không hiện "Đang phát" khi chưa có tiếng.
+  var PRELOAD_FROM = 10, CACHE = 'vt-nhac', BASE = location.origin + '/vt-nhac/';
+  var blobs = {}, failAt = {}, fails = {}, loading = 0;
+  var store = !!(window.caches && window.Response && location.protocol === 'https:' || window.caches && /^localhost$|^127\./.test(location.hostname));
+  function cacheGet(id) {
+    if (!store) return Promise.resolve(null);
+    return caches.open(CACHE).then(function (c) { return c.match(BASE + id); }).then(function (r) { return r ? r.blob() : null; })['catch'](function () { return null; });
+  }
+  function cachePut(id, b) { if (store) caches.open(CACHE).then(function (c) { return c.put(BASE + id, new Response(b)); })['catch'](function () {}); }
+  function cacheClean(keep) {
+    if (!store) return;
+    caches.open(CACHE).then(function (c) {
+      return c.keys().then(function (ks) { ks.forEach(function (k) { if (!keep[k.url.split('/vt-nhac/')[1]]) c['delete'](k); }); });
+    })['catch'](function () {});
+  }
+  function verify(b) {                   // mở thử file: có thời lượng mới nhận; trình duyệt chậm không báo trong 20 giây thì cứ nhận
+    return new Promise(function (ok, bad) {
+      var u = URL.createObjectURL(b), t = new Audio(), done = false;
+      function end(good) {
+        if (done) return; done = true;
+        try { t.removeAttribute('src'); t.load(); } catch (e) {}
+        if (good) ok(u); else { URL.revokeObjectURL(u); bad(new Error('file hỏng')); }
+      }
+      t.preload = 'metadata';
+      t.onloadedmetadata = function () { end(t.duration > 0); };
+      t.onerror = function () { end(false); };
+      setTimeout(function () { end(true); }, 20000);
+      t.src = u;
+    });
+  }
+  function fetchOne(id) {
+    loading = Date.now();
+    var fresh = false;
+    cacheGet(id).then(function (b) { if (b && b.size) return b; fresh = true; return N.audioBlob(id); })
+      .then(function (b) { return verify(b).then(function (u) { if (fresh) cachePut(id, b); return u; }); })
+      .then(function (u) { blobs[id] = u; fails[id] = 0; loading = 0; },
+        function () { fails[id] = (fails[id] || 0) + 1; failAt[id] = Date.now(); loading = 0; });
+  }
   function preload(from) {
-    if (loading && Date.now() - loading < 120000) return;              // mỗi lần một bài; treo quá 2 phút thì bỏ
-    for (var k = 0; k < plan.items.length; k++) {
-      var id = plan.items[(from + k) % plan.items.length].id;
+    if (loading && Date.now() - loading < 180000) return;              // mỗi lần một bài; treo quá 3 phút thì bỏ
+    for (var k = from; k < plan.items.length; k++) {                  // chỉ bài từ lượt hiện tại trở đi (bài đã phát không tải lại)
+      var id = plan.items[k].id;
       if (blobs[id] || failAt[id] > Date.now() - 10000) continue;
-      loading = Date.now();
-      (function (id) {
-        N.audio(id).then(function (u) { blobs[id] = u; loading = 0; }, function () { failAt[id] = Date.now(); loading = 0; });
-      })(id);
-      return;
+      fetchOne(id); return;
     }
   }
   function player(i) {
@@ -171,13 +206,18 @@
     var t = now(); return t > at(plan, hm(plan.start)) - 900000 && t < at(plan, hm(plan.end));
   };
 
+  function nextIdx(p, t, s) {             // bài đang phát hoặc sắp tới lượt: tải trước nhất
+    var el = (t - s) / 1000, k;
+    for (k = 0; k < p.items.length; k++) if (el < p.items[k].at + p.items[k].duration) return k;
+    return 0;
+  }
   function tick() {
     var p = plan, t = now();
     if (!p || !p.items) return hide();
     var s = at(p, hm(p.start)), e = at(p, hm(p.end));
+    if (p.items.length && t < e && new Date(t).getHours() >= PRELOAD_FROM && t > s - 86400000) preload(nextIdx(p, t, s));
     if (t < s - 900000 || t >= e || !p.items.length) { if (cur > -1 || shown) { stopAll(); hide(); } return; }
     if (t < s) {
-      preload(0);                                                // 15 phút trước giờ phát: tải sẵn cả danh sách
       probe();
       if (needTap) show({ kind: 'tap', pre: true, it: p.items[0] });
       else if (t >= s - 120000) show({ kind: 'next', it: p.items[0], left: (s + p.items[0].at * 1000 - t) / 1000 });   // 2 phút trước: khung nổi lên
@@ -190,7 +230,7 @@
     if (i < 0) {                                                 // giữa hai bài, hoặc hết danh sách
       var nx = null; for (k = 0; k < p.items.length; k++) if (p.items[k].at > el) { nx = p.items[k]; break; }
       if (cur > -1) { var old = player(cur); if (old && !old.ended && el > p.items[cur].at + p.items[cur].duration + 3) old.pause(); }
-      if (nx) { show({ kind: 'next', it: nx, left: nx.at - el }); preload(p.items.indexOf(nx)); }
+      if (nx) show({ kind: 'next', it: nx, left: nx.at - el });
       else show({ kind: 'end', left: left });
       return;
     }
@@ -204,9 +244,8 @@
       try { a.currentTime = want; } catch (x) {}                   // lệch giờ quá 6 giây (mạng chậm, TV khác) thì kéo về
     } else if (a.paused && !blocked && !a.ended) tryPlay(a);
     if (left < 6) a.volume = Math.max(0, left / 6);                  // nhỏ dần 6 giây cuối khung giờ
-    preload(i);                                                     // bài đang phát trước, rồi các bài sau
     // chưa có file (đang tải) thì nói thật, không hiện "Đang phát" khi chưa có tiếng
-    show(blocked ? { kind: 'tap', it: it } : { kind: a.src && a.readyState > 1 ? 'play' : 'load', it: it, el: want });
+    show(blocked ? { kind: 'tap', it: it } : { kind: a.src && a.readyState > 1 ? 'play' : fails[it.id] >= 3 ? 'bad' : 'load', it: it, el: want });
   }
 
   // ---------- lấy danh sách: quanh giờ phát mỗi phút, ngoài giờ 10 phút một lần ----------
@@ -221,6 +260,7 @@
       var same = plan && plan.day === p.day && plan.items.length <= p.items.length && plan.items.every(function (x, k) { return p.items[k].id === x.id && p.items[k].at === x.at; });
       if (plan && !same) stopAll(true);                           // giữ file đã tải (theo mã bài)
       plan = p;
+      var keep = {}; p.items.forEach(function (x) { keep[x.id] = 1; }); cacheClean(keep);   // bài rời danh sách: xoá khỏi bộ nhớ trình duyệt
     }, function () {});
   }
   function near() {
