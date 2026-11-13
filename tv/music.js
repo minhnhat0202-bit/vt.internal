@@ -77,7 +77,8 @@
   var DISC = '<div class="ml"><div class="disc"><i><b>♪</b></i></div></div>';
   // v: { kind: 'play' | 'next' | 'end' | 'tap', it, el (giây đã phát), left (giây còn lại tới bài kế / hết giờ) }
   function show(v) {
-    var p = plan, it = v.it, sig = v.kind + '|' + (it ? it.id : '') + '|' + p.items.length;
+    var p = plan, it = v.it, nxt = it ? p.items[p.items.indexOf(it) + 1] : null;
+    var sig = v.kind + '|' + (it ? it.id : '') + '|' + (nxt ? nxt.id : '') + '|' + p.items.length;   // đổi bài kế (sắp lại thứ tự) cũng vẽ lại
     if (sig !== popSig) {
       popSig = sig;
       var h = '<span class="lbl">Giờ giải lao</span><span class="pg">' + esc(p.start) + ' – ' + esc(p.end) + '</span>';
@@ -256,9 +257,13 @@
         skew = (TEST[1] ? at(p, +TEST[1] * 60 + +TEST[2]) : at(p, hm(p.start)) - 3000) - Date.now();
         console.log('[nhạc] thử: giờ giả ' + new Date(now()).toLocaleString('vi-VN'));
       }
-      // chỉ dừng nhạc khi các bài đã xếp đổi chỗ; bài duyệt muộn được nối thêm vào cuối thì phát tiếp bình thường
-      var same = plan && plan.day === p.day && plan.items.length <= p.items.length && plan.items.every(function (x, k) { return p.items[k].id === x.id && p.items[k].at === x.at; });
-      if (plan && !same) stopAll(true);                           // giữ file đã tải (theo mã bài)
+      // Danh sách đổi (nối bài duyệt muộn, Ban Truyền thông sắp lại thứ tự): bài đang phát mà vẫn giữ nguyên giờ thì phát tiếp
+      // không ngắt, chỉ cập nhật vị trí của nó trong danh sách mới; ngoài ra dừng để tick() dựng lại (giữ file đã tải).
+      if (plan && cur > -1) {
+        var was = plan.day === p.day && plan.items[cur], k, at2 = -1;
+        if (was) for (k = 0; k < p.items.length; k++) if (p.items[k].id === was.id && p.items[k].at === was.at) at2 = k;
+        if (at2 > -1) cur = at2; else stopAll(true);
+      }
       plan = p;
       var keep = {}; p.items.forEach(function (x) { keep[x.id] = 1; }); cacheClean(keep);   // bài rời danh sách: xoá khỏi bộ nhớ trình duyệt
     }, function () {});

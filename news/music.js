@@ -20,14 +20,20 @@
     if (!p) return '<p class="q-empty">Đang tải hàng chờ…</p>';
     const head = `<div class="q-head"><b>${esc(dayLabel(p.day))} · ${esc(p.start)}–${esc(p.end)}</b>
       <span class="chip ${p.locked ? 'live' : 'scheduled'}">${p.locked ? 'Đã chốt' : 'Dự kiến'}</span></div>`;
-    const list = p.items.length ? `<ol class="queue">${p.items.map((i) => `
-      <li class="${i.fallback ? 'fb' : ''}"><time>${clock(p.start, i.at)}</time>
+    // Trang duyệt (admin): mỗi bài kéo thả được hoặc bấm ▲▼ để đổi thứ tự phát (lệnh music_order). Danh sách đã chốt thì
+    // bài đang phát, sắp phát trong 2 phút (và các bài trước đó) đứng yên.
+    const a = p.day.split('-').map(Number), hm = p.start.split(':').map(Number);
+    const elapsed = (Date.now() - new Date(a[0], a[1] - 1, a[2], hm[0], hm[1]).getTime()) / 1000;
+    const movable = (i) => admin && !(p.locked && i.at <= elapsed + 120);
+    const nMov = p.items.filter(movable).length;
+    const list = p.items.length ? `<ol class="queue${admin ? ' sortable' : ''}">${p.items.map((i) => { const mv = movable(i) && nMov > 1; return `
+      <li class="${i.fallback ? 'fb' : ''}${mv ? ' mv' : ''}"${admin ? ` data-id="${esc(i.id)}"` : ''}${mv ? ' draggable="true" title="Kéo để đổi thứ tự phát"' : ''}><time>${clock(p.start, i.at)}</time>
         <div><b>${esc(i.title)}${i.artist ? ' <span>· ' + esc(i.artist) + '</span>' : ''}</b>
         <small>${i.fallback ? 'Nhạc nền' : esc(i.sender) + ' · ' + esc(N.deptShort(i.dept))}${i.message ? ' · “' + esc(i.message) + '”' : ''}</small></div>
-        <i>${mmss(i.duration)}</i></li>`).join('')}</ol>`
+        <i>${mmss(i.duration)}</i>${mv ? `<span class="q-move"><button type="button" data-mv="-1" aria-label="Phát sớm hơn">▲</button><button type="button" data-mv="1" aria-label="Phát muộn hơn">▼</button></span>` : admin ? '<span class="q-move"></span>' : ''}</li>`; }).join('')}</ol>`
       : '<p class="q-empty">Chưa có bài nào. Gửi bài đầu tiên nhé!</p>';
     const more = [p.waiting && `${p.waiting} bài đã duyệt chờ buổi sau`, admin && p.pending && `${p.pending} bài chờ duyệt`].filter(Boolean).join(' · ');
-    return head + list + (more ? `<p class="q-more">${more}</p>` : '') +
+    return head + list + (admin && nMov > 1 ? '<p class="q-more">Kéo thả bài, hoặc bấm ▲▼, để đổi thứ tự phát. Bài nào phát trước thì kéo lên trên.</p>' : '') + (more ? `<p class="q-more">${more}</p>` : '') +
       (p.locked ? '' : `<p class="q-more">Danh sách chốt lúc 5 phút trước giờ phát, có thể đổi khi có bài mới được duyệt.</p>`);
   }
 

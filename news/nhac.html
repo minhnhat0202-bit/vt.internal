@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../img/logo-vtnet.png">
 <title>Duyệt nhạc giải lao</title>
-<link rel="stylesheet" href="news.css?v=20261112b">
+<link rel="stylesheet" href="news.css?v=20261113">
 <!-- Ban Truyền thông duyệt nhạc giải lao mọi người gửi (index.html#nhac). Mật khẩu = ADMIN_KEY, dùng chung đăng nhập với duyet.html. -->
 </head>
 <body>
@@ -46,16 +46,16 @@
         <li><b>Duyệt</b>: bài vào hàng chờ; người gửi nhận email nếu có để lại.</li>
         <li><b>Ghim</b>: bài lên đầu buổi tới, không tính giới hạn mỗi người, mỗi phòng.</li>
         <li><b>Nhạc nền</b>: bài dự phòng, lấp chỗ trống khi hàng chờ không đủ 30 phút; không hết lượt, mỗi buổi phát tối đa một lần. Muốn thêm nhạc nền: gửi bài ở tab Gửi nhạc, rồi bấm Nhạc nền + Duyệt ở đây.</li>
-        <li>Danh sách tự chốt 5 phút trước giờ phát (khi TV hỏi); bài được chọn chuyển sang <b>Đã phát</b>. Bài duyệt sau giờ chốt được nối vào cuối buổi hôm nay nếu còn đủ giờ (phát sớm nhất 2 phút sau khi duyệt).</li>
+        <li>Danh sách tự chốt 5 phút trước giờ phát (khi TV hỏi); bài được chọn chuyển sang <b>Đã phát</b>. Muốn đổi thứ tự phát: kéo thả bài ở khung <b>Danh sách phát buổi tới</b> (bài đang phát, sắp phát thì đứng yên). Bài duyệt sau giờ chốt được nối vào cuối buổi hôm nay nếu còn đủ giờ (phát sớm nhất 2 phút sau khi duyệt).</li>
         <li>Giờ phát và luật xếp hàng: <code>MUSIC</code> trong <code>apps-script/news.gs</code>.</li>
       </ul></div>
     </div></aside>
   </div>
 </main>
 
-<script src="config.js?v=20261112b"></script>
-<script src="shared.js?v=20261112b"></script>
-<script src="music.js?v=20261112b"></script>
+<script src="config.js?v=20261113"></script>
+<script src="shared.js?v=20261113"></script>
+<script src="music.js?v=20261113"></script>
 <script>
 (function () {
   'use strict';
@@ -101,10 +101,53 @@
   }
   const fileUrl = (r) => (r.file && r.file.id ? 'https://drive.google.com/uc?export=download&id=' + r.file.id : '');
 
+  // ---------- danh sách phát: kéo thả hoặc ▲▼ để đổi thứ tự (máy chủ: music_order) ----------
+  let plan = null, dragId = '';
+  function drawPlan(p) { if (dragId) return; plan = p; $('plan').innerHTML = V.queueHTML(p, true); }
+  const rows = () => Array.prototype.slice.call($('plan').querySelectorAll('.queue li'));
+  function saveOrder(ids) {
+    const ol = $('plan').querySelector('.queue'); if (ol) ol.classList.add('saving');
+    N.call('music_order', { key, day: plan.day, ids }).then((p) => { drawPlan(p); toast('Đã đổi thứ tự phát'); },
+      (e) => { toast('Chưa đổi được thứ tự: ' + e.message, true); N.call('music').then(drawPlan, () => {}); });
+  }
+  function moveTo(id, target, after) {              // đưa bài id tới trước/sau bài target; chỉ trong nhóm bài còn đổi chỗ được
+    const ids = rows().map((li) => li.dataset.id), from = ids.indexOf(id);
+    if (from < 0 || id === target) return;
+    ids.splice(from, 1);
+    let to = ids.indexOf(target); if (to < 0) return;
+    ids.splice(after ? to + 1 : to, 0, id);
+    saveOrder(ids);
+  }
+  $('plan').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-mv]'); if (!b) return;
+    const li = b.closest('li'), mv = rows().filter((x) => x.classList.contains('mv')), k = mv.indexOf(li), other = mv[k + +b.dataset.mv];
+    if (other) moveTo(li.dataset.id, other.dataset.id, +b.dataset.mv > 0);
+  });
+  const clearOver = () => rows().forEach((x) => x.classList.remove('over-top', 'over-bot'));
+  $('plan').addEventListener('dragstart', (e) => {
+    const li = e.target.closest && e.target.closest('li.mv'); if (!li) return;
+    dragId = li.dataset.id; li.classList.add('dragging');
+    try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragId); } catch (x) {}
+  });
+  $('plan').addEventListener('dragover', (e) => {
+    const li = e.target.closest && e.target.closest('li.mv'); if (!dragId || !li) return;
+    e.preventDefault(); clearOver();
+    if (li.dataset.id === dragId) return;
+    const r = li.getBoundingClientRect();
+    li.classList.add(e.clientY > r.top + r.height / 2 ? 'over-bot' : 'over-top');
+  });
+  $('plan').addEventListener('drop', (e) => {
+    const li = e.target.closest && e.target.closest('li.mv'); if (!dragId || !li) return;
+    e.preventDefault();
+    const id = dragId, after = li.classList.contains('over-bot'); dragId = ''; clearOver();
+    moveTo(id, li.dataset.id, after);
+  });
+  $('plan').addEventListener('dragend', () => { dragId = ''; clearOver(); rows().forEach((x) => x.classList.remove('dragging')); });
+
   function load() {
     return Promise.all([
       N.call('music_list', { key }).then((j) => { items = j.items || []; render(); }),
-      N.call('music').then((p) => { $('plan').innerHTML = V.queueHTML(p, true); }, () => { $('plan').innerHTML = '<p class="q-empty">Chưa tải được danh sách phát.</p>'; })
+      N.call('music').then(drawPlan, () => { $('plan').innerHTML = '<p class="q-empty">Chưa tải được danh sách phát.</p>'; })
     ]).catch((e) => toast('Không tải được danh sách: ' + e.message, true));
   }
   function render() {
@@ -167,7 +210,7 @@
     N.call('music_save', { key, record: rec }).then((j) => {
       items = items.map((x) => (x.id === j.record.id ? j.record : x)); render();
       toast({ approved: 'Đã duyệt, bài vào hàng chờ', rejected: 'Đã từ chối', save: 'Đã lưu' }[a] + (j.mailed ? ' · đã gửi email cho ' + j.mailed : ''));
-      N.call('music').then((p) => { $('plan').innerHTML = V.queueHTML(p, true); }, () => {});
+      N.call('music').then(drawPlan, () => {});
     }).catch((x) => { toast('Lỗi: ' + x.message, true); el.querySelectorAll('.btn').forEach((y) => (y.disabled = false)); });
   });
   setInterval(() => { if (!document.hidden && key && !document.activeElement.closest('.mcard')) load(); }, 60000);

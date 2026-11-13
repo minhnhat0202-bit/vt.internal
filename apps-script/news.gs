@@ -2,7 +2,7 @@
 //   news/index.html  → submit   (ai cũng gửi được, tin vào hàng chờ)
 //   news/duyet.html  → login, list, save, delete (cần ADMIN_KEY)
 //   tv/index.html    → GET ?action=published (tin đã duyệt, đã bỏ thông tin liên hệ)
-//   Nhạc giải lao (phần cuối file): news/index.html#nhac → music_submit; news/nhac.html → music_list, music_save, music_delete;
+//   Nhạc giải lao (phần cuối file): news/index.html#nhac → music_submit; news/nhac.html → music_list, music_save, music_delete, music_order;
 //   tv/music.js và trang gửi nhạc → GET ?action=music (danh sách phát buổi tới, chốt lúc 15:55); GET ?action=audio&id= (file nhạc base64).
 // Tin lưu trong sheet "Tin" của Google Sheet chứa script này; ảnh lưu trong một thư mục Drive chia sẻ "ai có link đều xem được".
 //
@@ -51,6 +51,7 @@ function doPost(e) {
     if (p.action === 'music_list') return out_({ ok: true, items: mRows_().map((x) => x.rec) });
     if (p.action === 'music_save') return out_(mSave_(p));
     if (p.action === 'music_delete') return out_(mDel_(p));
+    if (p.action === 'music_order') return out_(mOrder_(p));
     if (p.action === 'login') return out_({ ok: true });
     if (p.action === 'list') return out_({ ok: true, items: rows_().map((x) => x.rec) });
     if (p.action === 'save') return out_(save_(p));
@@ -306,7 +307,7 @@ function musicPlan_() {
   if (saved && target === day && lateSongs_(JSON.parse(saved), mRows_().map((x) => x.rec)).length) res = withLock_(() => appendLate_(target, now));
   else if (saved) res = planOut_(target, JSON.parse(saved), true, mRows_().map((x) => x.rec));
   else if (target === day && min >= hmMin_(MUSIC.start) - MUSIC.lockMin) res = withLock_(() => lockPlan_(target));
-  else { const recs = mRows_().map((x) => x.rec); res = planOut_(target, plan_(target, recs), false, recs); }
+  else { const recs = mRows_().map((x) => x.rec); res = planOut_(target, reorder_(plan_(target, recs), orderOf_(target), recs, 0), false, recs); }
   try { cache.put('music', JSON.stringify(res), 60); } catch (x) {}
   return res;
 }
@@ -315,9 +316,9 @@ function lockPlan_(day) {
   const key = 'MUSIC-' + day, again = prop_(key);
   const rows = mRows_(), recs = rows.map((x) => x.rec);
   if (again) return planOut_(day, JSON.parse(again), true, recs);
-  const plan = plan_(day, recs), props = PropertiesService.getScriptProperties();
+  const plan = reorder_(plan_(day, recs), orderOf_(day), recs, 0), props = PropertiesService.getScriptProperties();
   props.setProperty(key, JSON.stringify(plan));
-  Object.keys(props.getProperties()).forEach((k) => { if (/^MUSIC-\d{4}-\d{2}-\d{2}$/.test(k) && k.slice(6) < addDay_(day, -7)) props.deleteProperty(k); });
+  Object.keys(props.getProperties()).forEach((k) => { if (/^MUSIC-(ORDER-)?\d{4}-\d{2}-\d{2}$/.test(k) && k.slice(-10) < addDay_(day, -7)) props.deleteProperty(k); });
   const picked = {}, now = new Date().toISOString(), sh = mSheet_();
   const expireBefore = addDay_(day, -MUSIC.expireDays), dropBefore = addDay_(day, -MUSIC.keepDays);
   plan.forEach((x) => { picked[x[0]] = 1; });
@@ -355,6 +356,43 @@ function appendLate_(day, now) {
     rows.forEach((x) => { if (added[x.rec.id]) { const r = x.rec; r.status = 'played'; r.playedOn = day; r.updatedAt = ts; sh.getRange(x.row, 1, 1, M_COLS.length).setValues([mRow_(r)]); } });
   }
   return planOut_(day, plan, true, recs);
+}
+
+// Ban Truyền thông sắp lại thứ tự phát (kéo thả ở news/nhac.html): p.day = buổi đang hiện, p.ids = mã bài theo thứ tự mới.
+// Chưa chốt: lưu thứ tự vào Thuộc tính tập lệnh MUSIC-ORDER-<ngày>, danh sách dự kiến và lúc chốt đều theo thứ tự đó.
+// Đã chốt: chỉ đổi chỗ các bài chưa tới lượt (bắt đầu sau lúc này hơn 2 phút); bài đang phát, sắp phát giữ nguyên.
+// Luật chọn bài (giới hạn mỗi người, mỗi phòng…) không đổi: chỉ đổi thứ tự của các bài đã được chọn; bài duyệt sau đứng cuối.
+function mOrder_(p) {
+  return withLock_(() => {
+    const now = new Date(), today = Utilities.formatDate(now, TZ, 'yyyy-MM-dd'), min = hmMin_(Utilities.formatDate(now, TZ, 'HH:mm'));
+    const target = isMusicDay_(today) && min < hmMin_(MUSIC.end) ? today : nextMusicDay_(today);
+    if (p.day !== target) throw new Error('Danh sách đã chuyển sang buổi khác, tải lại trang rồi sắp lại');
+    const ids = (p.ids || []).map(String).slice(0, 200);
+    const props = PropertiesService.getScriptProperties(), recs = mRows_().map((x) => x.rec), saved = prop_('MUSIC-' + target);
+    let plan;
+    if (saved) {
+      const old = JSON.parse(saved), limit = (now.getTime() - new Date(target + 'T' + MUSIC.start + ':00+07:00').getTime()) / 1000 + 120;
+      const fixed = old.filter((x) => x[1] <= limit), rest = old.filter((x) => x[1] > limit);
+      plan = rest.length ? fixed.concat(reorder_(rest, ids, recs, rest[0][1])) : old;
+      props.setProperty('MUSIC-' + target, JSON.stringify(plan));
+    } else {
+      props.setProperty('MUSIC-ORDER-' + target, JSON.stringify(ids));
+      plan = reorder_(plan_(target, recs), ids, recs, 0);
+    }
+    CacheService.getScriptCache().remove('music');
+    return planOut_(target, plan, !!saved, recs);
+  });
+}
+function orderOf_(day) { try { return JSON.parse(prop_('MUSIC-ORDER-' + day) || '[]'); } catch (x) { return []; } }
+// Bài có trong ids xếp đúng thứ tự đó; bài không có giữ thứ tự cũ và đứng sau. Tính lại giây bắt đầu, liền nhau từ t0.
+function reorder_(plan, ids, recs, t0) {
+  if (!ids || !ids.length || plan.length < 2) return plan;
+  const pos = {}, dur = {};
+  ids.forEach((id, k) => { if (!(id in pos)) pos[id] = k; });
+  recs.forEach((r) => { dur[r.id] = r.duration; });
+  let t = t0;
+  return plan.map((x, k) => ({ id: x[0], p: x[0] in pos ? pos[x[0]] : 1e6 + k })).sort((a, b) => a.p - b.p)
+    .map((x) => { const o = [x.id, t]; t += (dur[x.id] || 0) + MUSIC.gap; return o; });
 }
 
 // Xếp hàng: bài ghim trước; còn lại xen kẽ các phòng, mỗi vòng một bài/phòng, trong phòng bài duyệt trước phát trước.
