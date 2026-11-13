@@ -1,0 +1,30 @@
+# Bản tin TV chạy trong lab: 2 container dùng image có sẵn, không cần build.
+#   sync: kéo repo từ Gogs về volume "site", 60 giây hỏi lại một lần.
+#   web : nginx phát volume đó ở cổng WEB_PORT (mặc định 8080).
+# Chạy trong thư mục lab/:
+#   REPO_URL=http://<máy-gogs>:4001/minhnn23/cloud-tv.git docker compose up -d
+# (hoặc ghi REPO_URL=... và WEB_PORT=... vào file lab/.env)
+services:
+  sync:
+    image: alpine/git:latest
+    entrypoint: ["sh", "/sync.sh"]
+    environment:
+      REPO_URL: ${REPO_URL:?Thiếu REPO_URL}
+      BRANCH: ${BRANCH:-main}
+      INTERVAL: ${INTERVAL:-60}
+    volumes:
+      - site:/site
+      - ./sync.sh:/sync.sh:ro
+    restart: unless-stopped
+
+  web:
+    image: nginx:stable-alpine
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - site:/site:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+volumes:
+  site:

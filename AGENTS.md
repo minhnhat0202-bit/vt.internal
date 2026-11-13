@@ -17,6 +17,7 @@ Dành cho mọi agent (Claude Code, omp). Đọc file này trước, chỉ mở 
 GitHub Pages, nhánh `main`. `git push` = deploy, 1 đến 2 phút. TV tự tải lại khi `tv/index.html` hoặc `tv/content.js` đổi.
 - Bản tin TV: https://minhnhat0202-bit.github.io/vt.internal/tv/
 - Trang Giải: https://minhnhat0202-bit.github.io/vt.internal/
+- **Bản chạy thử trong lab (từ 13/11/2026):** remote `lab` = repo `minhnn23/cloud-tv` trên Gogs nội bộ. `git push lab main` sau khi đã push `origin`; server lab tự kéo về trong 60 giây. Ảnh Drive do GitHub Action commit lên `origin`, nên trước khi push lab phải `git pull origin main`. Gói triển khai cho quản trị lab ở `lab/` (xem `lab/README.md`). Repo GitHub là công khai: **không ghi địa chỉ IP nội bộ vào file trong repo**. `lab/*.sh`, `lab/*.yml`, `lab/*.yaml`, `lab/nginx.conf` chỉ Claude sửa.
 
 ## Công thức hay dùng
 - **Thêm tin Daily News:** ảnh vào `img/daily-YYYY-MM-DD[-n].jpg` (cạnh dài ≤ 1600, JPG: `sips -Z 1600 -s format jpeg in --out out.jpg`), video vào `media/daily-YYYY-MM-DD[-n].mp4` (H.264 MP4; **bắt buộc tiền tố `daily-`**, tên khác có thể bị GitHub Action dọn mất), rồi thêm một mục vào `STORIES` trong `tv/content.js`, `tab` là **tên nhóm**: Đời sống, Kinh doanh, Công nghệ, Phong trào hoặc Sự kiện (mô tả nhóm ở `GROUPS` trong `news/config.js`; thanh tab TV chỉ hiện nhóm, mỗi tin một đoạn vạch). Đặt `until` nếu tin chỉ chiếu vài ngày.
