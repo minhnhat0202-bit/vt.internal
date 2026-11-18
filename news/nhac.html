@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../img/logo-vtnet.png">
 <title>Duyệt nhạc giải lao</title>
-<link rel="stylesheet" href="news.css?v=20261118b">
+<link rel="stylesheet" href="news.css?v=20261118c">
 <!-- Ban Truyền thông duyệt nhạc giải lao mọi người gửi (index.html#nhac). Mật khẩu = ADMIN_KEY, dùng chung đăng nhập với duyet.html. -->
 </head>
 <body>
@@ -44,7 +44,8 @@
       <div class="panel"><h3><span class="dot"></span>Danh sách phát buổi tới</h3><div id="plan"></div></div>
       <div class="panel tips-panel"><h3>Cách duyệt</h3><ul class="tips">
         <li><b>Duyệt</b>: bài vào hàng chờ; người gửi nhận email nếu có để lại.</li>
-        <li><b>Ghim</b>: bài lên đầu buổi tới, không tính giới hạn mỗi người, mỗi phòng.</li>
+        <li><b>Ghim</b>: bài lên đầu buổi tới.</li>
+        <li>Không giới hạn số bài mỗi người, mỗi phòng. Bài đã duyệt chỉ sang buổi sau khi <b>trùng</b> với bài đã xếp trong buổi hoặc buổi <b>hết giờ</b>; thẻ bài ghi rõ lý do.</li>
         <li><b>Nhạc nền</b>: bài dự phòng, lấp chỗ trống khi hàng chờ không đủ 30 phút; không hết lượt, mỗi buổi phát tối đa một lần. Muốn thêm nhạc nền: gửi bài ở tab Gửi nhạc, rồi bấm Nhạc nền + Duyệt ở đây.</li>
         <li>Danh sách tự chốt 5 phút trước giờ phát (khi TV hỏi); bài được chọn chuyển sang <b>Đã phát</b>. Muốn đổi thứ tự phát: kéo thả bài ở khung <b>Danh sách phát buổi tới</b> (bài đang phát, sắp phát thì đứng yên). Bài duyệt sau giờ chốt được nối vào cuối buổi hôm nay nếu còn đủ giờ (phát sớm nhất 2 phút sau khi duyệt).</li>
         <li>Giờ phát và luật xếp hàng: <code>MUSIC</code> trong <code>apps-script/news.gs</code>.</li>
@@ -53,9 +54,9 @@
   </div>
 </main>
 
-<script src="config.js?v=20261118b"></script>
-<script src="shared.js?v=20261118b"></script>
-<script src="music.js?v=20261118b"></script>
+<script src="config.js?v=20261118c"></script>
+<script src="shared.js?v=20261118c"></script>
+<script src="music.js?v=20261118c"></script>
 <script>
 (function () {
   'use strict';
@@ -169,7 +170,7 @@
         <label class="f"><span class="fl">Ca sĩ</span><input data-k="artist" maxlength="60" value="${esc(r.artist)}"></label>
         <label class="f wide"><span class="fl">Lời nhắn trên TV</span><input data-k="message" maxlength="90" value="${esc(r.message)}"></label>
       </div>
-      ${r.status === 'approved' && !r.fallback && why[r.id] ? `<p class="warn">Chờ buổi sau: ${esc(why[r.id])}.${/giờ|trùng/.test(why[r.id]) ? '' : ' Muốn phát ngay buổi tới: tích <b>Ghim lên đầu</b> rồi bấm Lưu.'}</p>` : ''}
+      ${r.status === 'approved' && !r.fallback && why[r.id] ? `<p class="warn">Chờ buổi sau: ${esc(why[r.id])}.${/giờ/.test(why[r.id]) ? ' Muốn phát buổi tới: tích <b>Ghim lên đầu</b> rồi bấm Lưu.' : ''}</p>` : ''}
       ${(() => { const d = (r.status === 'pending' || r.status === 'approved') && !r.fallback && repeatOf(r); return d ? `<p class="warn">Trùng bài với ${esc(d.id)} (${esc(d.sender)} · ${esc(N.deptShort(d.dept))}): mỗi buổi chỉ phát một bản, bản còn lại chuyển sang buổi sau.</p>` : ''; })()}
       <p class="m-who"><b>${esc(r.sender)}</b> · ${esc(r.dept)}${r.contact ? ' · ' + esc(r.contact) : ''}</p>
       ${url ? `<div class="m-play"><button type="button" class="btn" data-a="listen">▶ Nghe thử</button><a href="${url}" target="_blank" rel="noopener">Mở file trên Drive</a></div>` : '<p class="m-who">File đã được dọn khỏi Drive.</p>'}

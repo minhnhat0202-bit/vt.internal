@@ -50,8 +50,8 @@ window.VTNEWS_CONFIG = {
     slot: '16:00 – 16:30',
     maxMB: 10, maxMinutes: 6, message: 90, title: 80, artist: 60,
     rules: [
-      'Mỗi người tối đa <b>1 bài mỗi buổi</b> và <b>2 bài mỗi tuần</b>; mỗi phòng tối đa <b>3 bài mỗi buổi</b>, các phòng phát xen kẽ.',
-      'Bài duyệt trước phát trước. Hết giờ chưa tới lượt thì chuyển sang buổi sau; chờ quá 7 ngày thì bài hết hạn.',
+      '<b>Không giới hạn</b> số bài mỗi người, mỗi phòng. Các phòng phát xen kẽ, trong phòng bài duyệt trước phát trước.',
+      'Hết giờ chưa tới lượt thì bài chuyển sang buổi sau; chờ quá 7 ngày thì bài hết hạn.',
       'Trong một buổi, mỗi bài hát chỉ phát một lần; bản gửi trùng chuyển sang buổi sau.',
       'Lời bài hát phù hợp nơi công sở; Ban Truyền thông có thể không duyệt bài có lời nhạy cảm hoặc chất lượng âm thanh kém.',
       'Tên người gửi, phòng và lời nhắn hiện trên TV khi bài được phát.'
