@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../img/logo-vtnet.png">
 <title>Duyệt nhạc giải lao</title>
-<link rel="stylesheet" href="news.css?v=20261118">
+<link rel="stylesheet" href="news.css?v=20261118b">
 <!-- Ban Truyền thông duyệt nhạc giải lao mọi người gửi (index.html#nhac). Mật khẩu = ADMIN_KEY, dùng chung đăng nhập với duyet.html. -->
 </head>
 <body>
@@ -53,15 +53,15 @@
   </div>
 </main>
 
-<script src="config.js?v=20261118"></script>
-<script src="shared.js?v=20261118"></script>
-<script src="music.js?v=20261118"></script>
+<script src="config.js?v=20261118b"></script>
+<script src="shared.js?v=20261118b"></script>
+<script src="music.js?v=20261118b"></script>
 <script>
 (function () {
   'use strict';
   const N = window.VTNews, V = window.VTMusic, esc = V.esc, $ = (id) => document.getElementById(id);
   const KEY_SS = 'vtnews-admin';
-  let key = '', items = [], filter = 'pending';
+  let key = '', items = [], why = {}, filter = 'pending';   // why: { mã bài: lý do bài đã duyệt chưa vào buổi tới } (máy chủ tính)
 
   function toast(msg, bad) {
     const t = document.createElement('div'); t.className = 'toast' + (bad ? ' bad' : ''); t.textContent = msg;
@@ -146,7 +146,7 @@
 
   function load() {
     return Promise.all([
-      N.call('music_list', { key }).then((j) => { items = j.items || []; render(); }),
+      N.call('music_list', { key }).then((j) => { items = j.items || []; why = j.why || {}; render(); }),
       N.call('music').then(drawPlan, () => { $('plan').innerHTML = '<p class="q-empty">Chưa tải được danh sách phát.</p>'; })
     ]).catch((e) => toast('Không tải được danh sách: ' + e.message, true));
   }
@@ -169,6 +169,7 @@
         <label class="f"><span class="fl">Ca sĩ</span><input data-k="artist" maxlength="60" value="${esc(r.artist)}"></label>
         <label class="f wide"><span class="fl">Lời nhắn trên TV</span><input data-k="message" maxlength="90" value="${esc(r.message)}"></label>
       </div>
+      ${r.status === 'approved' && !r.fallback && why[r.id] ? `<p class="warn">Chờ buổi sau: ${esc(why[r.id])}.${/giờ|trùng/.test(why[r.id]) ? '' : ' Muốn phát ngay buổi tới: tích <b>Ghim lên đầu</b> rồi bấm Lưu.'}</p>` : ''}
       ${(() => { const d = (r.status === 'pending' || r.status === 'approved') && !r.fallback && repeatOf(r); return d ? `<p class="warn">Trùng bài với ${esc(d.id)} (${esc(d.sender)} · ${esc(N.deptShort(d.dept))}): mỗi buổi chỉ phát một bản, bản còn lại chuyển sang buổi sau.</p>` : ''; })()}
       <p class="m-who"><b>${esc(r.sender)}</b> · ${esc(r.dept)}${r.contact ? ' · ' + esc(r.contact) : ''}</p>
       ${url ? `<div class="m-play"><button type="button" class="btn" data-a="listen">▶ Nghe thử</button><a href="${url}" target="_blank" rel="noopener">Mở file trên Drive</a></div>` : '<p class="m-who">File đã được dọn khỏi Drive.</p>'}
@@ -210,7 +211,7 @@
     N.call('music_save', { key, record: rec }).then((j) => {
       items = items.map((x) => (x.id === j.record.id ? j.record : x)); render();
       toast({ approved: 'Đã duyệt, bài vào hàng chờ', rejected: 'Đã từ chối', save: 'Đã lưu' }[a] + (j.mailed ? ' · đã gửi email cho ' + j.mailed : ''));
-      N.call('music').then(drawPlan, () => {});
+      load();                                      // danh sách phát và lý do chờ (why) đổi theo sau mỗi lần duyệt, ghim
     }).catch((x) => { toast('Lỗi: ' + x.message, true); el.querySelectorAll('.btn').forEach((y) => (y.disabled = false)); });
   });
   setInterval(() => { if (!document.hidden && key && !document.activeElement.closest('.mcard')) load(); }, 60000);

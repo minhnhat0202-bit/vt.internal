@@ -48,7 +48,7 @@ function doPost(e) {
     if (p.action === 'submit') return out_(submit_(p));
     if (p.action === 'music_submit') return out_(mSubmit_(p));
     auth_(p.key);
-    if (p.action === 'music_list') return out_({ ok: true, items: mRows_().map((x) => x.rec) });
+    if (p.action === 'music_list') return out_({ ok: true, items: mRows_().map((x) => x.rec), why: mWhy_() });
     if (p.action === 'music_save') return out_(mSave_(p));
     if (p.action === 'music_delete') return out_(mDel_(p));
     if (p.action === 'music_order') return out_(mOrder_(p));
@@ -383,6 +383,24 @@ function mOrder_(p) {
     return planOut_(target, plan, !!saved, recs);
   });
 }
+// Lý do từng bài đã duyệt chưa vào buổi tới ({ mã bài: lý do }), tính đúng như lúc xếp hàng. Chỉ trả cho trang duyệt (music_list).
+function mWhy_() {
+  const why = {};
+  try {
+    const now = new Date(), today = Utilities.formatDate(now, TZ, 'yyyy-MM-dd'), min = hmMin_(Utilities.formatDate(now, TZ, 'HH:mm'));
+    const target = isMusicDay_(today) && min < hmMin_(MUSIC.end) ? today : nextMusicDay_(today);
+    const recs = mRows_().map((x) => x.rec), saved = prop_('MUSIC-' + target);
+    if (!saved) plan_(target, recs, null, 0, why);
+    else {                                                   // đã chốt: như lúc nối bài duyệt muộn (appendLate_)
+      const old = JSON.parse(saved), byId = {};
+      recs.forEach((r) => { byId[r.id] = r; });
+      let t0 = Math.max(0, Math.ceil((now.getTime() - new Date(target + 'T' + MUSIC.start + ':00+07:00').getTime()) / 1000 + 120));
+      old.forEach((x) => { const r = byId[x[0]]; if (r) t0 = Math.max(t0, x[1] + r.duration + MUSIC.gap); });
+      plan_(target, recs, old, t0, why);
+    }
+  } catch (x) {}
+  return why;
+}
 function orderOf_(day) { try { return JSON.parse(prop_('MUSIC-ORDER-' + day) || '[]'); } catch (x) { return []; } }
 // Bài có trong ids xếp đúng thứ tự đó; bài không có giữ thứ tự cũ và đứng sau. Tính lại giây bắt đầu, liền nhau từ t0.
 function reorder_(plan, ids, recs, t0) {
@@ -399,7 +417,8 @@ function reorder_(plan, ids, recs, t0) {
 // Bỏ qua (giữ lượt hôm sau) bài vượt giới hạn mỗi người/mỗi phòng, bài trùng với bài đã xếp trong cùng buổi, bài không còn đủ giờ.
 // Bài đã phát những buổi trước được phát lại tự do (không còn luật chờ 14 ngày).
 // Trả về [[id, giây bắt đầu tính từ MUSIC.start], …]. prev, t0: danh sách đã chốt và giây bắt đầu xếp thêm (bài duyệt muộn).
-function plan_(day, recs, prev, t0) {
+// why (tuỳ chọn): được điền { mã bài: lý do bài chưa vào buổi này } để trang duyệt giải thích cho Ban Truyền thông.
+function plan_(day, recs, prev, t0, why) {
   const total = (hmMin_(MUSIC.end) - hmMin_(MUSIC.start)) * 60;
   const week = {}, weekFrom = addDay_(day, -6);
   recs.forEach((r) => {
@@ -428,8 +447,12 @@ function plan_(day, recs, prev, t0) {
   const take = (r) => { out.push([r.id, t]); t += r.duration + MUSIC.gap; mark(r); };
   mixed.forEach((r) => {
     const who = person_(r), n = day1[who] || 0;
-    if (!r.pin && (n >= MUSIC.perPersonDay || (week[who] || 0) + n >= MUSIC.perPersonWeek || (dept1[r.dept] || 0) >= MUSIC.perDeptDay)) return;
-    if (dup(r) || !fits(r)) return;
+    const no = !r.pin && n >= MUSIC.perPersonDay ? 'người gửi đã có bài trong buổi này (mỗi người ' + MUSIC.perPersonDay + ' bài mỗi buổi)'
+      : !r.pin && (week[who] || 0) + n >= MUSIC.perPersonWeek ? 'người gửi đã phát ' + (week[who] || 0) + ' bài trong 7 ngày qua (mỗi người ' + MUSIC.perPersonWeek + ' bài mỗi tuần)'
+      : !r.pin && (dept1[r.dept] || 0) >= MUSIC.perDeptDay ? 'phòng đã đủ ' + MUSIC.perDeptDay + ' bài trong buổi này'
+      : dup(r) ? 'trùng với một bài đã xếp trong buổi này'
+      : !fits(r) ? 'không còn đủ giờ trong buổi này' : '';
+    if (no) { if (why) why[r.id] = no; return; }
     take(r); day1[who] = n + 1; dept1[r.dept] = (dept1[r.dept] || 0) + 1;
   });
   // lấp chỗ trống bằng nhạc dự phòng, xáo theo ngày, mỗi bài tối đa một lần; hết bài thì để im tới hết giờ
