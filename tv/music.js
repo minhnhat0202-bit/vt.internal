@@ -264,7 +264,7 @@
         if (was) for (k = 0; k < p.items.length; k++) if (p.items[k].id === was.id && p.items[k].at === was.at) at2 = k;
         if (at2 > -1) cur = at2; else stopAll(true);
       }
-      plan = p;
+      plan = p; window.nhacPlan = p;   // khung Nhạc phát chiều nay (tv/index.html) đọc danh sách này
       var keep = {}; p.items.forEach(function (x) { keep[x.id] = 1; }); cacheClean(keep);   // bài rời danh sách: xoá khỏi bộ nhớ trình duyệt
     }, function () {});
   }

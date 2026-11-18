@@ -77,6 +77,9 @@ window.TV = {
     { text: 'Đi một ngày đàng, học một sàng khôn.', by: 'Tục ngữ Việt Nam' }
   ],
 
+  // Khung dưới bên phải: Sắp diễn ra và Nhạc phát chiều nay (khi hôm nay có nhạc giải lao) đổi nhau mỗi chừng này phút.
+  SIDE_SWAP_MINUTES: 10,
+
   // Tốc độ dòng chạy (px mỗi giây trên khung 1920). Tăng số = chạy nhanh hơn.
   TICKER_SPEED: 150,
 

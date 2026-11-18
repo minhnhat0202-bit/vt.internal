@@ -275,7 +275,7 @@
     </div>
     <div class="side">
       <div class="glass panel"><span class="lbl">Hôm nay</span><span class="pg"></span><ul id="p-today" data-empty="Hôm nay chưa có lịch."></ul></div>
-      <div class="glass panel"><span class="lbl">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
+      <div class="glass panel"><span class="lbl" id="lbl-next">Sắp diễn ra</span><span class="pg"></span><ul id="p-next" data-empty="Không còn lịch sắp tới."></ul></div>
     </div>
   </section>
 
@@ -339,7 +339,7 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 <script src="content.js"></script>
 <script src="../news/config.js?v=20261118"></script>
 <script src="../news/shared.js?v=20261118"></script>
-<script src="music.js?v=20261118"></script>
+<script src="music.js?v=20261118b"></script>
 <script>
 // Chạy sau khi ghép tin các phòng đã duyệt (news/, Apps Script) vào window.TV. ?preview=1 = khung xem trước của trang gửi tin, trang duyệt.
 function bootTV(PREVIEW) {
@@ -383,6 +383,29 @@ function bootTV(PREVIEW) {
   const AGENDA = (C.AGENDA || []).slice().sort((a, b) => a.from.localeCompare(b.from));
   const status = (it) => { const t = todayKey(); const end = it.to || it.from; return end < t ? 'done' : it.from <= t ? 'now' : 'next'; };
 
+  // ---------- khung dưới bên phải: Sắp diễn ra và Nhạc phát chiều nay đổi nhau mỗi SIDE_SWAP_MINUTES phút ----------
+  //   Nhạc lấy từ danh sách nhạc giải lao (tv/music.js, window.nhacPlan); chỉ hiện khi hôm nay có nhạc và còn bài chưa phát.
+  const SIDE_SWAP_MINUTES = C.SIDE_SWAP_MINUTES || 10;
+  let nextList = [];
+  const hmMin = (s) => { const a = String(s).split(':'); return +a[0] * 60 + +a[1]; };
+  function musicList() {
+    const p = window.nhacPlan; if (!p || p.day !== todayKey() || !p.items || !p.items.length) return [];
+    const d = new Date(), secNow = (d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds(), s0 = hmMin(p.start) * 60;
+    if (secNow >= hmMin(p.end) * 60) return [];
+    return p.items.filter((it) => s0 + it.at + (it.duration || 0) > secNow).map((it) => {
+      const m = Math.floor((s0 + it.at) / 60), at = p2(Math.floor(m / 60)) + ':' + p2(m % 60);
+      const who = it.fallback ? 'Nhạc nền' : [it.sender, window.VTNews && VTNews.deptShort ? VTNews.deptShort(it.dept) : it.dept].filter(Boolean).join(' · ');
+      return li(it.title + (it.artist ? ' · ' + it.artist : ''), [at, who].filter(Boolean).join(' · '));
+    });
+  }
+  let sideMode = '';
+  function sideSwap() {
+    const music = musicList(), slot = Math.floor(Date.now() / (SIDE_SWAP_MINUTES * 60000));
+    const mode = music.length && (slot % 2 || !nextList.length) ? 'music' : 'next';   // không có lịch sắp tới thì nhạc hiện suốt
+    dashLists['p-next'] = mode === 'music' ? music : nextList;
+    if (mode !== sideMode) { sideMode = mode; $('lbl-next').textContent = mode === 'music' ? 'Nhạc phát chiều nay' : 'Sắp diễn ra'; dashPage = 0; fadeIn($('p-next')); }
+  }
+
   // ---------- khung lịch bên phải: chia trang theo chiều cao thật của khung, mỗi trang 7 giây ----------
   let dashLists = {}, dashPage = 0;
   function paintPanels() {
@@ -409,7 +432,8 @@ function bootTV(PREVIEW) {
       .concat(AGENDA.filter((x) => x.to && status(x) === 'now').map((x) => li(x.title, meta(x, fmtRange(x) +
         (x.from === t ? ' · bắt đầu hôm nay' : daysLeft(vnDate(x.to)) ? ' · còn ' + daysLeft(vnDate(x.to)) + ' ngày' : ' · kết thúc hôm nay')))));
     // Sắp diễn ra: 4 mục gần nhất chưa tới
-    dashLists['p-next'] = AGENDA.filter((x) => status(x) === 'next').slice(0, 4).map((x) => li(x.title, meta(x, fmtRange(x) + ' · còn ' + daysLeft(vnDate(x.from)) + ' ngày')));
+    nextList = AGENDA.filter((x) => status(x) === 'next').slice(0, 4).map((x) => li(x.title, meta(x, fmtRange(x) + ' · còn ' + daysLeft(vnDate(x.from)) + ' ngày')));
+    sideSwap();
     paintPanels();
   }
 
@@ -703,7 +727,7 @@ function bootTV(PREVIEW) {
   fit(); clock(); setInterval(clock, 15000);
   setMedia(window.DRIVE_MEDIA || []); refreshMedia(); setInterval(refreshMedia, Math.max(60, MEDIA_REFRESH_SECONDS) * 1000);
   renderDash(); renderTicker(); loadQuotes(); setInterval(loadQuotes, 30 * 60000);
-  setInterval(() => { dashPage++; paintPanels(); }, 7000);
+  setInterval(() => { dashPage++; sideSwap(); paintPanels(); }, 7000);
   setInterval(() => { renderDash(); renderTicker(); }, 10 * 60000);   // sang ngày mới thì đổi trạng thái lịch
   preloadStills();
   const m = /^#(\d+)$/.exec(location.hash);                           // #2 mở thẳng tin số 2
