@@ -113,4 +113,4 @@ Chỉnh trong hằng `AUTO_RELOAD` (`checkSeconds`, `dailyAt`). Lần đầu áp
 
 Repo đã bật GitHub Pages (nhánh `main`, thư mục gốc). Commit và `git push` là xong, trang cập nhật sau 1 đến 2 phút, TV tự tải lại sau đó.
 
-Font FS PF BeauSans Pro là font nội bộ theo bộ nhận diện Viettel 2024 (FS Magistral không còn được dùng). Nếu repo công khai, cân nhắc bỏ `fonts/FSPFBeauSansPro-*`; trang tự dùng Roboto thay thế.
+Font FS PF BeauSans Pro là font nội bộ theo bộ nhận diện Viettel 2024 (không dùng FS Magistral vì chưa có bản quyền). Nếu repo công khai, cân nhắc bỏ `fonts/FSPFBeauSansPro-*`; trang tự dùng Roboto thay thế.
