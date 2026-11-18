@@ -1,0 +1,4 @@
+# clasp chỉ đẩy news.gs và appsscript.json lên Apps Script
+**/**
+!news.gs
+!appsscript.json

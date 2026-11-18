@@ -1,2 +1,5 @@
 .DS_Store
 desktop/MeoRobot.app
+
+# cấu hình clasp (mã tập lệnh Apps Script), không đưa lên repo công khai
+.clasp.json

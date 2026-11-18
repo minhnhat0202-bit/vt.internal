@@ -16,7 +16,7 @@
 // 3. Chọn hàm setup → Chạy → cấp quyền Sheet, Drive, Gmail.
 // 4. Triển khai → Tùy chọn triển khai mới → Ứng dụng web: Thực thi với tư cách "Tôi", Người có quyền truy cập "Bất kỳ ai"
 //    → chép URL kết thúc bằng /exec, dán vào API_URL trong news/config.js, commit + push.
-// Sửa script sau này: Triển khai → Quản lý → sửa bản đang chạy → Phiên bản mới (giữ nguyên URL).
+// Sửa script sau này: Triển khai → Quản lý → sửa bản đang chạy → Phiên bản mới (giữ nguyên URL); hoặc dùng clasp, xem mục Deploy trong AGENTS.md.
 
 const SHEET = 'Tin';
 const COLS = ['id', 'createdAt', 'updatedAt', 'status', 'dept', 'title', 'sender', 'contact', 'json'];
