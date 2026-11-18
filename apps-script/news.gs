@@ -223,7 +223,7 @@ const MUSIC = {
   start: '16:00', end: '16:30', days: [1, 2, 3, 4, 5], lockMin: 5, gap: 2,    // days: 0 = Chủ nhật; gap: giây nghỉ giữa hai bài
   maxB64: 14 * 1024 * 1024, maxSeconds: 360,                                  // file 10 MB (base64 ~13,4 MB), bài ≤ 6 phút
   perPersonDay: 1, perPersonWeek: 2, perDeptDay: 3, pendingPerPerson: 2,
-  expireDays: 7, noRepeatDays: 14, keepDays: 60                               // chờ quá 7 ngày thì hết hạn; xoá file sau 60 ngày
+  expireDays: 7, keepDays: 60                                                 // chờ quá 7 ngày thì hết hạn; xoá file sau 60 ngày
 };
 const M_STATUSES = ['pending', 'approved', 'rejected', 'played', 'expired'];
 const M_LIMITS = { dept: 80, sender: 60, contact: 80, title: 80, artist: 60, message: 90, note: 500 };
@@ -396,14 +396,14 @@ function reorder_(plan, ids, recs, t0) {
 }
 
 // Xếp hàng: bài ghim trước; còn lại xen kẽ các phòng, mỗi vòng một bài/phòng, trong phòng bài duyệt trước phát trước.
-// Bỏ qua (giữ lượt hôm sau) bài vượt giới hạn mỗi người/mỗi phòng, bài vừa phát trong noRepeatDays ngày, bài không còn đủ giờ.
+// Bỏ qua (giữ lượt hôm sau) bài vượt giới hạn mỗi người/mỗi phòng, bài trùng với bài đã xếp trong cùng buổi, bài không còn đủ giờ.
+// Bài đã phát những buổi trước được phát lại tự do (không còn luật chờ 14 ngày).
 // Trả về [[id, giây bắt đầu tính từ MUSIC.start], …]. prev, t0: danh sách đã chốt và giây bắt đầu xếp thêm (bài duyệt muộn).
 function plan_(day, recs, prev, t0) {
   const total = (hmMin_(MUSIC.end) - hmMin_(MUSIC.start)) * 60;
-  const recent = {}, week = {}, weekFrom = addDay_(day, -6), repFrom = addDay_(day, -MUSIC.noRepeatDays);
+  const week = {}, weekFrom = addDay_(day, -6);
   recs.forEach((r) => {
     if (!r.playedOn || r.playedOn >= day || r.fallback) return;
-    if (r.playedOn >= repFrom) recent[songKey_(r)] = 1;
     if (r.playedOn >= weekFrom) week[person_(r)] = (week[person_(r)] || 0) + 1;
   });
   const playable = (r) => r.status === 'approved' && r.file && r.file.id && r.duration > 0;
@@ -413,24 +413,27 @@ function plan_(day, recs, prev, t0) {
   queue.filter((r) => !r.pin).forEach((r) => { if (!byDept[r.dept]) { byDept[r.dept] = []; order.push(r.dept); } byDept[r.dept].push(r); });
   for (let k = 0; order.some((d) => byDept[d].length > k); k++) order.forEach((d) => { if (byDept[d][k]) mixed.push(byDept[d][k]); });
 
-  const out = (prev || []).slice(), day1 = {}, dept1 = {}, songs = {}, byId = {};
+  const out = (prev || []).slice(), day1 = {}, dept1 = {}, songs = [], byId = {};
+  // trùng trong cùng buổi: cùng tên bài và (cùng ca sĩ, hoặc một trong hai bản để trống ca sĩ)
+  const dup = (r) => { const t = norm_(r.title), a = norm_(r.artist); return songs.some((x) => x.t === t && (x.a === a || !x.a || !a)); };
+  const mark = (r) => { songs.push({ t: norm_(r.title), a: norm_(r.artist) }); };
   let t = t0 || 0;
   recs.forEach((r) => { byId[r.id] = r; });
   out.forEach((x) => {                                       // bài đã xếp tính vào giới hạn mỗi người, mỗi phòng
     const r = byId[x[0]]; if (!r) return;
-    songs[songKey_(r)] = 1;
+    mark(r);
     if (!r.fallback) { day1[person_(r)] = (day1[person_(r)] || 0) + 1; dept1[r.dept] = (dept1[r.dept] || 0) + 1; }
   });
   const fits = (r) => t + r.duration <= total;
-  const take = (r) => { out.push([r.id, t]); t += r.duration + MUSIC.gap; songs[songKey_(r)] = 1; };
+  const take = (r) => { out.push([r.id, t]); t += r.duration + MUSIC.gap; mark(r); };
   mixed.forEach((r) => {
     const who = person_(r), n = day1[who] || 0;
     if (!r.pin && (n >= MUSIC.perPersonDay || (week[who] || 0) + n >= MUSIC.perPersonWeek || (dept1[r.dept] || 0) >= MUSIC.perDeptDay)) return;
-    if (recent[songKey_(r)] || songs[songKey_(r)] || !fits(r)) return;
+    if (dup(r) || !fits(r)) return;
     take(r); day1[who] = n + 1; dept1[r.dept] = (dept1[r.dept] || 0) + 1;
   });
   // lấp chỗ trống bằng nhạc dự phòng, xáo theo ngày, mỗi bài tối đa một lần; hết bài thì để im tới hết giờ
-  if (!prev) shuffle_(recs.filter((r) => playable(r) && r.fallback), day).forEach((r) => { if (!songs[songKey_(r)] && fits(r)) take(r); });
+  if (!prev) shuffle_(recs.filter((r) => playable(r) && r.fallback), day).forEach((r) => { if (!dup(r) && fits(r)) take(r); });
   return out;
 }
 
@@ -501,7 +504,6 @@ function mFolder_() {
 function mId_() { return 'N' + Utilities.formatDate(new Date(), TZ, 'yyMMdd') + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(); }
 function norm_(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, ''); }
 function person_(r) { return norm_(r.sender) + '|' + r.dept; }
-function songKey_(r) { return norm_(r.title) + '|' + norm_(r.artist); }
 function hmMin_(hm) { const a = String(hm).split(':'); return +a[0] * 60 + +a[1]; }
 function addDay_(iso, n) { const d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
 function isMusicDay_(iso) { return MUSIC.days.indexOf(new Date(iso + 'T12:00:00Z').getUTCDay()) > -1; }

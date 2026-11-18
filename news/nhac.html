@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../img/logo-vtnet.png">
 <title>Duyệt nhạc giải lao</title>
-<link rel="stylesheet" href="news.css?v=20261113">
+<link rel="stylesheet" href="news.css?v=20261118">
 <!-- Ban Truyền thông duyệt nhạc giải lao mọi người gửi (index.html#nhac). Mật khẩu = ADMIN_KEY, dùng chung đăng nhập với duyet.html. -->
 </head>
 <body>
@@ -53,9 +53,9 @@
   </div>
 </main>
 
-<script src="config.js?v=20261113"></script>
-<script src="shared.js?v=20261113"></script>
-<script src="music.js?v=20261113"></script>
+<script src="config.js?v=20261118"></script>
+<script src="shared.js?v=20261118"></script>
+<script src="music.js?v=20261118"></script>
 <script>
 (function () {
   'use strict';
@@ -92,12 +92,12 @@
   const FILTERS = [['pending', 'Chờ duyệt'], ['approved', 'Trong hàng chờ'], ['fallback', 'Nhạc nền'], ['played', 'Đã phát'], ['done', 'Từ chối, hết hạn'], ['all', 'Tất cả']];
   const inFilter = (r, f) => { const s = stateOf(r); return f === 'all' || s === f || (f === 'done' && (s === 'rejected' || s === 'expired')); };
   const fmtTime = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : ('0' + d.getDate()).slice(-2) + '/' + ('0' + (d.getMonth() + 1)).slice(-2) + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); };
-  // Trùng bài đã phát trong 14 ngày (MUSIC.noRepeatDays) thì máy chủ bỏ qua khi xếp hàng: nhắc trước cho người duyệt
+  // Máy chủ chỉ phát một bản của mỗi bài trong một buổi (cùng tên, và cùng ca sĩ hoặc một bản để trống ca sĩ; xem plan_ trong news.gs):
+  // nhắc người duyệt khi bài trùng với một bài khác đang chờ duyệt hoặc trong hàng chờ. Bài đã phát buổi trước thì phát lại tự do.
   const norm = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '');
-  const songKey = (r) => norm(r.title) + '|' + norm(r.artist);
   function repeatOf(r) {
-    const from = N.addDays(N.dayKey(), -14);
-    return items.filter((x) => x.id !== r.id && x.playedOn && x.playedOn >= from && !x.fallback && songKey(x) === songKey(r))[0];
+    const t = norm(r.title), a = norm(r.artist);
+    return items.filter((x) => x.id !== r.id && (x.status === 'pending' || x.status === 'approved') && !x.fallback && norm(x.title) === t && (norm(x.artist) === a || !norm(x.artist) || !a))[0];
   }
   const fileUrl = (r) => (r.file && r.file.id ? 'https://drive.google.com/uc?export=download&id=' + r.file.id : '');
 
@@ -169,7 +169,7 @@
         <label class="f"><span class="fl">Ca sĩ</span><input data-k="artist" maxlength="60" value="${esc(r.artist)}"></label>
         <label class="f wide"><span class="fl">Lời nhắn trên TV</span><input data-k="message" maxlength="90" value="${esc(r.message)}"></label>
       </div>
-      ${(() => { const d = (r.status === 'pending' || r.status === 'approved') && !r.fallback && repeatOf(r); return d ? `<p class="warn">Trùng bài đã phát ngày ${esc(d.playedOn.split('-').reverse().join('/'))}: sẽ chưa được xếp lịch tới khi đủ 14 ngày, sau 7 ngày chờ thì hết hạn.</p>` : ''; })()}
+      ${(() => { const d = (r.status === 'pending' || r.status === 'approved') && !r.fallback && repeatOf(r); return d ? `<p class="warn">Trùng bài với ${esc(d.id)} (${esc(d.sender)} · ${esc(N.deptShort(d.dept))}): mỗi buổi chỉ phát một bản, bản còn lại chuyển sang buổi sau.</p>` : ''; })()}
       <p class="m-who"><b>${esc(r.sender)}</b> · ${esc(r.dept)}${r.contact ? ' · ' + esc(r.contact) : ''}</p>
       ${url ? `<div class="m-play"><button type="button" class="btn" data-a="listen">▶ Nghe thử</button><a href="${url}" target="_blank" rel="noopener">Mở file trên Drive</a></div>` : '<p class="m-who">File đã được dọn khỏi Drive.</p>'}
       <label class="f"><span class="fl">Phản hồi cho người gửi</span><input data-k="note" maxlength="500" value="${esc(r.note)}" placeholder="Bắt buộc khi từ chối; gửi kèm email kết quả"></label>
