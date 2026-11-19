@@ -95,6 +95,12 @@ window.TV = {
   //   src: một ảnh hoặc mảng ảnh (chuyển lần lượt, mỗi ảnh seconds giây, mặc định 7).
   BACKDROP: { src: ['img/backdrop-2026-10-21.jpg?v=5', 'img/backdrop-2026-10-21-2.jpg'], seconds: 7, from: '2026-10-21T08:15', until: '2026-10-21T10:20' },
 
+  // Trình chiếu: video của một tin phòng ban (news: mã tin, video đã được hệ thống chép từ link) phát riêng trong pop-up giữa màn hình,
+  // có tiếng, lặp tới hết giờ; nằm trên pop-up nhạc giải lao. title (tuỳ chọn) thay tiêu đề tin. Giờ Việt Nam. Hết lịch thì để [].
+  SHOWTIME: [
+    { news: 'T261119-E8X8', from: '2026-11-19T15:55', until: '2026-11-19T16:00' }
+  ],
+
   // Robot chào: thi thoảng chạy ngang màn hình, dừng giữa chừng vẫy tay kèm một câu chào ngẫu nhiên
   // (luôn có thêm câu chào theo buổi: sáng, trưa, chiều, tối). everyMinutes: bao lâu ra một lần. Tắt: ROBOT: null.
   // kind: 'robot' = robot vẫy tay chào (dùng greetings) · 'meo' = mèo robot luôn ở trên màn hình, liên tục đi dạo, liếm chân,

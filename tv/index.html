@@ -337,9 +337,9 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 </script>
 <script src="../media.js"></script>
 <script src="content.js"></script>
-<script src="../news/config.js?v=20261119"></script>
-<script src="../news/shared.js?v=20261119"></script>
-<script src="music.js?v=20261119"></script>
+<script src="../news/config.js?v=20261119b"></script>
+<script src="../news/shared.js?v=20261119b"></script>
+<script src="music.js?v=20261119b"></script>
 <script>
 // Chạy sau khi ghép tin các phòng đã duyệt (news/, Apps Script) vào window.TV. ?preview=1 = khung xem trước của trang gửi tin, trang duyệt.
 function bootTV(PREVIEW) {
@@ -662,6 +662,8 @@ function bootTV(PREVIEW) {
       .catch((e) => { failed++; console.warn('Chưa tải được video', j.v.id, e && e.message); })), Promise.resolve())
       .then(() => { vBusy = false; if (failed) setTimeout(prepVideos, 10 * 60000); });
   }
+  // Cho phần Trình chiếu (SHOWTIME, cuối file) lấy video đã tải xong của một tin
+  window.tinVideo = (id) => { const st = STORIES.find((s) => s.news === id); return st ? { title: st.title, dept: st.dept, videos: (st.videos || []).filter((v) => v.url && !v.bad) } : null; };
   window.videoDebug = () => STORIES.filter((st) => st.videos).map((st) => ({ tin: st.title, giay: st.seconds, video: st.videos.map((v) => ({ id: v.id, MB: +(v.size / 1048576).toFixed(1), xong: !!v.url, loi: !!v.bad, giay: v.seconds })) }));
   function renderTabs() {
     const box = $('tabs');
@@ -753,7 +755,7 @@ function bootTV(PREVIEW) {
     if (window.VTNews) VTNews.watch(60);   // tin phòng ban đổi (duyệt, gỡ, sửa) thì tải lại; kiểm tra mỗi 60 giây
     let baseline = '';
     fetchAll().then((h) => { baseline = h; });
-    setInterval(() => { fetchAll().then((h) => { if (baseline && h !== baseline && h.indexOf('5381:0') < 0 && !(window.nhacGiu && window.nhacGiu())) location.reload(); }); }, Math.max(30, AUTO_RELOAD.checkSeconds) * 1000);
+    setInterval(() => { fetchAll().then((h) => { if (baseline && h !== baseline && h.indexOf('5381:0') < 0 && !(window.nhacGiu && window.nhacGiu()) && !(window.chieuGiu && window.chieuGiu())) location.reload(); }); }, Math.max(30, AUTO_RELOAD.checkSeconds) * 1000);
   }
   let lastDaily = '';
   setInterval(() => {
@@ -790,6 +792,59 @@ function bootTV(PREVIEW) {
   }, (+B.seconds || 7) * 1000);
   function tick() { var n = Date.now(); box.style.display = (!(n < a) && !(n > b)) ? 'block' : 'none'; }
   tick(); setInterval(tick, 15000);
+})();
+// Trình chiếu (content.js SHOWTIME): video của một tin phòng ban phát riêng trong pop-up giữa màn hình, CÓ TIẾNG, lặp tới hết giờ.
+// Nằm trên pop-up nhạc giải lao; video phải đã tải xong (st.videos, xem prepVideos). TV chặn tiếng thì phát không tiếng, bấm OK để bật.
+// Xem thử: tv/?chieu (mục đầu tiên, bắt đầu sau 3 giây, chạy 2 phút).
+(function () {
+  var L = [].concat((window.TV || {}).SHOWTIME || []), TEST = /[?&]chieu\b/.test(location.search);
+  if (!L.length || /[?&]preview\b/.test(location.search)) return;
+  var t = function (s) { return s ? new Date(s.length <= 16 ? s + ':00+07:00' : s).getTime() : NaN; };
+  L = L.map(function (x) { return { news: x.news, title: x.title, a: t(x.from), b: t(x.until) }; });
+  if (TEST) { L[0].a = Date.now() + 3000; L[0].b = L[0].a + 120000; }
+  var css = document.createElement('style');
+  css.textContent = '.cscrim { position: absolute; left: 0; top: 0; right: 0; bottom: 116px; z-index: 30; background: rgba(0,0,0,.9); opacity: 0; visibility: hidden; transition: opacity .8s ease, visibility 0s .8s; }' +
+    '.cscrim.on, .cpop.on { opacity: 1; visibility: visible; transition: opacity .8s ease; }' +
+    '.cpop { position: absolute; left: 50%; top: 482px; width: 1640px; height: 900px; margin: -450px 0 0 -820px; z-index: 31; display: flex; flex-direction: column; padding: 56px 40px 32px; background: rgba(14,14,16,.97); border-color: rgba(238,0,51,.6); box-shadow: 0 40px 120px rgba(0,0,0,.8), 0 0 90px rgba(238,0,51,.25); opacity: 0; visibility: hidden; transition: opacity .8s ease, visibility 0s .8s; }' +
+    '.cpop .chead { display: flex; align-items: baseline; gap: 24px; margin-bottom: 20px; }' +
+    '.cpop h3 { flex: 1; margin: 0; font-family: var(--display); font-weight: 800; font-size: 40px; line-height: 1.15; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }' +
+    '.cpop .cleft { font-size: 26px; color: var(--grey); white-space: nowrap; }' +
+    '.cpop .cbox { position: relative; flex: 1; border-radius: 14px; overflow: hidden; background: #000; }' +
+    '.cpop video { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: contain; }' +
+    '.cpop .cmute { position: absolute; right: 20px; bottom: 20px; padding: 10px 20px; border-radius: 999px; background: rgba(0,0,0,.75); color: #fff; font-size: 24px; display: none; }' +
+    '.cpop .cmute.on { display: block; }';
+  document.head.appendChild(css);
+  var stage = document.getElementById('stage') || document.body;
+  var scrim = document.createElement('div'); scrim.className = 'cscrim'; stage.appendChild(scrim);
+  var pop = document.createElement('section'); pop.className = 'cpop glass panel'; stage.appendChild(pop);
+  var cur = null, vid = null, mute = null, left = null;
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  function close() {
+    if (!cur) return; cur = null; pop.className = 'cpop glass panel'; scrim.className = 'cscrim';
+    if (vid) { try { vid.pause(); } catch (e) {} var v = vid; vid = null; setTimeout(function () { v.removeAttribute('src'); pop.innerHTML = ''; }, 900); }
+  }
+  function open(x, info) {
+    cur = x;
+    pop.innerHTML = '<span class="lbl">Trình chiếu</span><div class="chead"><h3>' + esc(x.title || info.title) + '</h3><span class="cleft"></span></div>' +
+      '<div class="cbox"><video playsinline loop></video><div class="cmute">Bấm OK trên điều khiển để bật tiếng</div></div>';
+    vid = pop.querySelector('video'); mute = pop.querySelector('.cmute'); left = pop.querySelector('.cleft');
+    vid.src = info.videos[0].url; vid.muted = false; vid.volume = 1;
+    var p = vid.play();
+    if (p && p['catch']) p['catch'](function () { if (!vid) return; vid.muted = true; mute.className = 'cmute on'; vid.play()['catch'](function () {}); });
+    pop.className = 'cpop glass panel on'; scrim.className = 'cscrim on';
+  }
+  function unmute() { if (vid && vid.muted) { vid.muted = false; var p = vid.play(); if (p && p['catch']) p['catch'](function () { vid.muted = true; }); if (!vid.muted) mute.className = 'cmute'; } }
+  document.addEventListener('keydown', unmute); document.addEventListener('click', unmute);
+  function tick() {
+    var n = Date.now(), x = null;
+    for (var i = 0; i < L.length; i++) if (n >= L[i].a && n < L[i].b) { x = L[i]; break; }
+    if (!x) return close();
+    if (cur !== x) { var info = window.tinVideo && window.tinVideo(x.news); if (!info || !info.videos.length) return close(); open(x, info); }
+    var s = Math.max(0, Math.ceil((x.b - n) / 1000)); left.textContent = 'Còn ' + Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+  }
+  // không tự tải lại trang từ 10 phút trước tới hết giờ trình chiếu
+  window.chieuGiu = function () { var n = Date.now(); return L.some(function (x) { return n >= x.a - 600000 && n < x.b; }); };
+  tick(); setInterval(tick, 1000);
 })();
 // Robot chào (content.js ROBOT): mỗi everyMinutes phút (lệch ngẫu nhiên ±30%) chạy vào, dừng, nhảy, vẫy tay kèm lời chào rồi chạy ra.
 // Xem thử: tv/?robot (ra sau 2 giây, lặp 15 giây/lần). Gọi tay trong console: robotGo().
