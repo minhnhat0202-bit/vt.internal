@@ -6,6 +6,7 @@
 //   dept, sender, contact, message (lời nhắn cho Ban Truyền thông)
 //   where: { story, agenda, ticker }       vị trí trên TV đơn vị chọn
 //   title, tab (tên nhóm tin trong CFG.GROUPS = tab trên TV), tag, sub, images: [{ url, id?, w, h }], videoLink
+//   videos: [{ id, name, type, size }] (máy chủ chép từ videoLink khi Ban Truyền thông bấm Lưu), videoFrom, videoMsg (riêng tư)
 //   event: { title, from, to, time, place }
 //   ticker, showFrom, showUntil ('YYYY-MM-DD')
 //   pin, slideSeconds, note (admin)
@@ -13,7 +14,7 @@
   'use strict';
   var CFG = W.VTNEWS_CONFIG || {};
   var KEY = { demo: 'vtnews-demo', cache: 'vtnews-cache', preview: 'vtnews-preview' };
-  var PRIVATE = ['sender', 'contact', 'message', 'note', 'videoLink'];
+  var PRIVATE = ['sender', 'contact', 'message', 'note', 'videoLink', 'videoFrom', 'videoMsg'];
 
   function store(k, v) {
     try {
@@ -54,6 +55,7 @@
         dept: deptShort(r.dept) || r.dept || '', cover: imgs[0] || '' };
       if (imgs.length > 1) { st.slides = imgs.map(function (u) { return { src: u }; }); st.slideSeconds = +r.slideSeconds || CFG.SLIDE_SECONDS || 8; }
       else st.image = imgs[0] || '';
+      if (r.videos && r.videos.length) st.videos = r.videos.map(function (v) { return { id: v.id, type: v.type, size: v.size }; });
       out.stories.push(st);
     }
     var ev = r.event || {};
@@ -90,19 +92,37 @@
     data = data || {};
     if (!CFG.API_URL) return demo(action, data);
     var url = CFG.API_URL, req;
-    if (action === 'published' || action === 'music' || action === 'audio') req = fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + 'action=' + action + (data.id ? '&id=' + encodeURIComponent(data.id) : '') + '&t=' + Date.now(), { cache: 'no-store', redirect: 'follow' });
+    if (/^(published|music|audio|video)$/.test(action)) req = fetch(url + (url.indexOf('?') > -1 ? '&' : '?') + 'action=' + action + (data.id ? '&id=' + encodeURIComponent(data.id) : '') + (data.part != null ? '&part=' + data.part : '') + '&t=' + Date.now(), { cache: 'no-store', redirect: 'follow' });
     else req = fetch(url, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(Object.assign({ action: action }, data)) });
     return req.then(function (r) { if (!r.ok) throw new Error('Máy chủ trả lỗi ' + r.status); return r.json(); })
       .then(function (j) { if (!j.ok) throw new Error(j.error || 'Lỗi không rõ'); return j; });
   }
   // Nhạc: Drive chặn trang ngoài phát file trực tiếp (403 khi trình duyệt xin media từ github.io),
   // nên lấy file qua Apps Script (GET ?action=audio&id=<mã bài>, trả base64) rồi dựng thành blob URL để phát.
+  function bytes(b64) {
+    var b = atob(b64), n = b.length, u = new Uint8Array(n), i;
+    for (i = 0; i < n; i++) u[i] = b.charCodeAt(i);
+    return u;
+  }
   function audioBlob(id) {
-    return call('audio', { id: id }).then(function (j) {
-      var b = atob(j.data), n = b.length, u = new Uint8Array(n), i;
-      for (i = 0; i < n; i++) u[i] = b.charCodeAt(i);
-      return new Blob([u], { type: j.type || 'audio/mpeg' });
-    });
+    return call('audio', { id: id }).then(function (j) { return new Blob([bytes(j.data)], { type: j.type || 'audio/mpeg' }); });
+  }
+  // Video của tin: lấy từng đoạn (GET ?action=video&id=&part=k), mỗi đoạn thử lại 2 lần, ghép thành Blob; sai dung lượng thì báo lỗi
+  function videoBlob(id) {
+    var parts = [], type = 'video/mp4', size = 0;
+    function one(k, tries) {
+      return call('video', { id: id, part: k })['catch'](function (e) { if (tries > 0) return one(k, tries - 1); throw e; });
+    }
+    function get(k) {
+      return one(k, 2).then(function (j) {
+        type = j.type || type; size = j.size; parts.push(bytes(j.data));
+        if (k + 1 < j.parts) return get(k + 1);
+        var b = new Blob(parts, { type: type });
+        if (size && b.size !== size) throw new Error('Video tải thiếu');
+        return b;
+      });
+    }
+    return get(0);
   }
   function audio(id) { return audioBlob(id).then(function (b) { return URL.createObjectURL(b); }); }
   // images: record.images giữ thứ tự; ảnh mới là { new: k } trỏ tới files[k] = { name, type, data (base64), w, h }
@@ -188,7 +208,7 @@
 
   W.VTNews = Object.assign(api, {
     KEY: KEY, store: store, dayKey: dayKey, addDays: addDays, deptShort: deptShort, onAir: onAir, stateOf: stateOf,
-    toTV: toTV, mergeInto: mergeInto, call: call, audio: audio, audioBlob: audioBlob, published: published, loadForTV: loadForTV, watch: watch,
+    toTV: toTV, mergeInto: mergeInto, call: call, audio: audio, audioBlob: audioBlob, videoBlob: videoBlob, published: published, loadForTV: loadForTV, watch: watch,
     isDemo: function () { return !CFG.API_URL; },
     setPreview: function (r) { return store(KEY.preview, r); }
   });

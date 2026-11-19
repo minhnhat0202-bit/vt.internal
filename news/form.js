@@ -72,7 +72,7 @@
           <span><b>Kéo ảnh vào đây</b>, dán (Ctrl+V) hoặc <u>chọn từ máy</u></span>
           <small>Tối đa ${CFG.MAX_IMAGES} ảnh · bấm ✂ để cắt ảnh chụp cho kín khung TV · ảnh thiết kế dựng 1920 × 994 px · TV chiếu lần lượt, ảnh đầu tiên lên trước</small></div>
         <ol class="thumbs"></ol><small class="warn" data-warn="images"></small></div>
-      ${field('videoLink', 'Link video (nếu có)', { wide: true, type: 'url', ph: 'Link Google Drive, OneDrive…', hint: 'Video gửi qua link; Ban Truyền thông sẽ chuyển định dạng và đưa lên.' })}
+      ${field('videoLink', 'Link video (nếu có)', { wide: true, type: 'url', ph: 'Link Google Drive: một file video hoặc cả thư mục', hint: 'Bật chia sẻ "Bất kỳ ai có đường liên kết". Sau khi duyệt, hệ thống tự chép video lên TV, chiếu trước ảnh của tin (không tiếng). Tối đa 3 video, mỗi video dưới 200 MB, nên dùng MP4.' })}
     </div></section>
 
     <section class="card" data-sec="agenda" hidden><h2>Lịch: Hôm nay & Sắp diễn ra</h2><div class="grid">

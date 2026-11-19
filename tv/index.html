@@ -337,9 +337,9 @@ if (location.hash === '#ua') { document.addEventListener('DOMContentLoaded', fun
 </script>
 <script src="../media.js"></script>
 <script src="content.js"></script>
-<script src="../news/config.js?v=20261118c"></script>
-<script src="../news/shared.js?v=20261118c"></script>
-<script src="music.js?v=20261118c"></script>
+<script src="../news/config.js?v=20261119"></script>
+<script src="../news/shared.js?v=20261119"></script>
+<script src="music.js?v=20261119"></script>
 <script>
 // Chạy sau khi ghép tin các phòng đã duyệt (news/, Apps Script) vào window.TV. ?preview=1 = khung xem trước của trang gửi tin, trang duyệt.
 function bootTV(PREVIEW) {
@@ -624,6 +624,45 @@ function bootTV(PREVIEW) {
       });
     });
   }
+  // Video của tin phòng ban (st.videos, máy chủ chép từ link Drive): tải từng đoạn qua Apps Script, lưu Cache Storage 'vt-video',
+  // mở thử lấy độ dài; xong thì tin chiếu video trước (không tiếng) rồi tới ảnh. Chưa tải xong hoặc TV không đọc được thì tin vẫn chiếu ảnh như cũ.
+  const NEWS_VIDEO_MAX = C.NEWS_VIDEO_MAX_SECONDS || 180, VCACHE = 'vt-video', VBASE = location.origin + '/vt-video/';
+  const vStore = !!(window.caches && window.Response && (location.protocol === 'https:' || /^localhost$|^127\./.test(location.hostname)));
+  const vGet = (id) => (vStore ? caches.open(VCACHE).then((c) => c.match(VBASE + id)).then((r) => (r ? r.blob() : null)).catch(() => null) : Promise.resolve(null));
+  const vPut = (id, b) => { if (vStore) caches.open(VCACHE).then((c) => c.put(VBASE + id, new Response(b))).catch(() => {}); };
+  function vProbe(url) {
+    return new Promise((res) => {
+      const v = document.createElement('video'); let done = false;
+      const fin = (x) => { if (done) return; done = true; v.removeAttribute('src'); try { v.load(); } catch (e) {} res(x); };
+      v.muted = true; v.preload = 'metadata';
+      v.onloadedmetadata = () => fin(isFinite(v.duration) && v.duration > 0 ? v.duration : null);
+      v.onerror = () => fin(null); setTimeout(() => fin(null), 20000); v.src = url;
+    });
+  }
+  function useVideos(st) {
+    const ready = st.videos.filter((v) => v.url); if (!ready.length) return;
+    const imgs = st.slides ? st.slides.map((x) => x.src) : [st.image].filter(Boolean), ss = st.slideSeconds || 8;
+    st.items = ready.map((v) => ({ type: 'video', src: v.url, seconds: Math.min(NEWS_VIDEO_MAX, Math.ceil(v.seconds) + 1) }))
+      .concat(imgs.map((u) => ({ type: 'image', src: u, seconds: ss })));
+    st.seconds = st.items.reduce((t, it) => t + it.seconds, 0);
+  }
+  let vBusy = false;
+  function prepVideos() {
+    if (vBusy || !window.VTNews || !VTNews.videoBlob) return;
+    const jobs = [], keep = {};
+    STORIES.forEach((st) => (st.videos || []).forEach((v) => { keep[v.id] = 1; if (!v.url && !v.bad) jobs.push({ st, v }); }));
+    if (vStore) caches.open(VCACHE).then((c) => c.keys().then((ks) => ks.forEach((k) => { if (!keep[k.url.split('/vt-video/')[1]]) c.delete(k); }))).catch(() => {});
+    if (!jobs.length) return;
+    vBusy = true; let failed = 0;
+    jobs.reduce((p, j) => p.then(() => vGet(j.v.id)
+      .then((b) => (b && (!j.v.size || b.size === j.v.size) ? b : VTNews.videoBlob(j.v.id).then((nb) => { vPut(j.v.id, nb); return nb; })))
+      .then((b) => { const url = URL.createObjectURL(b); return vProbe(url).then((sec) => {
+        if (sec) { j.v.url = url; j.v.seconds = sec; useVideos(j.st); }
+        else { j.v.bad = true; URL.revokeObjectURL(url); console.warn('TV không đọc được video', j.v.id, j.v.type); } }); })
+      .catch((e) => { failed++; console.warn('Chưa tải được video', j.v.id, e && e.message); })), Promise.resolve())
+      .then(() => { vBusy = false; if (failed) setTimeout(prepVideos, 10 * 60000); });
+  }
+  window.videoDebug = () => STORIES.filter((st) => st.videos).map((st) => ({ tin: st.title, giay: st.seconds, video: st.videos.map((v) => ({ id: v.id, MB: +(v.size / 1048576).toFixed(1), xong: !!v.url, loi: !!v.bad, giay: v.seconds })) }));
   function renderTabs() {
     const box = $('tabs');
     let track = box.querySelector('.track');
@@ -729,7 +768,7 @@ function bootTV(PREVIEW) {
   renderDash(); renderTicker(); loadQuotes(); setInterval(loadQuotes, 30 * 60000);
   setInterval(() => { dashPage++; sideSwap(); paintPanels(); }, 7000);
   setInterval(() => { renderDash(); renderTicker(); }, 10 * 60000);   // sang ngày mới thì đổi trạng thái lịch
-  preloadStills();
+  preloadStills(); setTimeout(prepVideos, 5000);
   const m = /^#(\d+)$/.exec(location.hash);                           // #2 mở thẳng tin số 2
   showStory(m ? +m[1] - 1 : 0); storyRaf = requestAnimationFrame(storyLoop);
 }

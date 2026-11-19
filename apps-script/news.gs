@@ -1,7 +1,7 @@
 // Hộp thư tin các phòng ban cho Bản tin TV.
 //   news/index.html  → submit   (ai cũng gửi được, tin vào hàng chờ)
 //   news/duyet.html  → login, list, save, delete (cần ADMIN_KEY)
-//   tv/index.html    → GET ?action=published (tin đã duyệt, đã bỏ thông tin liên hệ)
+//   tv/index.html    → GET ?action=published (tin đã duyệt, đã bỏ thông tin liên hệ); GET ?action=video&id=&part= (video của tin, từng đoạn base64)
 //   Nhạc giải lao (phần cuối file): news/index.html#nhac → music_submit; news/nhac.html → music_list, music_save, music_delete, music_order;
 //   tv/music.js và trang gửi nhạc → GET ?action=music (danh sách phát buổi tới, chốt lúc 15:55); GET ?action=audio&id= (file nhạc base64).
 // Tin lưu trong sheet "Tin" của Google Sheet chứa script này; ảnh lưu trong một thư mục Drive chia sẻ "ai có link đều xem được".
@@ -13,7 +13,8 @@
 //      ADMIN_EMAIL = email nhận báo khi có tin mới (tuỳ chọn, nhiều email cách nhau dấu phẩy)
 //      FOLDER_ID   = id thư mục Drive chứa ảnh (tuỳ chọn; để trống thì script tự tạo)
 //      MUSIC_FOLDER_ID = id thư mục Drive chứa nhạc (tuỳ chọn; để trống thì script tự tạo)
-// 3. Chọn hàm setup → Chạy → cấp quyền Sheet, Drive, Gmail.
+//      VIDEO_FOLDER_ID = id thư mục Drive chứa video chép từ link của tin (tuỳ chọn; để trống thì script tự tạo)
+// 3. Chọn hàm setup → Chạy → cấp quyền Sheet, Drive, Gmail, kết nối dịch vụ bên ngoài (đọc video từng đoạn qua Drive API).
 // 4. Triển khai → Tùy chọn triển khai mới → Ứng dụng web: Thực thi với tư cách "Tôi", Người có quyền truy cập "Bất kỳ ai"
 //    → chép URL kết thúc bằng /exec, dán vào API_URL trong news/config.js, commit + push.
 // Sửa script sau này: Triển khai → Quản lý → sửa bản đang chạy → Phiên bản mới (giữ nguyên URL); hoặc dùng clasp, xem mục Deploy trong AGENTS.md.
@@ -22,13 +23,17 @@ const SHEET = 'Tin';
 const COLS = ['id', 'createdAt', 'updatedAt', 'status', 'dept', 'title', 'sender', 'contact', 'json'];
 const TZ = 'Asia/Ho_Chi_Minh';
 const MAX_IMAGES = 8, MAX_IMAGE_B64 = 4 * 1024 * 1024;
-const PRIVATE = ['sender', 'contact', 'message', 'note', 'videoLink'];
+const PRIVATE = ['sender', 'contact', 'message', 'note', 'videoLink', 'videoFrom', 'videoMsg'];
+// Video của tin: khi Ban Truyền thông bấm Lưu/Duyệt, script chép video từ link Drive người gửi (file hoặc thư mục) sang thư mục riêng;
+// TV lấy từng đoạn qua ?action=video (Drive chặn trang ngoài phát trực tiếp). chunk 6 MB → khoảng 8 MB base64 mỗi lần gọi.
+const VIDEO = { maxFiles: 3, maxMB: 200, chunk: 6 * 1024 * 1024 };
 const STATUSES = ['pending', 'approved', 'rejected', 'archived'];
 const LIMITS = { dept: 80, sender: 60, contact: 80, title: 60, tab: 22, tag: 14, sub: 70, videoLink: 500, ticker: 160, message: 500, note: 500,
   'event.title': 48, 'event.time': 20, 'event.place': 40 };
 
 function setup() {
-  sheet_(); folder_(); mSheet_(); mFolder_();
+  sheet_(); folder_(); mSheet_(); mFolder_(); vFolder_();
+  UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/about?fields=user', { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() }, muteHttpExceptions: true });
   if (!prop_('ADMIN_KEY')) throw new Error('Chưa đặt ADMIN_KEY trong Thuộc tính tập lệnh');
   Logger.log('Xong. Thư mục ảnh: https://drive.google.com/drive/folders/' + prop_('FOLDER_ID'));
 }
@@ -37,6 +42,7 @@ function doGet(e) {
   const a = (e && e.parameter && e.parameter.action) || 'published';
   if (a === 'published') return out_(published_());
   if (a === 'music') { try { return out_(musicPlan_()); } catch (x) { return out_({ ok: false, error: String(x && x.message || x) }); } }
+  if (a === 'video') { try { return out_(video_(e.parameter.id, e.parameter.part)); } catch (x) { return out_({ ok: false, error: String(x && x.message || x) }); } }
   if (a === 'audio') { try { return out_(mAudio_(e.parameter.id)); } catch (x) { return out_({ ok: false, error: String(x && x.message || x) }); } }
   return out_({ ok: false, error: 'Thao tác không hỗ trợ' });
 }
@@ -83,12 +89,16 @@ function submit_(p) {
 }
 
 function save_(p) {
+  // chép video trước khi khoá (có thể mất vài chục giây)
+  const pre = rows_().filter((x) => x.rec.id === (p.record && p.record.id))[0];
+  const vid = pre ? syncVideo_(pre.rec, clean_(p.record || {}, true).videoLink) : null;
   return withLock_(() => {
     const found = rows_().filter((x) => x.rec.id === (p.record && p.record.id))[0];
     if (!found) throw new Error('Không tìm thấy tin');
     const old = found.rec, r = Object.assign({}, old, clean_(p.record, true));
     r.id = old.id; r.createdAt = old.createdAt; r.updatedAt = new Date().toISOString();
     r.images = placeImages_(p.record.images || old.images, (p.files || []).slice(0, MAX_IMAGES), r.id).slice(0, MAX_IMAGES);
+    if (vid) Object.assign(r, vid);
     sheet_().getRange(found.row, 1, 1, COLS.length).setValues([toRow_(r)]);
     CacheService.getScriptCache().remove('published');
     let mailed = '';
@@ -101,7 +111,7 @@ function del_(p) {
   return withLock_(() => {
     const found = rows_().filter((x) => x.rec.id === p.id)[0];
     if (!found) throw new Error('Không tìm thấy tin');
-    (found.rec.images || []).forEach((i) => { if (i.id) try { DriveApp.getFileById(i.id).setTrashed(true); } catch (x) {} });
+    (found.rec.images || []).concat(found.rec.videos || []).forEach((i) => { if (i.id) try { DriveApp.getFileById(i.id).setTrashed(true); } catch (x) {} });
     sheet_().deleteRow(found.row);
     CacheService.getScriptCache().remove('published');
     return { ok: true };
@@ -119,6 +129,79 @@ function published_() {
   const res = { ok: true, items: items };
   try { cache.put('published', JSON.stringify(res), 60); } catch (x) {}
   return res;
+}
+
+// ---------- video của tin ----------
+// Trả { videos, videoFrom, videoMsg } khi cần ghi lại, null khi giữ nguyên.
+// Chép lại khi link đổi hoặc lần trước chưa lấy được video (người gửi sửa quyền chia sẻ rồi bấm Lưu lần nữa).
+function syncVideo_(old, link) {
+  link = link || '';
+  if (link && link === old.videoFrom && (old.videos || []).length) return null;
+  if (!link && !old.videoFrom && !(old.videos || []).length) return null;
+  const drop = () => (old.videos || []).forEach((v) => { try { DriveApp.getFileById(v.id).setTrashed(true); } catch (x) {} });
+  if (!link) { drop(); return { videos: [], videoFrom: '', videoMsg: '' }; }
+  try {
+    const got = importVideos_(link, old.id);
+    drop();
+    return { videos: got.videos, videoFrom: link, videoMsg: got.msg };
+  } catch (x) {
+    if (old.videoFrom !== link) drop();
+    return { videos: old.videoFrom === link ? (old.videos || []) : [], videoFrom: link, videoMsg: String(x && x.message || x) };
+  }
+}
+function driveRef_(url) {
+  const m = /\/folders\/([\w-]{10,})/.exec(url) || /\/d\/([\w-]{10,})/.exec(url) || /[?&]id=([\w-]{10,})/.exec(url);
+  if (!m || !/(^|\.)google\.com\//.test(url.replace(/^https?:\/\//, '').split('?')[0] + '/')) return null;
+  const k = /[?&]resourcekey=([\w-]+)/i.exec(url);
+  return { id: m[1], folder: /\/folders\//.test(url), key: k ? k[1] : '' };
+}
+function importVideos_(link, recId) {
+  const ref = driveRef_(link);
+  if (!ref) throw new Error('Chỉ tự lấy được video từ link Google Drive. Link khác (OneDrive, YouTube…) cần tải về rồi đưa lên tay');
+  let files = [];
+  try {
+    if (ref.folder) {
+      const f = ref.key ? DriveApp.getFolderByIdAndResourceKey(ref.id, ref.key) : DriveApp.getFolderById(ref.id), it = f.getFiles();
+      while (it.hasNext() && files.length < 50) files.push(it.next());
+    } else files = [ref.key ? DriveApp.getFileByIdAndResourceKey(ref.id, ref.key) : DriveApp.getFileById(ref.id)];
+  } catch (x) {
+    throw new Error('Không mở được link. Người gửi cần bật chia sẻ "Bất kỳ ai có đường liên kết" (Người xem) rồi bấm Lưu lại');
+  }
+  files = files.filter((x) => /^video\//.test(x.getMimeType())).sort((a, b) => a.getName().localeCompare(b.getName()));
+  if (!files.length) throw new Error(ref.folder ? 'Thư mục trong link không có file video' : 'File trong link không phải video');
+  const MB = 1024 * 1024, big = files.filter((x) => x.getSize() > VIDEO.maxMB * MB);
+  if (big.length) throw new Error('Video quá ' + VIDEO.maxMB + ' MB, TV không tải nổi: ' + big.map((x) => x.getName() + ' (' + Math.round(x.getSize() / MB) + ' MB)').join(', ') + '. Cần nén nhỏ lại');
+  const notes = [];
+  if (files.length > VIDEO.maxFiles) notes.push('Thư mục có ' + files.length + ' video, chỉ lấy ' + VIDEO.maxFiles + ' video đầu theo tên');
+  files = files.slice(0, VIDEO.maxFiles);
+  if (files.some((x) => !/mp4|webm/.test(x.getMimeType()))) notes.push('Có video không phải MP4 (ví dụ .mov từ iPhone), TV có thể không phát được; nên chuyển sang MP4');
+  const folder = vFolder_();
+  const videos = files.map((x, k) => {
+    let c;
+    try { c = x.makeCopy(recId + '-' + (k + 1) + '-' + x.getName(), folder); }
+    catch (e) { throw new Error('Không chép được "' + x.getName() + '" (người gửi có thể đã chặn tải xuống, sao chép)'); }
+    return { id: c.getId(), name: x.getName(), type: x.getMimeType(), size: c.getSize() || x.getSize() };
+  });
+  return { videos: videos, msg: notes.join('. ') };
+}
+// Một đoạn video base64. Chỉ trả video của tin đang lên TV. Đọc từng đoạn bằng Drive API (Range) vì getBlob() giới hạn 50 MB.
+function video_(id, part) {
+  const v = [].concat.apply([], published_().items.map((r) => r.videos || [])).filter((x) => x.id === id)[0];
+  if (!v) throw new Error('Không tìm thấy video');
+  const parts = Math.max(1, Math.ceil(v.size / VIDEO.chunk)), k = Math.max(0, Math.min(parts - 1, parseInt(part, 10) || 0));
+  const a = k * VIDEO.chunk, b = Math.min(v.size, a + VIDEO.chunk) - 1;
+  const res = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(id) + '?alt=media',
+    { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken(), Range: 'bytes=' + a + '-' + b }, muteHttpExceptions: true });
+  const code = res.getResponseCode();
+  if (code !== 200 && code !== 206) throw new Error('Drive trả lỗi ' + code);
+  return { ok: true, type: v.type, size: v.size, part: k, parts: parts, data: Utilities.base64Encode(res.getContent()) };
+}
+function vFolder_() {
+  const id = prop_('VIDEO_FOLDER_ID');
+  if (id) return DriveApp.getFolderById(id);
+  const f = DriveApp.createFolder('Bản tin TV · Video tin phòng ban');
+  PropertiesService.getScriptProperties().setProperty('VIDEO_FOLDER_ID', f.getId());
+  return f;
 }
 
 // ---------- tiện ích ----------

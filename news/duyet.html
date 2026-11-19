@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" href="../img/logo-vtnet.png">
 <title>Duyệt tin Bản tin TV</title>
-<link rel="stylesheet" href="news.css?v=20261118c">
+<link rel="stylesheet" href="news.css?v=20261119">
 <!-- Trang Ban Truyền thông duyệt, biên tập tin các phòng gửi. Mật khẩu = ADMIN_KEY trong Apps Script. -->
 </head>
 <body>
@@ -70,9 +70,9 @@
   </main>
 </div>
 
-<script src="config.js?v=20261118c"></script>
-<script src="shared.js?v=20261118c"></script>
-<script src="form.js?v=20261118c"></script>
+<script src="config.js?v=20261119"></script>
+<script src="shared.js?v=20261119"></script>
+<script src="form.js?v=20261119"></script>
 <script>
 (function () {
   'use strict';
@@ -160,7 +160,12 @@
     $('b-reject').hidden = cur.status === 'rejected';
     $('b-approve').textContent = cur.status === 'approved' ? 'Lưu & cập nhật TV' : 'Duyệt & đưa lên TV';
     $('b-save').hidden = cur.status === 'approved';
-    const links = [cur.videoLink && `<li>Video: <a href="${esc(cur.videoLink)}" target="_blank" rel="noopener">${esc(cur.videoLink)}</a></li>`,
+    const vids = (cur.videos || []).map((v) => `${esc(v.name)} (${Math.max(1, Math.round(v.size / 1048576))} MB)`).join(', ');
+    const vState = !cur.videoLink ? '' : cur.videoFrom === cur.videoLink && vids
+      ? `<br>Đã chép về hệ thống: ${vids}. TV tải sẵn rồi chiếu trước ảnh của tin.${cur.videoMsg ? ` <b class="warn">${esc(cur.videoMsg)}.</b>` : ''}`
+      : cur.videoFrom === cur.videoLink && cur.videoMsg ? `<br><b class="warn">Chưa lấy được video: ${esc(cur.videoMsg)}.</b>`
+      : '<br>Bấm Lưu hoặc Duyệt để hệ thống chép video lên TV (có thể mất vài chục giây).';
+    const links = [cur.videoLink && `<li>Video: <a href="${esc(cur.videoLink)}" target="_blank" rel="noopener">${esc(cur.videoLink)}</a>${vState}</li>`,
       cur.message && `<li>Lời nhắn: ${esc(cur.message)}</li>`,
       cur.updatedAt && cur.updatedAt !== cur.createdAt && `<li>Sửa lần cuối ${fmtTime(cur.updatedAt)}</li>`].filter(Boolean);
     $('e-extra').innerHTML = `<h3>Từ đơn vị</h3><ul class="tips">${links.join('') || '<li>Không có lời nhắn hay video kèm theo.</li>'}</ul>`;
@@ -175,7 +180,8 @@
     N.call('save', Object.assign({ key }, p)).then((j) => {
       dirty = false; items = items.map((x) => (x.id === j.record.id ? j.record : x)); cur = j.record;
       form.set(j.record); head(j.record); renderList(); preview(form.get());
-      toast(label + (j.mailed ? ' · đã gửi email cho ' + j.mailed : ''));
+      const r = j.record, vNote = r.videoLink && r.videoFrom === r.videoLink ? ((r.videos || []).length ? ' · đã chép ' + r.videos.length + ' video' : ' · chưa lấy được video, xem mục Từ đơn vị') : '';
+      toast(label + vNote + (j.mailed ? ' · đã gửi email cho ' + j.mailed : ''), !!vNote && !(r.videos || []).length);
     }).catch((e) => toast('Lỗi: ' + e.message, true)).then(() => btns.forEach((b) => (b.disabled = false)));
   }
   $('b-save').addEventListener('click', () => save('', 'Đã lưu'));
